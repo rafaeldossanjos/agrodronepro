@@ -7,9 +7,13 @@ import {
   Package, 
   Plane, 
   BarChart3, 
-  Settings 
+  Settings,
+  LogOut,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -24,6 +28,7 @@ const navigation = [
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -64,8 +69,21 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </nav>
 
           {/* Footer */}
-          <div className="border-t border-border p-4">
-            <p className="text-xs text-muted-foreground">
+          <div className="border-t border-border p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground truncate">{user?.email}</span>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full" 
+              onClick={signOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
               © 2024 AgroDrone PRO
             </p>
           </div>

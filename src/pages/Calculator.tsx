@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calculator as CalcIcon, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
   Select,
   SelectContent,
@@ -12,6 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+const calculationSchema = z.object({
+  area: z.number().min(0.0001, 'Área deve ser maior que 0').max(100000, 'Área muito grande'),
+  flowRate: z.number().min(0.1, 'Vazão deve ser maior que 0').max(1000, 'Vazão muito alta'),
+  tankVolume: z.number().min(1, 'Capacidade do tanque deve ser maior que 0').max(10000, 'Capacidade muito alta'),
+});
+
+const productSchema = z.object({
+  name: z.string().min(1, 'Nome do produto é obrigatório').max(100),
+  dose: z.number().min(0.001, 'Dose deve ser maior que 0').max(100000, 'Dose muito alta'),
+  unit: z.string().min(1, 'Unidade é obrigatória'),
+  price: z.number().min(0, 'Preço não pode ser negativo').max(1000000, 'Preço muito alto'),
+});
 
 type Product = {
   id: string;
@@ -76,9 +90,14 @@ export default function Calculator() {
   };
 
   const calculate = () => {
-    if (area <= 0 || flowRate <= 0 || tankVolume <= 0) {
-      toast.error("Preencha todos os campos corretamente");
-      return;
+    // Validar parâmetros da aplicação
+    try {
+      calculationSchema.parse({ area, flowRate, tankVolume });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
     }
 
     if (products.length === 0) {
@@ -88,9 +107,13 @@ export default function Calculator() {
 
     // Validar produtos
     for (const p of products) {
-      if (!p.name || p.dose <= 0) {
-        toast.error("Preencha todos os dados dos produtos");
-        return;
+      try {
+        productSchema.parse(p);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          toast.error(`Produto "${p.name || 'sem nome'}": ${error.errors[0].message}`);
+          return;
+        }
       }
     }
 

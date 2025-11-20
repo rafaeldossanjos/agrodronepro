@@ -14,7 +14,236 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          application_date: string
+          application_type: Database["public"]["Enums"]["application_type"]
+          area_applied: number
+          created_at: string
+          flight_time_minutes: number | null
+          id: string
+          notes: string | null
+          product_amount: number
+          product_id: string
+          property_id: string
+          status: Database["public"]["Enums"]["application_status"]
+          total_cost: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_date: string
+          application_type: Database["public"]["Enums"]["application_type"]
+          area_applied: number
+          created_at?: string
+          flight_time_minutes?: number | null
+          id?: string
+          notes?: string | null
+          product_amount: number
+          product_id: string
+          property_id: string
+          status?: Database["public"]["Enums"]["application_status"]
+          total_cost: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_date?: string
+          application_type?: Database["public"]["Enums"]["application_type"]
+          area_applied?: number
+          created_at?: string
+          flight_time_minutes?: number | null
+          id?: string
+          notes?: string | null
+          product_amount?: number
+          product_id?: string
+          property_id?: string
+          status?: Database["public"]["Enums"]["application_status"]
+          total_cost?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flight_planning: {
+        Row: {
+          area: number
+          battery_time_minutes: number
+          created_at: string
+          estimated_flights: number | null
+          estimated_time_minutes: number | null
+          flight_speed: number
+          id: string
+          name: string
+          notes: string | null
+          property_id: string | null
+          swath_width: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area: number
+          battery_time_minutes: number
+          created_at?: string
+          estimated_flights?: number | null
+          estimated_time_minutes?: number | null
+          flight_speed: number
+          id?: string
+          name: string
+          notes?: string | null
+          property_id?: string | null
+          swath_width: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area?: number
+          battery_time_minutes?: number
+          created_at?: string
+          estimated_flights?: number | null
+          estimated_time_minutes?: number | null
+          flight_speed?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          property_id?: string | null
+          swath_width?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flight_planning_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          id: string
+          manufacturer: string | null
+          name: string
+          stock_quantity: number
+          unit: string
+          unit_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          id?: string
+          manufacturer?: string | null
+          name: string
+          stock_quantity?: number
+          unit?: string
+          unit_price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          manufacturer?: string | null
+          name?: string
+          stock_quantity?: number
+          unit?: string
+          unit_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          created_at: string
+          id: string
+          location: string
+          name: string
+          notes: string | null
+          plot_count: number
+          total_area: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location: string
+          name: string
+          notes?: string | null
+          plot_count?: number
+          total_area: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string
+          name?: string
+          notes?: string | null
+          plot_count?: number
+          total_area?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +252,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      application_status:
+        | "planejada"
+        | "em_andamento"
+        | "concluída"
+        | "cancelada"
+      application_type: "pulverização" | "adubação" | "semeadura" | "outro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +384,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      application_status: [
+        "planejada",
+        "em_andamento",
+        "concluída",
+        "cancelada",
+      ],
+      application_type: ["pulverização", "adubação", "semeadura", "outro"],
+    },
   },
 } as const
