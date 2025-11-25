@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator as CalcIcon, Plus, Trash2 } from "lucide-react";
+import { Calculator as CalcIcon, Plus, Trash2, Package } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useProducts } from "@/hooks/useProducts";
+import { ProductDialog } from "@/components/ProductDialog";
 
 const calculationSchema = z.object({
   area: z.number().min(0.0001, 'Área deve ser maior que 0').max(100000, 'Área muito grande'),
@@ -29,6 +31,7 @@ const productSchema = z.object({
 
 type Product = {
   id: string;
+  productId?: string; // ID do produto cadastrado no banco
   name: string;
   dose: number;
   unit: string;
@@ -57,6 +60,7 @@ type CalculationResults = {
 };
 
 export default function Calculator() {
+  const { products: registeredProducts, isLoading: loadingProducts } = useProducts();
   const [area, setArea] = useState<number>(10);
   const [flowRate, setFlowRate] = useState<number>(10);
   const [tankVolume, setTankVolume] = useState<number>(20);
@@ -64,17 +68,47 @@ export default function Calculator() {
   const [calculated, setCalculated] = useState(false);
   const [results, setResults] = useState<CalculationResults | null>(null);
 
+  // Adicionar um produto vazio ao iniciar
+  useEffect(() => {
+    if (products.length === 0) {
+      addProduct();
+    }
+  }, []);
+
   const addProduct = () => {
     setProducts([
       ...products,
       {
         id: Date.now().toString(),
+        productId: undefined,
         name: "",
         dose: 0,
         unit: "L/ha",
         price: 0,
       },
     ]);
+  };
+
+  const selectRegisteredProduct = (localId: string, productId: string) => {
+    const selectedProduct = registeredProducts.find(p => p.id === productId);
+    if (selectedProduct) {
+      setProducts(
+        products.map((p) => 
+          p.id === localId 
+            ? { 
+                ...p, 
+                productId: selectedProduct.id,
+                name: selectedProduct.name,
+                price: selectedProduct.unit_price,
+                unit: selectedProduct.unit === 'L' ? 'L/ha' : 
+                      selectedProduct.unit === 'mL' ? 'mL/ha' :
+                      selectedProduct.unit === 'kg' ? 'kg/ha' : 'g/ha'
+              } 
+            : p
+        )
+      );
+      setCalculated(false);
+    }
   };
 
   const removeProduct = (id: string) => {
@@ -189,14 +223,14 @@ export default function Calculator() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Input Form */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="p-6">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <Card className="p-4 sm:p-6">
+            <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground">
               Parâmetros da Aplicação
             </h2>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
               <div>
-                <Label htmlFor="area">Área (ha)</Label>
+                <Label htmlFor="area" className="text-xs sm:text-sm">Área (ha)</Label>
                 <Input
                   id="area"
                   type="number"
@@ -207,10 +241,11 @@ export default function Calculator() {
                   }}
                   min="0"
                   step="0.0001"
+                  className="h-9 sm:h-10"
                 />
               </div>
               <div>
-                <Label htmlFor="flowRate">Vazão (L/ha)</Label>
+                <Label htmlFor="flowRate" className="text-xs sm:text-sm">Vazão (L/ha)</Label>
                 <Input
                   id="flowRate"
                   type="number"
@@ -221,10 +256,11 @@ export default function Calculator() {
                   }}
                   min="0"
                   step="0.01"
+                  className="h-9 sm:h-10"
                 />
               </div>
               <div>
-                <Label htmlFor="tankVolume">Capacidade do Tanque (L)</Label>
+                <Label htmlFor="tankVolume" className="text-xs sm:text-sm">Capacidade do Tanque (L)</Label>
                 <Input
                   id="tankVolume"
                   type="number"
@@ -235,106 +271,150 @@ export default function Calculator() {
                   }}
                   min="0"
                   step="1"
+                  className="h-9 sm:h-10"
                 />
               </div>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <div className="mb-4 flex items-center justify-between">
+          <Card className="p-4 sm:p-6">
+            <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-foreground">
                 Produtos
               </h2>
-              <Button onClick={addProduct} size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Adicionar Produto
-              </Button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <ProductDialog 
+                  trigger={
+                    <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-initial">
+                      <Package className="h-4 w-4" />
+                      <span className="hidden sm:inline">Cadastrar</span>
+                      <span className="sm:hidden">Cadastrar Produto</span>
+                    </Button>
+                  }
+                />
+                <Button onClick={addProduct} size="sm" className="gap-2 flex-1 sm:flex-initial">
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Adicionar</span>
+                  <span className="sm:hidden">Adicionar à Lista</span>
+                </Button>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {products.map((product) => (
+            <div className="space-y-4">
+              {products.map((product, index) => (
                 <div
                   key={product.id}
-                  className="grid gap-3 rounded-lg border border-border p-4 md:grid-cols-6"
+                  className="rounded-lg border border-border p-3 sm:p-4 space-y-3"
                 >
-                  <div className="md:col-span-2">
-                    <Label>Nome do Produto</Label>
-                    <Input
-                      value={product.name}
-                      onChange={(e) =>
-                        updateProduct(product.id, "name", e.target.value)
-                      }
-                      placeholder="Ex: Herbicida"
-                    />
-                  </div>
-                  <div>
-                    <Label>Dose</Label>
-                    <Input
-                      type="number"
-                      value={product.dose || ""}
-                      onChange={(e) =>
-                        updateProduct(product.id, "dose", Number(e.target.value))
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div>
-                    <Label>Unidade</Label>
-                    <Select
-                      value={product.unit}
-                      onValueChange={(value) =>
-                        updateProduct(product.id, "unit", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="L/ha">L/ha</SelectItem>
-                        <SelectItem value="mL/ha">mL/ha</SelectItem>
-                        <SelectItem value="kg/ha">kg/ha</SelectItem>
-                        <SelectItem value="g/ha">g/ha</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Preço (R$/unid)</Label>
-                    <Input
-                      type="number"
-                      value={product.price || ""}
-                      onChange={(e) =>
-                        updateProduct(product.id, "price", Number(e.target.value))
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div className="flex items-end">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Produto {index + 1}
+                    </span>
                     <Button
-                      variant="destructive"
+                      variant="ghost"
                       size="icon"
+                      className="h-8 w-8"
                       onClick={() => removeProduct(product.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+
+                  <div className="grid gap-3">
+                    <div>
+                      <Label className="text-xs">Produto Cadastrado</Label>
+                      <Select
+                        value={product.productId || "manual"}
+                        onValueChange={(value) => {
+                          if (value !== "manual") {
+                            selectRegisteredProduct(product.id, value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Selecione um produto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manual">Entrada Manual</SelectItem>
+                          {registeredProducts.filter(p => p.active).map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name} - R$ {p.unit_price.toFixed(2)}/{p.unit}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs">Nome do Produto</Label>
+                      <Input
+                        value={product.name}
+                        onChange={(e) =>
+                          updateProduct(product.id, "name", e.target.value)
+                        }
+                        placeholder="Ex: Herbicida"
+                        className="h-9"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">Dose</Label>
+                        <Input
+                          type="number"
+                          value={product.dose || ""}
+                          onChange={(e) =>
+                            updateProduct(product.id, "dose", Number(e.target.value))
+                          }
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          className="h-9"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Unidade</Label>
+                        <Select
+                          value={product.unit}
+                          onValueChange={(value) =>
+                            updateProduct(product.id, "unit", value)
+                          }
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="L/ha">L/ha</SelectItem>
+                            <SelectItem value="mL/ha">mL/ha</SelectItem>
+                            <SelectItem value="kg/ha">kg/ha</SelectItem>
+                            <SelectItem value="g/ha">g/ha</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs">Preço (R$/unid)</Label>
+                      <Input
+                        type="number"
+                        value={product.price || ""}
+                        onChange={(e) =>
+                          updateProduct(product.id, "price", Number(e.target.value))
+                        }
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
 
-              {products.length === 0 && (
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-12 text-center">
-                  <CalcIcon className="mb-2 h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum produto adicionado
-                  </p>
-                </div>
-              )}
             </div>
 
             <div className="mt-4">
-              <Button onClick={calculate} className="w-full" size="lg">
-                <CalcIcon className="mr-2 h-5 w-5" />
+              <Button onClick={calculate} className="w-full h-10 sm:h-11" size="lg">
+                <CalcIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Calcular
               </Button>
             </div>
@@ -342,16 +422,16 @@ export default function Calculator() {
         </div>
 
         {/* Results Panel */}
-        <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">
+        <div className="space-y-4 sm:space-y-6">
+          <Card className="p-4 sm:p-6">
+            <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground">
               Resultados
             </h2>
 
             {!calculated ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <CalcIcon className="mb-2 h-12 w-12 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
+                <CalcIcon className="mb-2 h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground" />
+                <p className="text-xs sm:text-sm text-muted-foreground px-4">
                   Configure os parâmetros e clique em Calcular
                 </p>
               </div>
