@@ -119,9 +119,9 @@ export default function Applications() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">Produto</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Produtos</p>
                       <p className="text-sm sm:text-base font-medium text-foreground">
-                        {app.products?.name || "N/A"}
+                        {app.application_products?.length || 0} produto(s)
                       </p>
                     </div>
                     <div>

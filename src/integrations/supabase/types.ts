@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_products: {
+        Row: {
+          application_id: string
+          created_at: string
+          dose_per_ha: number
+          id: string
+          product_id: string
+          total_amount: number
+          total_cost: number
+          unit_cost: number
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          dose_per_ha: number
+          id?: string
+          product_id: string
+          total_amount: number
+          total_cost: number
+          unit_cost: number
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          dose_per_ha?: number
+          id?: string
+          product_id?: string
+          total_amount?: number
+          total_cost?: number
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_products_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           application_date: string
@@ -23,8 +71,6 @@ export type Database = {
           flight_time_minutes: number | null
           id: string
           notes: string | null
-          product_amount: number
-          product_id: string
           property_id: string
           status: Database["public"]["Enums"]["application_status"]
           total_cost: number
@@ -39,8 +85,6 @@ export type Database = {
           flight_time_minutes?: number | null
           id?: string
           notes?: string | null
-          product_amount: number
-          product_id: string
           property_id: string
           status?: Database["public"]["Enums"]["application_status"]
           total_cost: number
@@ -55,8 +99,6 @@ export type Database = {
           flight_time_minutes?: number | null
           id?: string
           notes?: string | null
-          product_amount?: number
-          product_id?: string
           property_id?: string
           status?: Database["public"]["Enums"]["application_status"]
           total_cost?: number
@@ -64,13 +106,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "applications_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "applications_property_id_fkey"
             columns: ["property_id"]

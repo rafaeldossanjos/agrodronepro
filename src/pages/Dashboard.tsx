@@ -119,7 +119,7 @@ export default function Dashboard() {
           property: property?.name || 'Propriedade',
           area: `${Number(app.area_applied).toFixed(1)} ha`,
           date: format(new Date(app.application_date), 'dd/MM/yyyy', { locale: ptBR }),
-          status: app.status === 'concluida' ? 'Concluída' : app.status === 'em_andamento' ? 'Em Andamento' : 'Planejada',
+          status: app.status === 'concluída' ? 'Concluída' : app.status === 'em_andamento' ? 'Em Andamento' : 'Planejada',
         };
       });
   }, [applications, properties]);
