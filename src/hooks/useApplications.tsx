@@ -6,17 +6,25 @@ export interface Application {
   id: string;
   user_id: string;
   property_id: string;
-  product_id: string;
   application_date: string;
   application_type: 'pulverização' | 'adubação' | 'semeadura' | 'outro';
   status: 'planejada' | 'em_andamento' | 'concluída' | 'cancelada';
   area_applied: number;
-  product_amount: number;
   total_cost: number;
-  flight_time_minutes?: number;
-  notes?: string;
+  flight_time_minutes: number | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
+  properties?: { name: string };
+  application_products?: Array<{
+    id: string;
+    product_id: string;
+    dose_per_ha: number;
+    total_amount: number;
+    unit_cost: number;
+    total_cost: number;
+    products?: { name: string; unit: string };
+  }>;
 }
 
 export const useApplications = () => {
@@ -29,29 +37,67 @@ export const useApplications = () => {
         .from('applications')
         .select(`
           *,
-          properties (name, location),
-          products (name, unit)
+          properties(name),
+          application_products(
+            id,
+            product_id,
+            dose_per_ha,
+            total_amount,
+            unit_cost,
+            total_cost,
+            products(name, unit)
+          )
         `)
         .order('application_date', { ascending: false });
 
       if (error) throw error;
-      return data as any[];
+      return data as Application[];
     },
   });
 
   const createApplication = useMutation({
-    mutationFn: async (application: Omit<Application, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (application: any) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const { data, error } = await supabase
+      // Criar a aplicação principal
+      const { data: appData, error: appError } = await supabase
         .from('applications')
-        .insert([{ ...application, user_id: user.id }])
+        .insert([{
+          user_id: user.id,
+          property_id: application.property_id,
+          application_date: application.application_date,
+          application_type: application.application_type,
+          status: application.status,
+          area_applied: application.area_applied,
+          total_cost: application.total_cost,
+          flight_time_minutes: application.flight_time_minutes,
+          notes: application.notes,
+        }])
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (appError) throw appError;
+
+      // Inserir os produtos da aplicação
+      if (application.products && application.products.length > 0) {
+        const productsData = application.products.map((p: any) => ({
+          application_id: appData.id,
+          product_id: p.product_id,
+          dose_per_ha: p.dose_per_ha,
+          total_amount: p.total_amount,
+          unit_cost: p.unit_cost,
+          total_cost: p.total_cost,
+        }));
+
+        const { error: productsError } = await supabase
+          .from('application_products')
+          .insert(productsData);
+
+        if (productsError) throw productsError;
+      }
+
+      return appData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -64,15 +110,51 @@ export const useApplications = () => {
 
   const updateApplication = useMutation({
     mutationFn: async ({ id, ...application }: Partial<Application> & { id: string }) => {
-      const { data, error } = await supabase
+      // Atualizar a aplicação principal
+      const { data: appData, error: appError } = await supabase
         .from('applications')
-        .update(application)
+        .update({
+          property_id: application.property_id,
+          application_date: application.application_date,
+          application_type: application.application_type,
+          status: application.status,
+          area_applied: application.area_applied,
+          total_cost: application.total_cost,
+          flight_time_minutes: application.flight_time_minutes,
+          notes: application.notes,
+        })
         .eq('id', id)
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (appError) throw appError;
+
+      // Atualizar produtos (deletar e recriar por simplicidade)
+      if ((application as any).products) {
+        // Deletar produtos existentes
+        await supabase
+          .from('application_products')
+          .delete()
+          .eq('application_id', id);
+
+        // Inserir novos produtos
+        const productsData = (application as any).products.map((p: any) => ({
+          application_id: id,
+          product_id: p.product_id,
+          dose_per_ha: p.dose_per_ha,
+          total_amount: p.total_amount,
+          unit_cost: p.unit_cost,
+          total_cost: p.total_cost,
+        }));
+
+        const { error: productsError } = await supabase
+          .from('application_products')
+          .insert(productsData);
+
+        if (productsError) throw productsError;
+      }
+
+      return appData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -85,6 +167,13 @@ export const useApplications = () => {
 
   const deleteApplication = useMutation({
     mutationFn: async (id: string) => {
+      // Primeiro deletar os produtos da aplicação
+      await supabase
+        .from('application_products')
+        .delete()
+        .eq('application_id', id);
+
+      // Depois deletar a aplicação
       const { error } = await supabase
         .from('applications')
         .delete()
