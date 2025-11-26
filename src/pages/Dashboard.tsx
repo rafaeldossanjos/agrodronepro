@@ -8,43 +8,13 @@ import {
   DollarSign,
   Calculator
 } from "lucide-react";
-
-const stats = [
-  {
-    label: "Área Aplicada (Mês)",
-    value: "450 ha",
-    change: "+12%",
-    icon: MapPin,
-    color: "text-primary",
-  },
-  {
-    label: "Aplicações Realizadas",
-    value: "38",
-    change: "+8",
-    icon: Droplet,
-    color: "text-success",
-  },
-  {
-    label: "Horas de Voo",
-    value: "127h",
-    change: "+15h",
-    icon: Clock,
-    color: "text-warning",
-  },
-  {
-    label: "Custo Médio/ha",
-    value: "R$ 28,50",
-    change: "-5%",
-    icon: DollarSign,
-    color: "text-success",
-  },
-];
-
-const recentApplications = [
-  { property: "Fazenda São João", area: "45 ha", date: "10/11/2024", status: "Concluída" },
-  { property: "Sítio Boa Vista", area: "22 ha", date: "09/11/2024", status: "Concluída" },
-  { property: "Fazenda Santa Maria", area: "68 ha", date: "08/11/2024", status: "Concluída" },
-];
+import { useApplications } from "@/hooks/useApplications";
+import { useProperties } from "@/hooks/useProperties";
+import { useFlightPlanning } from "@/hooks/useFlightPlanning";
+import { useMemo } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 const equipmentStatus = [
   { name: "DJI Agras T40", battery: 85, status: "Operacional", flights: 12 },
@@ -53,6 +23,106 @@ const equipmentStatus = [
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const { applications, isLoading: loadingApps } = useApplications();
+  const { properties } = useProperties();
+  const { plans } = useFlightPlanning();
+
+  // Calcular estatísticas reais
+  const stats = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Filtrar aplicações do mês atual
+    const thisMonthApps = applications.filter(app => {
+      const appDate = new Date(app.application_date);
+      return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear;
+    });
+
+    const lastMonthApps = applications.filter(app => {
+      const appDate = new Date(app.application_date);
+      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+      return appDate.getMonth() === lastMonth && appDate.getFullYear() === lastMonthYear;
+    });
+
+    // Área aplicada no mês
+    const totalAreaThisMonth = thisMonthApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
+    const totalAreaLastMonth = lastMonthApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
+    const areaChange = totalAreaLastMonth > 0 
+      ? ((totalAreaThisMonth - totalAreaLastMonth) / totalAreaLastMonth * 100).toFixed(0)
+      : "0";
+
+    // Aplicações realizadas
+    const appsChange = thisMonthApps.length - lastMonthApps.length;
+
+    // Horas de voo
+    const totalFlightTimeThisMonth = thisMonthApps.reduce((sum, app) => 
+      sum + (app.flight_time_minutes || 0), 0
+    );
+    const totalFlightTimeLastMonth = lastMonthApps.reduce((sum, app) => 
+      sum + (app.flight_time_minutes || 0), 0
+    );
+    const flightTimeDiff = totalFlightTimeThisMonth - totalFlightTimeLastMonth;
+
+    // Custo médio por hectare
+    const totalCost = thisMonthApps.reduce((sum, app) => sum + Number(app.total_cost), 0);
+    const avgCostPerHa = totalAreaThisMonth > 0 ? totalCost / totalAreaThisMonth : 0;
+    
+    const lastMonthTotalCost = lastMonthApps.reduce((sum, app) => sum + Number(app.total_cost), 0);
+    const lastMonthAvgCost = totalAreaLastMonth > 0 ? lastMonthTotalCost / totalAreaLastMonth : 0;
+    const costChange = lastMonthAvgCost > 0
+      ? ((avgCostPerHa - lastMonthAvgCost) / lastMonthAvgCost * 100).toFixed(0)
+      : "0";
+
+    return [
+      {
+        label: "Área Aplicada (Mês)",
+        value: `${totalAreaThisMonth.toFixed(1)} ha`,
+        change: `${Number(areaChange) > 0 ? '+' : ''}${areaChange}%`,
+        icon: MapPin,
+        color: "text-primary",
+      },
+      {
+        label: "Aplicações Realizadas",
+        value: thisMonthApps.length.toString(),
+        change: `${appsChange > 0 ? '+' : ''}${appsChange}`,
+        icon: Droplet,
+        color: "text-success",
+      },
+      {
+        label: "Horas de Voo",
+        value: `${Math.floor(totalFlightTimeThisMonth / 60)}h`,
+        change: `${flightTimeDiff > 0 ? '+' : ''}${Math.floor(flightTimeDiff / 60)}h`,
+        icon: Clock,
+        color: "text-warning",
+      },
+      {
+        label: "Custo Médio/ha",
+        value: `R$ ${avgCostPerHa.toFixed(2)}`,
+        change: `${Number(costChange) > 0 ? '+' : ''}${costChange}%`,
+        icon: DollarSign,
+        color: Number(costChange) < 0 ? "text-success" : "text-warning",
+      },
+    ];
+  }, [applications]);
+
+  // Buscar aplicações recentes
+  const recentApplications = useMemo(() => {
+    return applications
+      .sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime())
+      .slice(0, 3)
+      .map(app => {
+        const property = properties.find(p => p.id === app.property_id);
+        return {
+          property: property?.name || 'Propriedade',
+          area: `${Number(app.area_applied).toFixed(1)} ha`,
+          date: format(new Date(app.application_date), 'dd/MM/yyyy', { locale: ptBR }),
+          status: app.status === 'concluida' ? 'Concluída' : app.status === 'em_andamento' ? 'Em Andamento' : 'Planejada',
+        };
+      });
+  }, [applications, properties]);
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -90,12 +160,20 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-foreground">
               Aplicações Recentes
             </h2>
-            <button className="text-sm font-medium text-primary hover:underline">
+            <button 
+              onClick={() => navigate('/applications')}
+              className="text-sm font-medium text-primary hover:underline"
+            >
               Ver todas
             </button>
           </div>
           <div className="space-y-4">
-            {recentApplications.map((app, index) => (
+            {loadingApps ? (
+              <p className="text-sm text-muted-foreground">Carregando...</p>
+            ) : recentApplications.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma aplicação registrada ainda.</p>
+            ) : (
+              recentApplications.map((app, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between border-b border-border pb-3 last:border-0"
@@ -111,7 +189,8 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 
@@ -167,15 +246,24 @@ export default function Dashboard() {
           Ações Rápidas
         </h2>
         <div className="grid gap-4 md:grid-cols-3">
-          <button className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted">
+          <button 
+            onClick={() => navigate('/applications')}
+            className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted"
+          >
             <Droplet className="h-8 w-8 text-primary" />
             <span className="font-medium text-foreground">Nova Aplicação</span>
           </button>
-          <button className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted">
+          <button 
+            onClick={() => navigate('/calculator')}
+            className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted"
+          >
             <Calculator className="h-8 w-8 text-primary" />
             <span className="font-medium text-foreground">Calcular Calda</span>
           </button>
-          <button className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted">
+          <button 
+            onClick={() => navigate('/reports')}
+            className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted"
+          >
             <TrendingUp className="h-8 w-8 text-primary" />
             <span className="font-medium text-foreground">Gerar Relatório</span>
           </button>

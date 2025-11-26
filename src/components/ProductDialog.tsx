@@ -13,9 +13,9 @@ const productSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100),
   manufacturer: z.string().max(100).optional(),
   category: z.string().min(1, 'Categoria é obrigatória'),
-  unit_price: z.number().min(0, 'Preço não pode ser negativo'),
+  unit_price: z.number().min(0, 'Preço não pode ser negativo').optional(),
   unit: z.string().min(1, 'Unidade é obrigatória'),
-  stock_quantity: z.number().min(0, 'Estoque não pode ser negativo'),
+  stock_quantity: z.number().min(0, 'Estoque não pode ser negativo').optional(),
   active: z.boolean(),
 });
 
@@ -136,15 +136,15 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="unit_price">Preço Unitário (R$) *</Label>
+              <Label htmlFor="unit_price">Preço Unitário (R$)</Label>
               <Input
                 id="unit_price"
                 type="number"
                 step="0.01"
                 min="0"
                 value={formData.unit_price || ''}
-                onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) })}
-                required
+                onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })}
+                placeholder="0.00"
               />
             </div>
             <div>
@@ -166,15 +166,15 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
             </div>
           </div>
           <div>
-            <Label htmlFor="stock_quantity">Estoque Inicial *</Label>
+            <Label htmlFor="stock_quantity">Estoque Inicial</Label>
             <Input
               id="stock_quantity"
               type="number"
               step="0.01"
               min="0"
               value={formData.stock_quantity || ''}
-              onChange={(e) => setFormData({ ...formData, stock_quantity: parseFloat(e.target.value) })}
-              required
+              onChange={(e) => setFormData({ ...formData, stock_quantity: parseFloat(e.target.value) || 0 })}
+              placeholder="0"
             />
           </div>
           <div className="flex gap-2">
