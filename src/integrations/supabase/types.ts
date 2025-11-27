@@ -115,6 +115,54 @@ export type Database = {
           },
         ]
       }
+      equipment: {
+        Row: {
+          battery_capacity: number
+          created_at: string
+          flight_time_minutes: number
+          id: string
+          model: string
+          name: string
+          notes: string | null
+          status: string
+          tank_capacity: number
+          total_flight_hours: number
+          total_flights: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          battery_capacity?: number
+          created_at?: string
+          flight_time_minutes?: number
+          id?: string
+          model: string
+          name: string
+          notes?: string | null
+          status?: string
+          tank_capacity?: number
+          total_flight_hours?: number
+          total_flights?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          battery_capacity?: number
+          created_at?: string
+          flight_time_minutes?: number
+          id?: string
+          model?: string
+          name?: string
+          notes?: string | null
+          status?: string
+          tank_capacity?: number
+          total_flight_hours?: number
+          total_flights?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       flight_planning: {
         Row: {
           area: number
