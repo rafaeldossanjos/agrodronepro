@@ -11,22 +11,18 @@ import {
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
 import { useFlightPlanning } from "@/hooks/useFlightPlanning";
+import { useEquipment } from "@/hooks/useEquipment";
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
-
-const equipmentStatus = [
-  { name: "DJI Agras T40", battery: 85, status: "Operacional", flights: 12 },
-  { name: "DJI Agras T30", battery: 92, status: "Operacional", flights: 8 },
-  { name: "XAG P100", battery: 45, status: "Manutenção", flights: 15 },
-];
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { applications, isLoading: loadingApps } = useApplications();
   const { properties } = useProperties();
   const { plans } = useFlightPlanning();
+  const { equipment } = useEquipment();
 
   // Calcular estatísticas reais
   const stats = useMemo(() => {
@@ -200,42 +196,51 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-foreground">
               Status dos Equipamentos
             </h2>
-            <button className="text-sm font-medium text-primary hover:underline">
+            <button 
+              onClick={() => navigate('/equipment')}
+              className="text-sm font-medium text-primary hover:underline"
+            >
               Gerenciar
             </button>
           </div>
           <div className="space-y-4">
-            {equipmentStatus.map((equipment, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between border-b border-border pb-3 last:border-0"
-              >
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{equipment.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {equipment.flights} voos realizados
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <Battery className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-foreground">
-                      {equipment.battery}%
+            {equipment.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum equipamento cadastrado ainda.</p>
+            ) : (
+              equipment.slice(0, 3).map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between border-b border-border pb-3 last:border-0"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground truncate">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.total_flights} voos realizados
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-1.5">
+                      <Battery className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-foreground">
+                        {item.battery_capacity}%
+                      </span>
+                    </div>
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
+                        item.status === "operacional"
+                          ? "bg-success/10 text-success"
+                          : item.status === "manutencao"
+                          ? "bg-warning/10 text-warning"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {item.status === "operacional" ? "Operacional" : item.status === "manutencao" ? "Manutenção" : "Inativo"}
                     </span>
                   </div>
-                  <span
-                    className={cn(
-                      "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                      equipment.status === "Operacional"
-                        ? "bg-success/10 text-success"
-                        : "bg-warning/10 text-warning"
-                    )}
-                  >
-                    {equipment.status}
-                  </span>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
       </div>
