@@ -25,6 +25,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const navigation = [
@@ -43,6 +44,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { setOpenMobile } = useSidebar();
 
   return (
     <Sidebar>
@@ -70,7 +72,10 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      onClick={() => navigate(item.href)}
+                      onClick={() => {
+                        navigate(item.href);
+                        setOpenMobile(false);
+                      }}
                     >
                       <Link to={item.href}>
                         <item.icon className="h-5 w-5" />
