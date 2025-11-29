@@ -78,14 +78,24 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
   useEffect(() => {
     if (application) {
-      // TODO: Carregar produtos da aplicação quando implementar backend
+      // Carregar produtos da aplicação existente
+      const loadedProducts = application.application_products && application.application_products.length > 0
+        ? application.application_products.map(ap => ({
+            product_id: ap.product_id,
+            dose_per_ha: ap.dose_per_ha,
+            total_amount: ap.total_amount,
+            unit_cost: ap.unit_cost,
+            total_cost: ap.total_cost,
+          }))
+        : [{ product_id: "", dose_per_ha: 0, total_amount: 0, unit_cost: 0, total_cost: 0 }];
+
       setFormData({
         property_id: application.property_id,
         application_date: application.application_date,
         application_type: application.application_type,
         status: application.status,
         area_applied: application.area_applied,
-        products: [{ product_id: "", dose_per_ha: 0, total_amount: 0, unit_cost: 0, total_cost: 0 }],
+        products: loadedProducts,
         total_cost: application.total_cost,
         flight_time_minutes: application.flight_time_minutes || null,
         notes: application.notes || "",
@@ -104,6 +114,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         notes: "",
       });
     }
+    setErrors({});
   }, [application, open]);
 
   const updateProductCalculations = (index: number, updates: Partial<ProductItem>) => {
@@ -315,16 +326,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
             <div className="space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground">Produtos Aplicados *</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addProduct}
-                  className="gap-1 h-8 text-xs sm:text-sm"
-                >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
-                  Adicionar Produto
-                </Button>
               </div>
 
               {errors.products && (
@@ -427,6 +428,17 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   </Card>
                 ))}
               </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addProduct}
+                className="gap-1 h-8 text-xs sm:text-sm w-full"
+              >
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                Adicionar Produto
+              </Button>
             </div>
 
             {/* Resumo */}
