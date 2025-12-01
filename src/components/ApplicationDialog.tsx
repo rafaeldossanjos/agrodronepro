@@ -190,7 +190,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
       });
 
       onSave(validatedData);
-      onOpenChange(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {};
