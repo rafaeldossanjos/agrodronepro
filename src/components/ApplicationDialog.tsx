@@ -472,7 +472,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
           </form>
         </div>
 
-        <div className="flex justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t bg-background shrink-0 sticky bottom-0">
+        <div className="flex justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t bg-background shrink-0">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="text-xs sm:text-sm h-9 sm:h-10">
             Cancelar
           </Button>
