@@ -207,15 +207,15 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-4xl h-[95vh] sm:h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b shrink-0">
           <DialogTitle className="text-lg sm:text-xl">
             {application ? "Editar Aplicação" : "Nova Aplicação"}
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-4 sm:px-6">
-          <form id="application-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6">
+          <form id="application-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4 pb-6">
             {/* Informações Básicas */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
@@ -471,9 +471,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
               />
             </div>
           </form>
-        </ScrollArea>
+        </div>
 
-        <div className="flex justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t bg-background shrink-0">
+        <div className="flex justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t bg-background shrink-0 sticky bottom-0">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="text-xs sm:text-sm h-9 sm:h-10">
             Cancelar
           </Button>
