@@ -45,9 +45,18 @@ export default function Applications() {
 
   const handleSave = (data: any) => {
     if (editingApp) {
-      updateApplication.mutate({ id: editingApp.id, ...data });
+      updateApplication.mutate({ id: editingApp.id, ...data }, {
+        onSuccess: () => {
+          setDialogOpen(false);
+          setEditingApp(null);
+        }
+      });
     } else {
-      createApplication.mutate(data);
+      createApplication.mutate(data, {
+        onSuccess: () => {
+          setDialogOpen(false);
+        }
+      });
     }
   };
 
