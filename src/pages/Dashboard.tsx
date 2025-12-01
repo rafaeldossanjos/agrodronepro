@@ -26,6 +26,9 @@ export default function Dashboard() {
 
   // Calcular estatísticas reais
   const stats = useMemo(() => {
+    console.log('Dashboard - Total de aplicações:', applications.length);
+    console.log('Dashboard - Aplicações:', applications);
+    
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -35,6 +38,8 @@ export default function Dashboard() {
       const appDate = new Date(app.application_date);
       return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear;
     });
+    
+    console.log('Dashboard - Aplicações deste mês:', thisMonthApps.length);
 
     const lastMonthApps = applications.filter(app => {
       const appDate = new Date(app.application_date);
