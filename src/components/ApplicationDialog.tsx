@@ -11,7 +11,6 @@ import { Application } from "@/hooks/useApplications";
 import { z } from "zod";
 import { Plus, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const productItemSchema = z.object({
   product_id: z.string().uuid("Selecione um produto"),
@@ -207,14 +206,14 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[95vh] sm:h-[90vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b shrink-0">
           <DialogTitle className="text-lg sm:text-xl">
             {application ? "Editar Aplicação" : "Nova Aplicação"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6">
+        <div className="flex-1 overflow-y-scroll px-4 sm:px-6 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
           <form id="application-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4 pb-6">
             {/* Informações Básicas */}
             <div className="space-y-4">
