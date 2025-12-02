@@ -105,6 +105,9 @@ export default function Applications() {
                     <h3 className="text-base sm:text-lg font-semibold text-foreground">
                       {app.properties?.name || "Propriedade não informada"}
                     </h3>
+                    {app.plot_name && (
+                      <span className="text-sm text-muted-foreground">• {app.plot_name}</span>
+                    )}
                     <Badge variant={statusConfig[app.status as keyof typeof statusConfig].variant}>
                       {statusConfig[app.status as keyof typeof statusConfig].label}
                     </Badge>

@@ -153,7 +153,7 @@ export default function Planning() {
                       <p className="text-xs text-muted-foreground">Eficiência</p>
                     </div>
                     <p className="text-base sm:text-lg font-bold text-warning">
-                      {((plan.area / plan.estimated_time_minutes) * 60).toFixed(1)}
+                      {((plan.area / plan.estimated_time_minutes) * 60).toFixed(1)} ha/h
                     </p>
                   </div>
                 </div>
