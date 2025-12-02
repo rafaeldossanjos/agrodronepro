@@ -71,6 +71,7 @@ export type Database = {
           flight_time_minutes: number | null
           id: string
           notes: string | null
+          plot_name: string | null
           property_id: string
           status: Database["public"]["Enums"]["application_status"]
           total_cost: number
@@ -85,6 +86,7 @@ export type Database = {
           flight_time_minutes?: number | null
           id?: string
           notes?: string | null
+          plot_name?: string | null
           property_id: string
           status?: Database["public"]["Enums"]["application_status"]
           total_cost: number
@@ -99,6 +101,7 @@ export type Database = {
           flight_time_minutes?: number | null
           id?: string
           notes?: string | null
+          plot_name?: string | null
           property_id?: string
           status?: Database["public"]["Enums"]["application_status"]
           total_cost?: number

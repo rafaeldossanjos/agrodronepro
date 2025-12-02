@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   TrendingUp, 
   Droplet, 
@@ -12,13 +13,16 @@ import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
 import { useFlightPlanning } from "@/hooks/useFlightPlanning";
 import { useEquipment } from "@/hooks/useEquipment";
-import { useMemo } from "react";
-import { format } from "date-fns";
+import { useMemo, useState } from "react";
+import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 
+type PeriodFilter = 7 | 15 | 30 | 90;
+
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(30);
   const { applications, isLoading: loadingApps } = useApplications();
   const { properties } = useProperties();
   const { plans } = useFlightPlanning();
@@ -30,71 +34,70 @@ export default function Dashboard() {
     console.log('Dashboard - Aplicações:', applications);
     
     const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    const periodStart = subDays(now, periodFilter);
 
-    // Filtrar aplicações do mês atual
-    const thisMonthApps = applications.filter(app => {
-      const appDate = new Date(app.application_date);
-      return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear;
+    // Filtrar aplicações do período selecionado
+    const periodApps = applications.filter(app => {
+      const appDate = new Date(app.application_date + 'T00:00:00');
+      return appDate >= periodStart && appDate <= now;
     });
     
-    console.log('Dashboard - Aplicações deste mês:', thisMonthApps.length);
+    console.log(`Dashboard - Aplicações dos últimos ${periodFilter} dias:`, periodApps.length);
 
-    const lastMonthApps = applications.filter(app => {
-      const appDate = new Date(app.application_date);
-      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-      return appDate.getMonth() === lastMonth && appDate.getFullYear() === lastMonthYear;
+    // Período anterior para comparação
+    const previousPeriodStart = subDays(periodStart, periodFilter);
+    const previousPeriodApps = applications.filter(app => {
+      const appDate = new Date(app.application_date + 'T00:00:00');
+      return appDate >= previousPeriodStart && appDate < periodStart;
     });
 
-    // Área aplicada no mês
-    const totalAreaThisMonth = thisMonthApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
-    const totalAreaLastMonth = lastMonthApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
-    const areaChange = totalAreaLastMonth > 0 
-      ? ((totalAreaThisMonth - totalAreaLastMonth) / totalAreaLastMonth * 100).toFixed(0)
+    // Área aplicada no período
+    const totalAreaPeriod = periodApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
+    const totalAreaPrevious = previousPeriodApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
+    const areaChange = totalAreaPrevious > 0 
+      ? ((totalAreaPeriod - totalAreaPrevious) / totalAreaPrevious * 100).toFixed(0)
       : "0";
 
     // Aplicações realizadas
-    const appsChange = thisMonthApps.length - lastMonthApps.length;
+    const appsChange = periodApps.length - previousPeriodApps.length;
 
     // Horas de voo
-    const totalFlightTimeThisMonth = thisMonthApps.reduce((sum, app) => 
+    const totalFlightTimePeriod = periodApps.reduce((sum, app) => 
       sum + (app.flight_time_minutes || 0), 0
     );
-    const totalFlightTimeLastMonth = lastMonthApps.reduce((sum, app) => 
+    const totalFlightTimePrevious = previousPeriodApps.reduce((sum, app) => 
       sum + (app.flight_time_minutes || 0), 0
     );
-    const flightTimeDiff = totalFlightTimeThisMonth - totalFlightTimeLastMonth;
+    const flightTimeDiff = totalFlightTimePeriod - totalFlightTimePrevious;
 
     // Custo médio por hectare
-    const totalCost = thisMonthApps.reduce((sum, app) => sum + Number(app.total_cost), 0);
-    const avgCostPerHa = totalAreaThisMonth > 0 ? totalCost / totalAreaThisMonth : 0;
+    const totalCost = periodApps.reduce((sum, app) => sum + Number(app.total_cost), 0);
+    const avgCostPerHa = totalAreaPeriod > 0 ? totalCost / totalAreaPeriod : 0;
     
-    const lastMonthTotalCost = lastMonthApps.reduce((sum, app) => sum + Number(app.total_cost), 0);
-    const lastMonthAvgCost = totalAreaLastMonth > 0 ? lastMonthTotalCost / totalAreaLastMonth : 0;
-    const costChange = lastMonthAvgCost > 0
-      ? ((avgCostPerHa - lastMonthAvgCost) / lastMonthAvgCost * 100).toFixed(0)
+    const previousTotalCost = previousPeriodApps.reduce((sum, app) => sum + Number(app.total_cost), 0);
+    const previousAvgCost = totalAreaPrevious > 0 ? previousTotalCost / totalAreaPrevious : 0;
+    const costChange = previousAvgCost > 0
+      ? ((avgCostPerHa - previousAvgCost) / previousAvgCost * 100).toFixed(0)
       : "0";
 
     return [
       {
-        label: "Área Aplicada (Mês)",
-        value: `${totalAreaThisMonth.toFixed(1)} ha`,
+        label: `Área Aplicada (${periodFilter}d)`,
+        value: `${totalAreaPeriod.toFixed(1)} ha`,
         change: `${Number(areaChange) > 0 ? '+' : ''}${areaChange}%`,
         icon: MapPin,
         color: "text-primary",
       },
       {
         label: "Aplicações Realizadas",
-        value: thisMonthApps.length.toString(),
+        value: periodApps.length.toString(),
         change: `${appsChange > 0 ? '+' : ''}${appsChange}`,
         icon: Droplet,
         color: "text-success",
       },
       {
         label: "Horas de Voo",
-        value: `${Math.floor(totalFlightTimeThisMonth / 60)}h`,
+        value: `${Math.floor(totalFlightTimePeriod / 60)}h`,
         change: `${flightTimeDiff > 0 ? '+' : ''}${Math.floor(flightTimeDiff / 60)}h`,
         icon: Clock,
         color: "text-warning",
@@ -107,7 +110,7 @@ export default function Dashboard() {
         color: Number(costChange) < 0 ? "text-success" : "text-warning",
       },
     ];
-  }, [applications]);
+  }, [applications, periodFilter]);
 
   // Buscar aplicações recentes
   const recentApplications = useMemo(() => {
@@ -118,8 +121,9 @@ export default function Dashboard() {
         const property = properties.find(p => p.id === app.property_id);
         return {
           property: property?.name || 'Propriedade',
+          plotName: app.plot_name || '-',
           area: `${Number(app.area_applied).toFixed(1)} ha`,
-          date: format(new Date(app.application_date), 'dd/MM/yyyy', { locale: ptBR }),
+          date: format(new Date(app.application_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR }),
           status: app.status === 'concluída' ? 'Concluída' : app.status === 'em_andamento' ? 'Em Andamento' : 'Planejada',
         };
       });
@@ -132,6 +136,38 @@ export default function Dashboard() {
         <p className="text-muted-foreground">
           Visão geral das suas operações com drone
         </p>
+      </div>
+
+      {/* Filtros de Período */}
+      <div className="flex gap-2 flex-wrap">
+        <Button
+          variant={periodFilter === 7 ? "default" : "outline"}
+          size="sm"
+          onClick={() => setPeriodFilter(7)}
+        >
+          7 dias
+        </Button>
+        <Button
+          variant={periodFilter === 15 ? "default" : "outline"}
+          size="sm"
+          onClick={() => setPeriodFilter(15)}
+        >
+          15 dias
+        </Button>
+        <Button
+          variant={periodFilter === 30 ? "default" : "outline"}
+          size="sm"
+          onClick={() => setPeriodFilter(30)}
+        >
+          30 dias
+        </Button>
+        <Button
+          variant={periodFilter === 90 ? "default" : "outline"}
+          size="sm"
+          onClick={() => setPeriodFilter(90)}
+        >
+          90 dias
+        </Button>
       </div>
 
       {/* Stats Grid */}
@@ -179,11 +215,12 @@ export default function Dashboard() {
                 key={index}
                 className="flex items-center justify-between border-b border-border pb-3 last:border-0"
               >
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground">{app.property}</p>
+                  <p className="text-sm text-muted-foreground">{app.plotName}</p>
                   <p className="text-sm text-muted-foreground">{app.date}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-shrink-0">
                   <p className="font-semibold text-foreground">{app.area}</p>
                   <span className="inline-flex items-center rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
                     {app.status}

@@ -6,6 +6,7 @@ export interface Application {
   id: string;
   user_id: string;
   property_id: string;
+  plot_name?: string | null;
   application_date: string;
   application_type: 'pulverização' | 'adubação' | 'semeadura' | 'outro';
   status: 'planejada' | 'em_andamento' | 'concluída' | 'cancelada';
@@ -66,6 +67,7 @@ export const useApplications = () => {
         .insert([{
           user_id: user.id,
           property_id: application.property_id,
+          plot_name: application.plot_name || null,
           application_date: application.application_date,
           application_type: application.application_type,
           status: application.status,
@@ -115,6 +117,7 @@ export const useApplications = () => {
         .from('applications')
         .update({
           property_id: application.property_id,
+          plot_name: application.plot_name || null,
           application_date: application.application_date,
           application_type: application.application_type,
           status: application.status,

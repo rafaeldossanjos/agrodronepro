@@ -22,6 +22,7 @@ const productItemSchema = z.object({
 
 const applicationSchema = z.object({
   property_id: z.string().uuid("Selecione uma propriedade"),
+  plot_name: z.string().optional(),
   application_date: z.string().min(1, "Data é obrigatória"),
   application_type: z.enum(['pulverização', 'adubação', 'semeadura', 'outro']),
   status: z.enum(['planejada', 'em_andamento', 'concluída', 'cancelada']),
@@ -53,6 +54,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
   
   const [formData, setFormData] = useState<{
     property_id: string;
+    plot_name: string;
     application_date: string;
     application_type: 'pulverização' | 'adubação' | 'semeadura' | 'outro';
     status: 'planejada' | 'em_andamento' | 'concluída' | 'cancelada';
@@ -63,6 +65,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     notes: string;
   }>({
     property_id: "",
+    plot_name: "",
     application_date: "",
     application_type: "pulverização",
     status: "planejada",
@@ -90,6 +93,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
       setFormData({
         property_id: application.property_id,
+        plot_name: application.plot_name || "",
         application_date: application.application_date,
         application_type: application.application_type,
         status: application.status,
@@ -103,6 +107,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
       // Reset form quando não está editando
       setFormData({
         property_id: "",
+        plot_name: "",
         application_date: "",
         application_type: "pulverização",
         status: "planejada",
@@ -238,6 +243,18 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   {errors.property_id && (
                     <p className="text-xs text-destructive">{errors.property_id}</p>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="plot_name" className="text-xs sm:text-sm">Nome do Talhão</Label>
+                  <Input
+                    id="plot_name"
+                    type="text"
+                    value={formData.plot_name}
+                    onChange={(e) => setFormData({ ...formData, plot_name: e.target.value })}
+                    className="h-9 sm:h-10 text-xs sm:text-sm"
+                    placeholder="Ex: Talhão A1"
+                  />
                 </div>
 
                 <div className="space-y-2">
