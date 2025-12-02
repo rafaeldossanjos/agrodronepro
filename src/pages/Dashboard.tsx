@@ -9,6 +9,7 @@ import {
   DollarSign,
   Calculator
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
 import { useFlightPlanning } from "@/hooks/useFlightPlanning";
@@ -30,9 +31,6 @@ export default function Dashboard() {
 
   // Calcular estatísticas reais
   const stats = useMemo(() => {
-    console.log('Dashboard - Total de aplicações:', applications.length);
-    console.log('Dashboard - Aplicações:', applications);
-    
     const now = new Date();
     const periodStart = subDays(now, periodFilter);
 
@@ -41,8 +39,6 @@ export default function Dashboard() {
       const appDate = new Date(app.application_date + 'T00:00:00');
       return appDate >= periodStart && appDate <= now;
     });
-    
-    console.log(`Dashboard - Aplicações dos últimos ${periodFilter} dias:`, periodApps.length);
 
     // Período anterior para comparação
     const previousPeriodStart = subDays(periodStart, periodFilter);
@@ -327,6 +323,3 @@ export default function Dashboard() {
   );
 }
 
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(" ");
-}
