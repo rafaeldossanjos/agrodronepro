@@ -18,7 +18,7 @@ import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 
-type PeriodFilter = 7 | 15 | 30 | 90;
+type PeriodFilter = 1 | 7 | 15 | 30 | 90;
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -140,6 +140,13 @@ export default function Dashboard() {
 
       {/* Filtros de Período */}
       <div className="flex gap-2 flex-wrap">
+        <Button
+          variant={periodFilter === 1 ? "default" : "outline"}
+          size="sm"
+          onClick={() => setPeriodFilter(1)}
+        >
+          Hoje
+        </Button>
         <Button
           variant={periodFilter === 7 ? "default" : "outline"}
           size="sm"
