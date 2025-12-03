@@ -37,10 +37,33 @@ const applicationSchema = z.object({
 interface ProductItem {
   product_id: string;
   dose_per_ha: number;
+  dose_input: string; // Para permitir digitar valores como "0.5"
+  dose_unit: string; // Unidade selecionada para a dose
   total_amount: number;
   unit_cost: number;
   total_cost: number;
 }
+
+// Conversões de unidade
+const unitConversions: Record<string, Record<string, number>> = {
+  L: { L: 1, mL: 0.001 },
+  mL: { mL: 1, L: 1000 },
+  kg: { kg: 1, g: 0.001 },
+  g: { g: 1, kg: 1000 },
+};
+
+const getRelatedUnits = (baseUnit: string): string[] => {
+  if (baseUnit === 'L' || baseUnit === 'mL') return ['L', 'mL'];
+  if (baseUnit === 'kg' || baseUnit === 'g') return ['kg', 'g'];
+  return [baseUnit];
+};
+
+const convertDose = (value: number, fromUnit: string, toUnit: string): number => {
+  if (fromUnit === toUnit) return value;
+  const conversion = unitConversions[fromUnit]?.[toUnit];
+  if (conversion) return value * conversion;
+  return value;
+};
 
 interface ApplicationDialogProps {
   open: boolean;
@@ -210,7 +233,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     application_type: "pulverização",
     status: "planejada",
     area_applied: 0,
-    products: [{ product_id: "", dose_per_ha: 0, total_amount: 0, unit_cost: 0, total_cost: 0 }],
+    products: [{ product_id: "", dose_per_ha: 0, dose_input: "", dose_unit: "L", total_amount: 0, unit_cost: 0, total_cost: 0 }],
     total_cost: 0,
     flight_time_minutes: null,
     notes: "",
@@ -222,14 +245,19 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     if (application) {
       // Carregar produtos da aplicação existente
       const loadedProducts = application.application_products && application.application_products.length > 0
-        ? application.application_products.map(ap => ({
-            product_id: ap.product_id,
-            dose_per_ha: ap.dose_per_ha,
-            total_amount: ap.total_amount,
-            unit_cost: ap.unit_cost,
-            total_cost: ap.total_cost,
-          }))
-        : [{ product_id: "", dose_per_ha: 0, total_amount: 0, unit_cost: 0, total_cost: 0 }];
+        ? application.application_products.map(ap => {
+            const prod = products.find(p => p.id === ap.product_id);
+            return {
+              product_id: ap.product_id,
+              dose_per_ha: ap.dose_per_ha,
+              dose_input: ap.dose_per_ha.toString(),
+              dose_unit: prod?.unit || 'L',
+              total_amount: ap.total_amount,
+              unit_cost: ap.unit_cost,
+              total_cost: ap.total_cost,
+            };
+          })
+        : [{ product_id: "", dose_per_ha: 0, dose_input: "", dose_unit: "L", total_amount: 0, unit_cost: 0, total_cost: 0 }];
 
       setFormData({
         property_id: application.property_id,
@@ -252,7 +280,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         application_type: "pulverização",
         status: "planejada",
         area_applied: 0,
-        products: [{ product_id: "", dose_per_ha: 0, total_amount: 0, unit_cost: 0, total_cost: 0 }],
+        products: [{ product_id: "", dose_per_ha: 0, dose_input: "", dose_unit: "L", total_amount: 0, unit_cost: 0, total_cost: 0 }],
         total_cost: 0,
         flight_time_minutes: null,
         notes: "",
@@ -265,17 +293,39 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     const newProducts = [...formData.products];
     const product = { ...newProducts[index], ...updates };
     
-    // Se mudou o produto_id, pegar o preço
+    // Se mudou o produto_id, pegar o preço e definir a unidade
     if (updates.product_id) {
       const selectedProduct = products.find(p => p.id === updates.product_id);
       if (selectedProduct) {
         product.unit_cost = selectedProduct.unit_price;
+        product.dose_unit = selectedProduct.unit;
       }
+    }
+    
+    // Se mudou o dose_input (texto), converter para número
+    if (updates.dose_input !== undefined) {
+      const numValue = parseFloat(updates.dose_input) || 0;
+      const selectedProduct = products.find(p => p.id === product.product_id);
+      const targetUnit = selectedProduct?.unit || product.dose_unit;
+      
+      // Converter da unidade selecionada para a unidade do produto
+      product.dose_per_ha = convertDose(numValue, product.dose_unit, targetUnit);
+    }
+    
+    // Se mudou a unidade, reconverter a dose
+    if (updates.dose_unit && product.dose_input) {
+      const numValue = parseFloat(product.dose_input) || 0;
+      const selectedProduct = products.find(p => p.id === product.product_id);
+      const targetUnit = selectedProduct?.unit || updates.dose_unit;
+      
+      product.dose_per_ha = convertDose(numValue, updates.dose_unit, targetUnit);
     }
     
     // Calcular quantidade total baseado na dose e área
     if (formData.area_applied > 0 && product.dose_per_ha > 0) {
       product.total_amount = product.dose_per_ha * formData.area_applied;
+    } else {
+      product.total_amount = 0;
     }
     
     // Calcular custo total do produto
@@ -292,7 +342,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
   const addProduct = () => {
     setFormData({
       ...formData,
-      products: [...formData.products, { product_id: "", dose_per_ha: 0, total_amount: 0, unit_cost: 0, total_cost: 0 }],
+      products: [...formData.products, { product_id: "", dose_per_ha: 0, dose_input: "", dose_unit: "L", total_amount: 0, unit_cost: 0, total_cost: 0 }],
     });
   };
 
@@ -522,27 +572,55 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           <Label className="text-xs sm:text-sm">Dose Recomendada (por ha) *</Label>
                           <div className="flex gap-2">
                             <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={productItem.dose_per_ha || ""}
-                              onChange={(e) => updateProductCalculations(index, { dose_per_ha: Number(e.target.value) })}
-                              className="h-9 sm:h-10 text-xs sm:text-sm"
+                              type="text"
+                              inputMode="decimal"
+                              value={productItem.dose_input}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Permitir apenas números, ponto e vírgula
+                                if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
+                                  updateProductCalculations(index, { dose_input: value.replace(',', '.') });
+                                }
+                              }}
+                              className="h-9 sm:h-10 text-xs sm:text-sm flex-1"
                               placeholder="Ex: 0.5"
                             />
                             {productItem.product_id && (
-                              <span className="flex items-center text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
-                                {products.find(p => p.id === productItem.product_id)?.unit || "L"}
+                              <Select
+                                value={productItem.dose_unit}
+                                onValueChange={(value) => updateProductCalculations(index, { dose_unit: value })}
+                              >
+                                <SelectTrigger className="h-9 sm:h-10 w-20 text-xs sm:text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {getRelatedUnits(products.find(p => p.id === productItem.product_id)?.unit || 'L').map((unit) => (
+                                    <SelectItem key={unit} value={unit} className="text-xs sm:text-sm">
+                                      {unit}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            {!productItem.product_id && (
+                              <span className="flex items-center text-xs sm:text-sm text-muted-foreground whitespace-nowrap px-2">
+                                {productItem.dose_unit}
                               </span>
                             )}
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm">Quantidade Total</Label>
+                          <Label className="text-xs sm:text-sm">
+                            Quantidade Total
+                            {productItem.product_id && (
+                              <span className="text-muted-foreground ml-1">
+                                ({products.find(p => p.id === productItem.product_id)?.unit || 'L'})
+                              </span>
+                            )}
+                          </Label>
                           <Input
-                            type="number"
-                            step="0.01"
+                            type="text"
                             value={productItem.total_amount.toFixed(2)}
                             className="h-9 sm:h-10 text-xs sm:text-sm bg-muted"
                             readOnly
