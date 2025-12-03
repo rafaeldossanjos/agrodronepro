@@ -121,7 +121,7 @@ export default function Applications() {
                       <p className="text-xs sm:text-sm text-muted-foreground">Data</p>
                       <p className="flex items-center gap-1.5 text-sm sm:text-base font-medium text-foreground">
                         <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                        {format(new Date(app.application_date), "dd/MM/yyyy", { locale: ptBR })}
+                        {format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                     </div>
                     <div>
