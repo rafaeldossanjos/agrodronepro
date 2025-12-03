@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useProperties } from "@/hooks/useProperties";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, Product } from "@/hooks/useProducts";
 import { Application } from "@/hooks/useApplications";
 import { z } from "zod";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const productItemSchema = z.object({
   product_id: z.string().uuid("Selecione um produto"),
@@ -46,6 +47,145 @@ interface ApplicationDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (data: any) => void;
   application?: Application;
+}
+
+// Componente de autocompletar para produtos
+function ProductAutocomplete({ 
+  products, 
+  selectedProductId, 
+  onSelect 
+}: { 
+  products: Product[]; 
+  selectedProductId: string; 
+  onSelect: (id: string) => void;
+}) {
+  const [inputValue, setInputValue] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  // Filtrar produtos baseado no input
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+    (p.manufacturer && p.manufacturer.toLowerCase().includes(inputValue.toLowerCase()))
+  );
+
+  useEffect(() => {
+    if (selectedProduct && !isOpen) {
+      setInputValue(selectedProduct.name);
+    }
+  }, [selectedProduct, isOpen]);
+
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [filteredProducts.length]);
+
+  const handleSelect = (product: Product) => {
+    onSelect(product.id);
+    setInputValue(product.name);
+    setIsOpen(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (e.key === "ArrowDown" || e.key === "Enter") {
+        setIsOpen(true);
+        e.preventDefault();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex(i => Math.min(i + 1, filteredProducts.length - 1));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex(i => Math.max(i - 1, 0));
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (filteredProducts[highlightedIndex]) {
+          handleSelect(filteredProducts[highlightedIndex]);
+        }
+        break;
+      case "Escape":
+        setIsOpen(false);
+        if (selectedProduct) {
+          setInputValue(selectedProduct.name);
+        }
+        break;
+    }
+  };
+
+  return (
+    <div className="relative">
+      <Input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        onChange={(e) => {
+          setInputValue(e.target.value);
+          setIsOpen(true);
+          if (!e.target.value && selectedProductId) {
+            onSelect("");
+          }
+        }}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => {
+          // Delay to allow click on list item
+          setTimeout(() => setIsOpen(false), 200);
+        }}
+        onKeyDown={handleKeyDown}
+        placeholder="Digite para buscar produto..."
+        className="h-9 sm:h-10 text-xs sm:text-sm"
+      />
+      {isOpen && filteredProducts.length > 0 && (
+        <div 
+          ref={listRef}
+          className="absolute z-50 mt-1 w-full max-h-48 overflow-auto rounded-md border bg-popover shadow-lg"
+        >
+          {filteredProducts.map((product, index) => (
+            <div
+              key={product.id}
+              className={cn(
+                "flex items-center justify-between px-3 py-2 cursor-pointer text-xs sm:text-sm",
+                index === highlightedIndex && "bg-accent",
+                product.id === selectedProductId && "bg-primary/10"
+              )}
+              onMouseEnter={() => setHighlightedIndex(index)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleSelect(product);
+              }}
+            >
+              <div className="flex flex-col">
+                <span className="font-medium">{product.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  R$ {product.unit_price.toFixed(2)}/{product.unit}
+                  {product.manufacturer && ` • ${product.manufacturer}`}
+                </span>
+              </div>
+              {product.id === selectedProductId && (
+                <Check className="h-4 w-4 text-primary" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {isOpen && filteredProducts.length === 0 && inputValue && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-3 shadow-lg">
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Nenhum produto encontrado
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ApplicationDialog({ open, onOpenChange, onSave, application }: ApplicationDialogProps) {
@@ -371,21 +511,11 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div className="space-y-2 sm:col-span-2">
                           <Label className="text-xs sm:text-sm">Produto *</Label>
-                          <Select
-                            value={productItem.product_id}
-                            onValueChange={(value) => updateProductCalculations(index, { product_id: value })}
-                          >
-                            <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
-                              <SelectValue placeholder="Selecione o produto" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {products.filter(p => p.active).map((prod) => (
-                                <SelectItem key={prod.id} value={prod.id} className="text-xs sm:text-sm">
-                                  {prod.name} - R$ {prod.unit_price.toFixed(2)}/{prod.unit}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <ProductAutocomplete
+                            products={products.filter(p => p.active)}
+                            selectedProductId={productItem.product_id}
+                            onSelect={(productId) => updateProductCalculations(index, { product_id: productId })}
+                          />
                         </div>
 
                         <div className="space-y-2">
