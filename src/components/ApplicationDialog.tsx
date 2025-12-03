@@ -46,17 +46,13 @@ interface ProductItem {
 
 // Conversões de unidade
 const unitConversions: Record<string, Record<string, number>> = {
-  L: { L: 1, mL: 0.001 },
-  mL: { mL: 1, L: 1000 },
-  kg: { kg: 1, g: 0.001 },
-  g: { g: 1, kg: 1000 },
+  L: { L: 1, mL: 0.001, kg: 1, g: 0.001 },
+  mL: { mL: 1, L: 1000, g: 1, kg: 1000 },
+  kg: { kg: 1, g: 0.001, L: 1, mL: 0.001 },
+  g: { g: 1, kg: 1000, mL: 1, L: 1000 },
 };
 
-const getRelatedUnits = (baseUnit: string): string[] => {
-  if (baseUnit === 'L' || baseUnit === 'mL') return ['L', 'mL'];
-  if (baseUnit === 'kg' || baseUnit === 'g') return ['kg', 'g'];
-  return [baseUnit];
-};
+const availableUnits = ['L', 'mL', 'kg', 'g'];
 
 const convertDose = (value: number, fromUnit: string, toUnit: string): number => {
   if (fromUnit === toUnit) return value;
@@ -585,28 +581,21 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                               className="h-9 sm:h-10 text-xs sm:text-sm flex-1"
                               placeholder="Ex: 0.5"
                             />
-                            {productItem.product_id && (
-                              <Select
-                                value={productItem.dose_unit}
-                                onValueChange={(value) => updateProductCalculations(index, { dose_unit: value })}
-                              >
-                                <SelectTrigger className="h-9 sm:h-10 w-20 text-xs sm:text-sm">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {getRelatedUnits(products.find(p => p.id === productItem.product_id)?.unit || 'L').map((unit) => (
-                                    <SelectItem key={unit} value={unit} className="text-xs sm:text-sm">
-                                      {unit}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )}
-                            {!productItem.product_id && (
-                              <span className="flex items-center text-xs sm:text-sm text-muted-foreground whitespace-nowrap px-2">
-                                {productItem.dose_unit}
-                              </span>
-                            )}
+                            <Select
+                              value={productItem.dose_unit}
+                              onValueChange={(value) => updateProductCalculations(index, { dose_unit: value })}
+                            >
+                              <SelectTrigger className="h-9 sm:h-10 w-20 text-xs sm:text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-popover">
+                                {availableUnits.map((unit) => (
+                                  <SelectItem key={unit} value={unit} className="text-xs sm:text-sm">
+                                    {unit}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
 
