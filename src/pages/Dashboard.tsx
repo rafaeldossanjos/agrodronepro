@@ -34,17 +34,17 @@ export default function Dashboard() {
     const now = new Date();
     const periodStart = subDays(now, periodFilter);
 
-    // Filtrar aplicações do período selecionado
+    // Filtrar apenas aplicações CONCLUÍDAS do período selecionado
     const periodApps = applications.filter(app => {
       const appDate = new Date(app.application_date + 'T00:00:00');
-      return appDate >= periodStart && appDate <= now;
+      return appDate >= periodStart && appDate <= now && app.status === 'concluída';
     });
 
-    // Período anterior para comparação
+    // Período anterior para comparação (apenas concluídas)
     const previousPeriodStart = subDays(periodStart, periodFilter);
     const previousPeriodApps = applications.filter(app => {
       const appDate = new Date(app.application_date + 'T00:00:00');
-      return appDate >= previousPeriodStart && appDate < periodStart;
+      return appDate >= previousPeriodStart && appDate < periodStart && app.status === 'concluída';
     });
 
     // Área aplicada no período
