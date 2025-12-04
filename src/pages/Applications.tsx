@@ -7,6 +7,7 @@ import { useApplications } from "@/hooks/useApplications";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -114,13 +115,19 @@ export default function Applications() {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Badge 
-              variant={config.variant} 
-              className="cursor-pointer hover:opacity-80 transition-opacity gap-1"
+            <button 
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity border",
+                app.status === 'planejada' 
+                  ? "bg-secondary text-secondary-foreground border-secondary" 
+                  : "bg-background text-foreground border-input"
+              )}
             >
               <Icon className="h-3 w-3" />
               {config.label}
-            </Badge>
+              <span className="ml-1 text-[10px]">▼</span>
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="bg-popover">
             {app.status === 'planejada' && (

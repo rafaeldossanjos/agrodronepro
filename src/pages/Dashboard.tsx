@@ -120,18 +120,37 @@ export default function Dashboard() {
           plotName: app.plot_name || '-',
           area: `${Number(app.area_applied).toFixed(1)} ha`,
           date: format(new Date(app.application_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR }),
-          status: app.status === 'concluída' ? 'Concluída' : app.status === 'em_andamento' ? 'Em Andamento' : 'Planejada',
+          status: app.status,
         };
       });
   }, [applications, properties]);
+
+  // Contar aplicações pendentes
+  const pendingCount = useMemo(() => {
+    return applications.filter(app => 
+      app.status === 'planejada' || app.status === 'em_andamento'
+    ).length;
+  }, [applications]);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Visão geral das suas operações com drone
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Visão geral das suas operações com drone
+          </p>
+        </div>
+        {pendingCount > 0 && (
+          <button
+            onClick={() => navigate('/applications')}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-warning/10 text-warning text-sm font-medium hover:bg-warning/20 transition-colors"
+          >
+            <Clock className="h-4 w-4" />
+            {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
+          </button>
+        )}
       </div>
 
       {/* Filtros de Período */}
@@ -225,8 +244,16 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="font-semibold text-foreground">{app.area}</p>
-                  <span className="inline-flex items-center rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
-                    {app.status}
+                  <span className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                    app.status === 'concluída' ? "bg-success/10 text-success" :
+                    app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
+                    app.status === 'planejada' ? "bg-warning/10 text-warning" :
+                    "bg-muted text-muted-foreground"
+                  )}>
+                    {app.status === 'concluída' ? 'Concluída' : 
+                     app.status === 'em_andamento' ? 'Em Andamento' : 
+                     app.status === 'planejada' ? 'Planejada' : 'Cancelada'}
                   </span>
                 </div>
               </div>
