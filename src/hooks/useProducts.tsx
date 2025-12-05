@@ -12,6 +12,8 @@ export interface Product {
   unit: string;
   stock_quantity: number;
   active: boolean;
+  recommended_dose?: number;
+  recommended_dose_unit?: string;
   created_at: string;
   updated_at: string;
 }
