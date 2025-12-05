@@ -16,6 +16,8 @@ const productSchema = z.object({
   unit_price: z.number().min(0, 'Preço não pode ser negativo').optional(),
   unit: z.string().min(1, 'Unidade é obrigatória'),
   stock_quantity: z.number().min(0, 'Estoque não pode ser negativo').optional(),
+  recommended_dose: z.number().min(0, 'Dose não pode ser negativa').optional(),
+  recommended_dose_unit: z.string().optional(),
   active: z.boolean(),
 });
 
@@ -36,6 +38,8 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
     unit_price: product?.unit_price || 0,
     unit: product?.unit || 'L',
     stock_quantity: product?.stock_quantity || 0,
+    recommended_dose: product?.recommended_dose || 0,
+    recommended_dose_unit: product?.recommended_dose_unit || 'L/ha',
     active: product?.active ?? true,
   });
 
@@ -56,6 +60,8 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
           unit_price: validated.unit_price,
           unit: validated.unit,
           stock_quantity: validated.stock_quantity,
+          recommended_dose: validated.recommended_dose,
+          recommended_dose_unit: validated.recommended_dose_unit,
           active: validated.active,
         });
       }
@@ -68,6 +74,8 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
         unit_price: 0, 
         unit: 'L', 
         stock_quantity: 0, 
+        recommended_dose: 0,
+        recommended_dose_unit: 'L/ha',
         active: true 
       });
     } catch (error) {
@@ -89,7 +97,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {product ? 'Editar Produto' : 'Novo Produto'}
@@ -165,6 +173,46 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
               </Select>
             </div>
           </div>
+          
+          {/* Dose Recomendada */}
+          <div className="rounded-lg border border-border p-3 space-y-3">
+            <Label className="text-sm font-medium">Dose Recomendada (opcional)</Label>
+            <p className="text-xs text-muted-foreground">
+              Será preenchida automaticamente ao selecionar este produto na calculadora
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="recommended_dose" className="text-xs">Dose</Label>
+                <Input
+                  id="recommended_dose"
+                  type="number"
+                  step="0.0001"
+                  min="0"
+                  value={formData.recommended_dose || ''}
+                  onChange={(e) => setFormData({ ...formData, recommended_dose: parseFloat(e.target.value) || 0 })}
+                  placeholder="0.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="recommended_dose_unit" className="text-xs">Unidade</Label>
+                <Select
+                  value={formData.recommended_dose_unit}
+                  onValueChange={(value) => setFormData({ ...formData, recommended_dose_unit: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="L/ha">L/ha</SelectItem>
+                    <SelectItem value="mL/ha">mL/ha</SelectItem>
+                    <SelectItem value="kg/ha">kg/ha</SelectItem>
+                    <SelectItem value="g/ha">g/ha</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="stock_quantity">Estoque Inicial</Label>
             <Input

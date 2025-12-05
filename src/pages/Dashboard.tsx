@@ -78,29 +78,29 @@ export default function Dashboard() {
 
     return [
       {
-        label: `Área Aplicada (${periodFilter}d)`,
+        label: `Área (${periodFilter}d)`,
         value: `${totalAreaPeriod.toFixed(1)} ha`,
         change: `${Number(areaChange) > 0 ? '+' : ''}${areaChange}%`,
         icon: MapPin,
         color: "text-primary",
       },
       {
-        label: "Aplicações Realizadas",
+        label: "Aplicações",
         value: periodApps.length.toString(),
         change: `${appsChange > 0 ? '+' : ''}${appsChange}`,
         icon: Droplet,
         color: "text-success",
       },
       {
-        label: "Horas de Voo",
+        label: "Horas Voo",
         value: `${Math.floor(totalFlightTimePeriod / 60)}h`,
         change: `${flightTimeDiff > 0 ? '+' : ''}${Math.floor(flightTimeDiff / 60)}h`,
         icon: Clock,
         color: "text-warning",
       },
       {
-        label: "Custo Médio/ha",
-        value: `R$ ${avgCostPerHa.toFixed(2)}`,
+        label: "R$/ha",
+        value: `${avgCostPerHa.toFixed(0)}`,
         change: `${Number(costChange) > 0 ? '+' : ''}${costChange}%`,
         icon: DollarSign,
         color: Number(costChange) < 0 ? "text-success" : "text-warning",
@@ -133,126 +133,112 @@ export default function Dashboard() {
   }, [applications]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Visão geral das suas operações com drone
+          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs text-muted-foreground">
+            Visão geral das operações
           </p>
         </div>
         {pendingCount > 0 && (
           <button
             onClick={() => navigate('/applications')}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-warning/10 text-warning text-sm font-medium hover:bg-warning/20 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-warning/10 text-warning text-xs font-medium hover:bg-warning/20 transition-colors"
           >
-            <Clock className="h-4 w-4" />
+            <Clock className="h-3 w-3" />
             {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
           </button>
         )}
       </div>
 
       {/* Filtros de Período */}
-      <div className="flex gap-2 flex-wrap">
-        <Button
-          variant={periodFilter === 1 ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPeriodFilter(1)}
-        >
-          Hoje
-        </Button>
-        <Button
-          variant={periodFilter === 7 ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPeriodFilter(7)}
-        >
-          7 dias
-        </Button>
-        <Button
-          variant={periodFilter === 15 ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPeriodFilter(15)}
-        >
-          15 dias
-        </Button>
-        <Button
-          variant={periodFilter === 30 ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPeriodFilter(30)}
-        >
-          30 dias
-        </Button>
-        <Button
-          variant={periodFilter === 90 ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPeriodFilter(90)}
-        >
-          90 dias
-        </Button>
+      <div className="flex gap-1.5 flex-wrap">
+        {[
+          { value: 1, label: 'Hoje' },
+          { value: 7, label: '7d' },
+          { value: 15, label: '15d' },
+          { value: 30, label: '30d' },
+          { value: 90, label: '90d' },
+        ].map(({ value, label }) => (
+          <Button
+            key={value}
+            variant={periodFilter === value ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPeriodFilter(value as PeriodFilter)}
+            className="h-7 px-2.5 text-xs"
+          >
+            {label}
+          </Button>
+        ))}
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Grid - Compacto */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {stats.map((stat) => (
-          <Card key={stat.label} className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
-                <stat.icon className={cn("h-6 w-6", stat.color)} />
+          <Card key={stat.label} className="p-3">
+            <div className="flex items-start justify-between">
+              <div className={cn("p-1.5 rounded-md bg-muted", stat.color)}>
+                <stat.icon className="h-3.5 w-3.5" />
               </div>
-              <span className="text-sm font-medium text-success">
+              <span className="text-[10px] font-medium text-success">
                 {stat.change}
               </span>
             </div>
-            <div className="mt-4">
-              <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+            <div className="mt-2">
+              <p className="text-lg font-bold text-foreground leading-none">{stat.value}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
             </div>
           </Card>
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Info sobre porcentagem */}
+      <p className="text-[10px] text-muted-foreground text-center">
+        % compara com o período anterior ({periodFilter} dias antes)
+      </p>
+
+      <div className="grid gap-3 lg:grid-cols-2">
         {/* Recent Applications */}
-        <Card className="p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">
+        <Card className="p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground">
               Aplicações Recentes
             </h2>
             <button 
               onClick={() => navigate('/applications')}
-              className="text-sm font-medium text-primary hover:underline"
+              className="text-xs font-medium text-primary hover:underline"
             >
               Ver todas
             </button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {loadingApps ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <p className="text-xs text-muted-foreground">Carregando...</p>
             ) : recentApplications.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma aplicação registrada ainda.</p>
+              <p className="text-xs text-muted-foreground">Nenhuma aplicação registrada.</p>
             ) : (
               recentApplications.map((app, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between border-b border-border pb-3 last:border-0"
+                className="flex items-center justify-between border-b border-border pb-2 last:border-0 last:pb-0"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground">{app.property}</p>
-                  <p className="text-sm text-muted-foreground">{app.plotName}</p>
-                  <p className="text-sm text-muted-foreground">{app.date}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{app.property}</p>
+                  <p className="text-[10px] text-muted-foreground">{app.plotName} • {app.date}</p>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="font-semibold text-foreground">{app.area}</p>
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className="text-sm font-semibold text-foreground">{app.area}</p>
                   <span className={cn(
-                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                    "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                     app.status === 'concluída' ? "bg-success/10 text-success" :
                     app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
                     app.status === 'planejada' ? "bg-warning/10 text-warning" :
                     "bg-muted text-muted-foreground"
                   )}>
-                    {app.status === 'concluída' ? 'Concluída' : 
-                     app.status === 'em_andamento' ? 'Em Andamento' : 
+                    {app.status === 'concluída' ? 'OK' : 
+                     app.status === 'em_andamento' ? 'Andamento' : 
                      app.status === 'planejada' ? 'Planejada' : 'Cancelada'}
                   </span>
                 </div>
@@ -263,43 +249,43 @@ export default function Dashboard() {
         </Card>
 
         {/* Equipment Status */}
-        <Card className="p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">
-              Status dos Equipamentos
+        <Card className="p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground">
+              Equipamentos
             </h2>
             <button 
               onClick={() => navigate('/equipment')}
-              className="text-sm font-medium text-primary hover:underline"
+              className="text-xs font-medium text-primary hover:underline"
             >
               Gerenciar
             </button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {equipment.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhum equipamento cadastrado ainda.</p>
+              <p className="text-xs text-muted-foreground">Nenhum equipamento cadastrado.</p>
             ) : (
               equipment.slice(0, 3).map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between border-b border-border pb-3 last:border-0"
+                  className="flex items-center justify-between border-b border-border pb-2 last:border-0 last:pb-0"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {item.total_flights} voos realizados
+                    <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {item.total_flights} voos
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="flex items-center gap-1.5">
-                      <Battery className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-foreground">
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1">
+                      <Battery className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs font-medium text-foreground">
                         {item.battery_capacity}%
                       </span>
                     </div>
                     <span
                       className={cn(
-                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
+                        "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                         item.status === "operacional"
                           ? "bg-success/10 text-success"
                           : item.status === "manutencao"
@@ -307,7 +293,7 @@ export default function Dashboard() {
                           : "bg-muted text-muted-foreground"
                       )}
                     >
-                      {item.status === "operacional" ? "Operacional" : item.status === "manutencao" ? "Manutenção" : "Inativo"}
+                      {item.status === "operacional" ? "OK" : item.status === "manutencao" ? "Manut." : "Inativo"}
                     </span>
                   </div>
                 </div>
@@ -317,36 +303,35 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="p-6">
-        <h2 className="mb-4 text-lg font-semibold text-foreground">
+      {/* Quick Actions - Compacto */}
+      <Card className="p-3">
+        <h2 className="mb-2 text-sm font-semibold text-foreground">
           Ações Rápidas
         </h2>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2">
           <button 
             onClick={() => navigate('/applications')}
-            className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Droplet className="h-8 w-8 text-primary" />
-            <span className="font-medium text-foreground">Nova Aplicação</span>
+            <Droplet className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Aplicação</span>
           </button>
           <button 
             onClick={() => navigate('/calculator')}
-            className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Calculator className="h-8 w-8 text-primary" />
-            <span className="font-medium text-foreground">Calcular Calda</span>
+            <Calculator className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Calda</span>
           </button>
           <button 
             onClick={() => navigate('/reports')}
-            className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <TrendingUp className="h-8 w-8 text-primary" />
-            <span className="font-medium text-foreground">Gerar Relatório</span>
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Relatórios</span>
           </button>
         </div>
       </Card>
     </div>
   );
 }
-
