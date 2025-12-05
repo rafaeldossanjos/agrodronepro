@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator as CalcIcon, Plus, Trash2, Package, Save } from "lucide-react";
+import { Calculator as CalcIcon, Plus, Trash2, Package, Save, Settings2, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -25,6 +25,8 @@ import { useProperties } from "@/hooks/useProperties";
 import { useApplications } from "@/hooks/useApplications";
 import { ProductDialog } from "@/components/ProductDialog";
 import { ProductAutocomplete } from "@/components/ProductAutocomplete";
+
+const SAVED_PARAMS_KEY = "calculator_default_params";
 
 const calculationSchema = z.object({
   area: z.number().min(0.0001, 'Área deve ser maior que 0').max(100000, 'Área muito grande'),
@@ -70,16 +72,36 @@ type CalculationResults = {
   costPerHectare: number;
 };
 
+type SavedParams = {
+  area: string;
+  flowRate: string;
+  tankVolume: string;
+};
+
 export default function Calculator() {
   const { products: registeredProducts, isLoading: loadingProducts } = useProducts();
   const { properties } = useProperties();
   const { createApplication } = useApplications();
-  const [area, setArea] = useState<number>(10);
-  const [flowRate, setFlowRate] = useState<number>(10);
-  const [tankVolume, setTankVolume] = useState<number>(20);
+  
+  // Carregar parâmetros salvos do localStorage
+  const getSavedParams = (): SavedParams | null => {
+    try {
+      const saved = localStorage.getItem(SAVED_PARAMS_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
+  
+  const savedParams = getSavedParams();
+  const [area, setArea] = useState<string>(savedParams?.area || "");
+  const [flowRate, setFlowRate] = useState<string>(savedParams?.flowRate || "");
+  const [tankVolume, setTankVolume] = useState<string>(savedParams?.tankVolume || "");
   const [products, setProducts] = useState<Product[]>([]);
   const [calculated, setCalculated] = useState(false);
   const [results, setResults] = useState<CalculationResults | null>(null);
+  const [hasSavedParams, setHasSavedParams] = useState(!!savedParams);
+  const [showSaveParamsDialog, setShowSaveParamsDialog] = useState(false);
   
   // Dialog para salvar como aplicação
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -141,9 +163,45 @@ export default function Calculator() {
     setCalculated(false);
   };
 
+  const saveDefaultParams = () => {
+    const params: SavedParams = { area, flowRate, tankVolume };
+    localStorage.setItem(SAVED_PARAMS_KEY, JSON.stringify(params));
+    setHasSavedParams(true);
+    setShowSaveParamsDialog(false);
+    toast.success("Parâmetros salvos como padrão!");
+  };
+
+  const clearDefaultParams = () => {
+    localStorage.removeItem(SAVED_PARAMS_KEY);
+    setHasSavedParams(false);
+    setArea("");
+    setFlowRate("");
+    setTankVolume("");
+    setCalculated(false);
+    toast.success("Parâmetros limpos!");
+  };
+
   const calculate = () => {
+    const areaNum = parseFloat(area) || 0;
+    const flowRateNum = parseFloat(flowRate) || 0;
+    const tankVolumeNum = parseFloat(tankVolume) || 0;
+    
+    // Validar campos obrigatórios
+    if (!area || areaNum <= 0) {
+      toast.error("Área é obrigatória");
+      return;
+    }
+    if (!flowRate || flowRateNum <= 0) {
+      toast.error("Vazão é obrigatória");
+      return;
+    }
+    if (!tankVolume || tankVolumeNum <= 0) {
+      toast.error("Capacidade do tanque é obrigatória");
+      return;
+    }
+    
     try {
-      calculationSchema.parse({ area, flowRate, tankVolume });
+      calculationSchema.parse({ area: areaNum, flowRate: flowRateNum, tankVolume: tankVolumeNum });
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -168,13 +226,13 @@ export default function Calculator() {
       }
     }
 
-    const totalVolume = area * flowRate;
-    const tanks = Math.ceil(totalVolume / tankVolume);
+    const totalVolume = areaNum * flowRateNum;
+    const tanks = Math.ceil(totalVolume / tankVolumeNum);
     const volumePerTank = totalVolume / tanks;
 
     const productPerTank = products.map((p) => {
       const doseValue = parseFloat(p.dose) || 0;
-      const totalQuantity = doseValue * area;
+      const totalQuantity = doseValue * areaNum;
       const quantityPerTank = totalQuantity / tanks;
       const totalCost = totalQuantity * p.price;
 
@@ -195,7 +253,7 @@ export default function Calculator() {
     const waterPerTank = volumePerTank - totalProductVolume;
     const totalWater = waterPerTank * tanks;
     const totalCost = productPerTank.reduce((sum, p) => sum + p.totalCost, 0);
-    const costPerHectare = totalCost / area;
+    const costPerHectare = totalCost / areaNum;
 
     const calculationResults: CalculationResults = {
       totalVolume,
@@ -212,6 +270,11 @@ export default function Calculator() {
     setResults(calculationResults);
     setCalculated(true);
     toast.success(`Cálculo realizado! ${tanks} tanque(s) necessário(s)`);
+    
+    // Perguntar se quer salvar parâmetros se não tiver salvos
+    if (!hasSavedParams && area && flowRate && tankVolume) {
+      setShowSaveParamsDialog(true);
+    }
   };
 
   const handleSaveAsApplication = () => {
@@ -235,7 +298,7 @@ export default function Calculator() {
       application_date: saveDate,
       application_type: 'pulverização' as const,
       status: saveStatus,
-      area_applied: area,
+      area_applied: parseFloat(area) || 0,
       total_cost: results.totalCost,
       flight_time_minutes: null,
       notes: `Gerado pela calculadora de calda. Volume total: ${results.totalVolume.toFixed(2)}L, ${results.tanks} tanque(s).`,
@@ -276,53 +339,78 @@ export default function Calculator() {
         {/* Input Form */}
         <div className="space-y-3">
           <Card className="p-3 sm:p-4">
-            <h2 className="mb-3 text-sm font-semibold text-foreground">
-              Parâmetros
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-foreground">
+                Parâmetros
+              </h2>
+              {hasSavedParams && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearDefaultParams}
+                  className="gap-1 text-xs h-6 px-2 text-muted-foreground hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                  Limpar
+                </Button>
+              )}
+            </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label htmlFor="area" className="text-xs">Área (ha)</Label>
+                <Label htmlFor="area" className="text-xs">Área (ha) *</Label>
                 <Input
                   id="area"
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={area}
                   onChange={(e) => {
-                    setArea(Number(e.target.value));
-                    setCalculated(false);
+                    const val = e.target.value;
+                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                      setArea(val);
+                      setCalculated(false);
+                    }
                   }}
-                  min="0"
-                  step="0.0001"
+                  placeholder="0"
                   className="h-8"
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="flowRate" className="text-xs">Vazão (L/ha)</Label>
+                <Label htmlFor="flowRate" className="text-xs">Vazão (L/ha) *</Label>
                 <Input
                   id="flowRate"
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={flowRate}
                   onChange={(e) => {
-                    setFlowRate(Number(e.target.value));
-                    setCalculated(false);
+                    const val = e.target.value;
+                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                      setFlowRate(val);
+                      setCalculated(false);
+                    }
                   }}
-                  min="0"
-                  step="0.01"
+                  placeholder="0"
                   className="h-8"
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="tankVolume" className="text-xs">Tanque (L)</Label>
+                <Label htmlFor="tankVolume" className="text-xs">Tanque (L) *</Label>
                 <Input
                   id="tankVolume"
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={tankVolume}
                   onChange={(e) => {
-                    setTankVolume(Number(e.target.value));
-                    setCalculated(false);
+                    const val = e.target.value;
+                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                      setTankVolume(val);
+                      setCalculated(false);
+                    }
                   }}
-                  min="0"
-                  step="1"
+                  placeholder="0"
                   className="h-8"
+                  required
                 />
               </div>
             </div>
@@ -655,6 +743,34 @@ export default function Calculator() {
             </Button>
             <Button onClick={handleSaveAsApplication} size="sm" className="text-xs">
               Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para salvar parâmetros */}
+      <Dialog open={showSaveParamsDialog} onOpenChange={setShowSaveParamsDialog}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="text-base flex items-center gap-2">
+              <Settings2 className="h-4 w-4" />
+              Salvar Parâmetros?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            Deseja salvar esses parâmetros como padrão para próximos cálculos?
+          </p>
+          <div className="text-xs space-y-1 bg-muted p-2 rounded-md">
+            <p><strong>Área:</strong> {area} ha</p>
+            <p><strong>Vazão:</strong> {flowRate} L/ha</p>
+            <p><strong>Tanque:</strong> {tankVolume} L</p>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowSaveParamsDialog(false)} size="sm" className="text-xs">
+              Não
+            </Button>
+            <Button onClick={saveDefaultParams} size="sm" className="text-xs">
+              Sim, Salvar
             </Button>
           </DialogFooter>
         </DialogContent>
