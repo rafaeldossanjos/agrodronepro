@@ -20,12 +20,12 @@ export default function Properties() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Propriedades</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Propriedades</h1>
+          <p className="text-sm text-muted-foreground">
             Gerencie suas fazendas e talhões
           </p>
         </div>
@@ -34,42 +34,42 @@ export default function Properties() {
 
       {/* Properties Grid */}
       {properties.length === 0 ? (
-        <Card className="p-12">
+        <Card className="p-8 sm:p-12">
           <div className="text-center">
-            <MapPin className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+            <MapPin className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
               Nenhuma propriedade cadastrada
             </h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Comece criando sua primeira propriedade
             </p>
             <PropertyDialog />
           </div>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => (
-            <Card key={property.id} className="p-6 transition-all hover:shadow-lg">
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <MapPin className="h-6 w-6 text-primary" />
+            <Card key={property.id} className="p-4 sm:p-6 transition-all hover:shadow-lg">
+              <div className="mb-3 sm:mb-4 flex items-start justify-between">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div className="flex gap-1">
                   <PropertyDialog 
                     property={property}
                     trigger={
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <Edit className="h-4 w-4" />
                       </Button>
                     }
                   />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -77,11 +77,11 @@ export default function Properties() {
                           Esta ação não pode ser desfeita.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                        <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
                         <AlertDialogAction 
                           onClick={() => deleteProperty.mutate(property.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                           Excluir
                         </AlertDialogAction>
@@ -91,21 +91,21 @@ export default function Properties() {
                 </div>
               </div>
 
-              <h3 className="mb-1 text-xl font-semibold text-foreground">
+              <h3 className="mb-1 text-lg sm:text-xl font-semibold text-foreground line-clamp-1">
                 {property.name}
               </h3>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <p className="mb-3 sm:mb-4 text-xs sm:text-sm text-muted-foreground line-clamp-1">
                 {property.location}
               </p>
 
-              <div className="space-y-2 border-t border-border pt-4">
-                <div className="flex justify-between text-sm">
+              <div className="space-y-2 border-t border-border pt-3 sm:pt-4">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-muted-foreground">Área Total</span>
                   <span className="font-semibold text-foreground">
                     {property.total_area} ha
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-muted-foreground">Talhões</span>
                   <span className="font-semibold text-foreground">
                     {property.plot_count}
@@ -114,7 +114,7 @@ export default function Properties() {
               </div>
 
               {property.notes && (
-                <div className="mt-4 text-sm text-muted-foreground border-t border-border pt-3">
+                <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground border-t border-border pt-3 line-clamp-2">
                   {property.notes}
                 </div>
               )}
