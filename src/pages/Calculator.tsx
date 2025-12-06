@@ -73,7 +73,6 @@ type CalculationResults = {
 };
 
 type SavedParams = {
-  area: string;
   flowRate: string;
   tankVolume: string;
 };
@@ -94,7 +93,7 @@ export default function Calculator() {
   };
   
   const savedParams = getSavedParams();
-  const [area, setArea] = useState<string>(savedParams?.area || "");
+  const [area, setArea] = useState<string>("");
   const [flowRate, setFlowRate] = useState<string>(savedParams?.flowRate || "");
   const [tankVolume, setTankVolume] = useState<string>(savedParams?.tankVolume || "");
   const [products, setProducts] = useState<Product[]>([]);
@@ -164,7 +163,7 @@ export default function Calculator() {
   };
 
   const saveDefaultParams = () => {
-    const params: SavedParams = { area, flowRate, tankVolume };
+    const params: SavedParams = { flowRate, tankVolume };
     localStorage.setItem(SAVED_PARAMS_KEY, JSON.stringify(params));
     setHasSavedParams(true);
     setShowSaveParamsDialog(false);
@@ -174,7 +173,6 @@ export default function Calculator() {
   const clearDefaultParams = () => {
     localStorage.removeItem(SAVED_PARAMS_KEY);
     setHasSavedParams(false);
-    setArea("");
     setFlowRate("");
     setTankVolume("");
     setCalculated(false);
@@ -272,7 +270,7 @@ export default function Calculator() {
     toast.success(`Cálculo realizado! ${tanks} tanque(s) necessário(s)`);
     
     // Perguntar se quer salvar parâmetros se não tiver salvos
-    if (!hasSavedParams && area && flowRate && tankVolume) {
+    if (!hasSavedParams && flowRate && tankVolume) {
       setShowSaveParamsDialog(true);
     }
   };
@@ -667,6 +665,44 @@ export default function Calculator() {
                     )}
                   </div>
 
+                  {/* Teste de Compatibilidade */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-semibold text-foreground border-l-2 border-warning pl-2">
+                      Teste de Compatibilidade
+                    </h3>
+                    <div className="rounded-lg bg-warning/10 border border-warning/20 p-2.5 space-y-2">
+                      <p className="text-[10px] text-muted-foreground">
+                        Antes de preparar a calda completa, faça um teste em pequena escala:
+                      </p>
+                      {[2, 5].map((liters) => {
+                        const ratio = liters / results.volumePerTank;
+                        return (
+                          <div key={liters} className="rounded bg-background/50 p-2">
+                            <p className="text-xs font-medium text-foreground mb-1">
+                              Receita para {liters}L:
+                            </p>
+                            <div className="space-y-0.5">
+                              <div className="flex justify-between text-[10px]">
+                                <span className="text-muted-foreground">Água</span>
+                                <span className="font-medium text-foreground">
+                                  {(results.waterPerTank * ratio).toFixed(2)} L
+                                </span>
+                              </div>
+                              {results.productPerTank.map((p) => (
+                                <div key={p.id} className="flex justify-between text-[10px]">
+                                  <span className="text-muted-foreground truncate max-w-[50%]">{p.name}</span>
+                                  <span className="font-medium text-foreground">
+                                    {(p.quantityPerTank * ratio).toFixed(4)} {p.unit.replace('/ha', '')}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Salvar como Aplicação */}
                   <Button 
                     onClick={() => setSaveDialogOpen(true)} 
@@ -761,7 +797,6 @@ export default function Calculator() {
             Deseja salvar esses parâmetros como padrão para próximos cálculos?
           </p>
           <div className="text-xs space-y-1 bg-muted p-2 rounded-md">
-            <p><strong>Área:</strong> {area} ha</p>
             <p><strong>Vazão:</strong> {flowRate} L/ha</p>
             <p><strong>Tanque:</strong> {tankVolume} L</p>
           </div>

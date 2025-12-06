@@ -1,12 +1,14 @@
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, DollarSign, Target, Download, Filter } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, Target, Download, Filter, FileText } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function Reports() {
   const { applications } = useApplications();
@@ -62,7 +64,6 @@ export default function Reports() {
     return Object.values(grouped);
   }, [filteredApplications]);
 
-  // Detalhes de produtos aplicados
   const productStats = useMemo(() => {
     const productMap: Record<string, { name: string; unit: string; totalAmount: number; totalCost: number; count: number }> = {};
     
@@ -124,6 +125,201 @@ export default function Reports() {
     link.click();
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(34, 139, 34);
+    doc.rect(0, 0, pageWidth, 35, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AgroDrone PRO', 14, 18);
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Relatório de Aplicações', 14, 28);
+    
+    // Período e filtros
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    const periodText = `Período: ${selectedPeriod} dias`;
+    const propertyText = selectedProperty === "all" 
+      ? "Todas as Propriedades" 
+      : properties.find(p => p.id === selectedProperty)?.name || "N/A";
+    doc.text(`${periodText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
+    doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, pageWidth - 14, 28, { align: 'right' });
+
+    let yPosition = 45;
+
+    // Resumo Estatístico
+    doc.setTextColor(34, 139, 34);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resumo Estatístico', 14, yPosition);
+    
+    yPosition += 8;
+    
+    // Stats cards
+    const statsData = [
+      ['Área Total', `${stats.totalArea.toFixed(1)} ha`],
+      ['Custo Total', `R$ ${stats.totalCost.toFixed(2)}`],
+      ['Custo/ha', `R$ ${stats.avgCostPerHa.toFixed(2)}`],
+      ['Eficiência', `${stats.efficiency.toFixed(0)}%`],
+      ['Total Aplicações', `${filteredApplications.length}`],
+    ];
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    
+    const cardWidth = (pageWidth - 28) / 3;
+    statsData.forEach((stat, i) => {
+      const x = 14 + (i % 3) * cardWidth;
+      const y = yPosition + Math.floor(i / 3) * 16;
+      
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(x, y, cardWidth - 4, 14, 2, 2, 'F');
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text(stat[0], x + 4, y + 5);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text(stat[1], x + 4, y + 11);
+    });
+
+    yPosition += 40;
+
+    // Produtos Aplicados
+    if (productStats.length > 0) {
+      doc.setTextColor(34, 139, 34);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Produtos Aplicados', 14, yPosition);
+      yPosition += 4;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Produto', 'Quantidade Total', 'Aplicações', 'Custo Total']],
+        body: productStats.map(p => [
+          p.name,
+          `${p.totalAmount.toFixed(2)} ${p.unit}`,
+          p.count.toString(),
+          `R$ ${p.totalCost.toFixed(2)}`
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [245, 250, 245] },
+      });
+
+      yPosition = (doc as any).lastAutoTable.finalY + 12;
+    }
+
+    // Resumo por Propriedade
+    if (propertyStats.length > 0) {
+      if (yPosition > 230) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setTextColor(34, 139, 34);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Resumo por Propriedade', 14, yPosition);
+      yPosition += 4;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Propriedade', 'Área (ha)', 'Aplicações', 'Custo Total', 'Custo/ha']],
+        body: propertyStats.map((p: any) => [
+          p.name,
+          p.area.toFixed(1),
+          p.apps.toString(),
+          `R$ ${p.cost.toFixed(2)}`,
+          `R$ ${(p.cost / p.area).toFixed(2)}`
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [245, 250, 245] },
+      });
+
+      yPosition = (doc as any).lastAutoTable.finalY + 12;
+    }
+
+    // Detalhes das Aplicações
+    if (filteredApplications.length > 0) {
+      if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setTextColor(34, 139, 34);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Detalhes das Aplicações', 14, yPosition);
+      yPosition += 4;
+
+      const appRows = filteredApplications.map((app: any) => {
+        const products = app.application_products && app.application_products.length > 0
+          ? app.application_products.map((p: any) => 
+              `${p.products?.name || 'N/A'}: ${Number(p.total_amount).toFixed(2)} ${p.products?.unit || ''}`
+            ).join('\n')
+          : '-';
+        
+        return [
+          format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }),
+          `${app.properties?.name || 'N/A'}${app.plot_name ? `\n${app.plot_name}` : ''}`,
+          app.application_type,
+          app.status,
+          `${app.area_applied} ha`,
+          products,
+          `R$ ${Number(app.total_cost).toFixed(2)}`
+        ];
+      });
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Data', 'Propriedade', 'Tipo', 'Status', 'Área', 'Produtos', 'Custo']],
+        body: appRows,
+        theme: 'striped',
+        headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 8, cellPadding: 2 },
+        alternateRowStyles: { fillColor: [245, 250, 245] },
+        columnStyles: {
+          0: { cellWidth: 18 },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 22 },
+          4: { cellWidth: 18 },
+          5: { cellWidth: 50 },
+          6: { cellWidth: 22 },
+        },
+      });
+    }
+
+    // Footer em todas as páginas
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Página ${i} de ${totalPages} - AgroDrone PRO`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'center' }
+      );
+    }
+
+    doc.save(`relatorio_aplicacoes_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -135,10 +331,16 @@ export default function Reports() {
             Visão analítica das suas operações e custos
           </p>
         </div>
-        <Button onClick={exportToCSV} className="gap-2 w-full sm:w-auto">
-          <Download className="h-4 w-4" />
-          Exportar CSV
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button onClick={exportToCSV} variant="outline" className="gap-2 w-full sm:w-auto">
+            <Download className="h-4 w-4" />
+            CSV
+          </Button>
+          <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto">
+            <FileText className="h-4 w-4" />
+            Exportar PDF
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
