@@ -1,38 +1,108 @@
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, DollarSign, Target, Download, Filter, FileText } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, Target, Download, Filter, FileText, CalendarIcon, X } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
+import { useProducts } from "@/hooks/useProducts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function Reports() {
-  const { applications } = useApplications();
-  const { properties } = useProperties();
+  const { applications, isLoading: appsLoading } = useApplications();
+  const { properties, isLoading: propsLoading } = useProperties();
+  const { products, isLoading: productsLoading } = useProducts();
+  
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("30");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedProduct, setSelectedProduct] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
+  const [minCost, setMinCost] = useState<string>("");
+  const [maxCost, setMaxCost] = useState<string>("");
+
+  const isLoading = appsLoading || propsLoading || productsLoading;
+
+  const clearFilters = () => {
+    setSelectedProperty("all");
+    setSelectedPeriod("30");
+    setSelectedStatus("all");
+    setSelectedType("all");
+    setSelectedProduct("all");
+    setDateFrom("");
+    setDateTo("");
+    setMinCost("");
+    setMaxCost("");
+  };
+
+  const hasActiveFilters = selectedProperty !== "all" || selectedPeriod !== "30" || 
+    selectedStatus !== "all" || selectedType !== "all" || selectedProduct !== "all" ||
+    dateFrom !== "" || dateTo !== "" || minCost !== "" || maxCost !== "";
 
   const filteredApplications = useMemo(() => {
-    let filtered = applications;
+    let filtered = applications || [];
 
+    // Filtro por propriedade
     if (selectedProperty !== "all") {
       filtered = filtered.filter((app: any) => app.property_id === selectedProperty);
     }
 
-    const now = new Date();
-    const daysAgo = new Date(now.getTime() - Number(selectedPeriod) * 24 * 60 * 60 * 1000);
+    // Filtro por status
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter((app: any) => app.status === selectedStatus);
+    }
 
-    filtered = filtered.filter((app: any) => {
-      const appDate = new Date(app.application_date + 'T00:00:00');
-      return appDate >= daysAgo && appDate <= now;
-    });
+    // Filtro por tipo
+    if (selectedType !== "all") {
+      filtered = filtered.filter((app: any) => app.application_type === selectedType);
+    }
+
+    // Filtro por produto
+    if (selectedProduct !== "all") {
+      filtered = filtered.filter((app: any) => 
+        app.application_products?.some((p: any) => p.product_id === selectedProduct)
+      );
+    }
+
+    // Filtro por período personalizado ou predefinido
+    if (dateFrom || dateTo) {
+      filtered = filtered.filter((app: any) => {
+        const appDate = new Date(app.application_date + 'T00:00:00');
+        if (dateFrom && dateTo) {
+          return appDate >= new Date(dateFrom + 'T00:00:00') && appDate <= new Date(dateTo + 'T23:59:59');
+        } else if (dateFrom) {
+          return appDate >= new Date(dateFrom + 'T00:00:00');
+        } else if (dateTo) {
+          return appDate <= new Date(dateTo + 'T23:59:59');
+        }
+        return true;
+      });
+    } else {
+      // Usar período predefinido apenas se não houver datas personalizadas
+      const now = new Date();
+      const daysAgo = new Date(now.getTime() - Number(selectedPeriod) * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter((app: any) => {
+        const appDate = new Date(app.application_date + 'T00:00:00');
+        return appDate >= daysAgo && appDate <= now;
+      });
+    }
+
+    // Filtro por custo
+    if (minCost) {
+      filtered = filtered.filter((app: any) => Number(app.total_cost) >= Number(minCost));
+    }
+    if (maxCost) {
+      filtered = filtered.filter((app: any) => Number(app.total_cost) <= Number(maxCost));
+    }
 
     return filtered;
-  }, [applications, selectedProperty, selectedPeriod]);
+  }, [applications, selectedProperty, selectedPeriod, selectedStatus, selectedType, selectedProduct, dateFrom, dateTo, minCost, maxCost]);
 
   const stats = useMemo(() => {
     const totalArea = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied), 0);
@@ -40,8 +110,9 @@ export default function Reports() {
     const avgCostPerHa = totalArea > 0 ? totalCost / totalArea : 0;
     const completedApps = filteredApplications.filter((app: any) => app.status === "concluída").length;
     const efficiency = filteredApplications.length > 0 ? (completedApps / filteredApplications.length) * 100 : 0;
+    const totalFlightTime = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.flight_time_minutes || 0), 0);
 
-    return { totalArea, totalCost, avgCostPerHa, efficiency };
+    return { totalArea, totalCost, avgCostPerHa, efficiency, totalFlightTime };
   }, [filteredApplications]);
 
   const propertyStats = useMemo(() => {
@@ -90,6 +161,36 @@ export default function Reports() {
     });
     
     return Object.values(productMap).sort((a, b) => b.totalCost - a.totalCost);
+  }, [filteredApplications]);
+
+  const statusStats = useMemo(() => {
+    const stats = {
+      planejada: 0,
+      em_andamento: 0,
+      concluída: 0,
+      cancelada: 0,
+    };
+    
+    filteredApplications.forEach((app: any) => {
+      if (stats[app.status as keyof typeof stats] !== undefined) {
+        stats[app.status as keyof typeof stats]++;
+      }
+    });
+    
+    return stats;
+  }, [filteredApplications]);
+
+  const typeStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    
+    filteredApplications.forEach((app: any) => {
+      if (!stats[app.application_type]) {
+        stats[app.application_type] = 0;
+      }
+      stats[app.application_type]++;
+    });
+    
+    return stats;
   }, [filteredApplications]);
 
   const exportToCSV = () => {
@@ -145,11 +246,18 @@ export default function Reports() {
     // Período e filtros
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    const periodText = `Período: ${selectedPeriod} dias`;
+    
+    let filterText = "";
+    if (dateFrom || dateTo) {
+      filterText = `Período: ${dateFrom ? format(new Date(dateFrom + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Início'} - ${dateTo ? format(new Date(dateTo + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Hoje'}`;
+    } else {
+      filterText = `Período: ${selectedPeriod} dias`;
+    }
+    
     const propertyText = selectedProperty === "all" 
       ? "Todas as Propriedades" 
       : properties.find(p => p.id === selectedProperty)?.name || "N/A";
-    doc.text(`${periodText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
+    doc.text(`${filterText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
     doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, pageWidth - 14, 28, { align: 'right' });
 
     let yPosition = 45;
@@ -169,6 +277,7 @@ export default function Reports() {
       ['Custo/ha', `R$ ${stats.avgCostPerHa.toFixed(2)}`],
       ['Eficiência', `${stats.efficiency.toFixed(0)}%`],
       ['Total Aplicações', `${filteredApplications.length}`],
+      ['Tempo de Voo', `${stats.totalFlightTime} min`],
     ];
 
     doc.setTextColor(60, 60, 60);
@@ -266,7 +375,7 @@ export default function Reports() {
       yPosition += 4;
 
       const appRows = filteredApplications.map((app: any) => {
-        const products = app.application_products && app.application_products.length > 0
+        const appProducts = app.application_products && app.application_products.length > 0
           ? app.application_products.map((p: any) => 
               `${p.products?.name || 'N/A'}: ${Number(p.total_amount).toFixed(2)} ${p.products?.unit || ''}`
             ).join('\n')
@@ -278,7 +387,7 @@ export default function Reports() {
           app.application_type,
           app.status,
           `${app.area_applied} ha`,
-          products,
+          appProducts,
           `R$ ${Number(app.total_cost).toFixed(2)}`
         ];
       });
@@ -320,6 +429,17 @@ export default function Reports() {
     doc.save(`relatorio_aplicacoes_${format(new Date(), "yyyy-MM-dd")}.pdf`);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -332,11 +452,11 @@ export default function Reports() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button onClick={exportToCSV} variant="outline" className="gap-2 w-full sm:w-auto">
+          <Button onClick={exportToCSV} variant="outline" className="gap-2 w-full sm:w-auto" disabled={filteredApplications.length === 0}>
             <Download className="h-4 w-4" />
             CSV
           </Button>
-          <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto">
+          <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto" disabled={filteredApplications.length === 0}>
             <FileText className="h-4 w-4" />
             Exportar PDF
           </Button>
@@ -345,11 +465,21 @@ export default function Reports() {
 
       {/* Filters */}
       <Card className="p-4 sm:p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-4 w-4" />
-          <h2 className="font-semibold">Filtros</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            <h2 className="font-semibold">Filtros</h2>
+          </div>
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+              Limpar filtros
+            </Button>
+          )}
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Propriedade */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Propriedade</label>
             <Select value={selectedProperty} onValueChange={setSelectedProperty}>
@@ -366,66 +496,216 @@ export default function Reports() {
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Período predefinido */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Período</label>
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod} disabled={!!dateFrom || !!dateTo}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover">
                 <SelectItem value="7">Últimos 7 dias</SelectItem>
+                <SelectItem value="15">Últimos 15 dias</SelectItem>
                 <SelectItem value="30">Últimos 30 dias</SelectItem>
+                <SelectItem value="60">Últimos 60 dias</SelectItem>
                 <SelectItem value="90">Últimos 90 dias</SelectItem>
+                <SelectItem value="180">Últimos 6 meses</SelectItem>
                 <SelectItem value="365">Último ano</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          
+          {/* Status */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Status</label>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="planejada">Planejada</SelectItem>
+                <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                <SelectItem value="concluída">Concluída</SelectItem>
+                <SelectItem value="cancelada">Cancelada</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Tipo */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Tipo de Aplicação</label>
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Todos os Tipos</SelectItem>
+                <SelectItem value="pulverização">Pulverização</SelectItem>
+                <SelectItem value="adubação">Adubação</SelectItem>
+                <SelectItem value="semeadura">Semeadura</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Produto */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Produto</label>
+            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Todos os Produtos</SelectItem>
+                {products.filter((p: any) => p.active).map((prod: any) => (
+                  <SelectItem key={prod.id} value={prod.id}>
+                    {prod.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Data inicial */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Data Inicial</label>
+            <div className="relative">
+              <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                type="date" 
+                value={dateFrom} 
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          
+          {/* Data final */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Data Final</label>
+            <div className="relative">
+              <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                type="date" 
+                value={dateTo} 
+                onChange={(e) => setDateTo(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {/* Faixa de Custo */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Faixa de Custo (R$)</label>
+            <div className="flex gap-2">
+              <Input 
+                type="number" 
+                placeholder="Mín" 
+                value={minCost} 
+                onChange={(e) => setMinCost(e.target.value)}
+                className="w-full"
+              />
+              <Input 
+                type="number" 
+                placeholder="Máx" 
+                value={maxCost} 
+                onChange={(e) => setMaxCost(e.target.value)}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4 sm:p-6">
-          <div className="mb-2 sm:mb-3 flex items-center gap-2">
-            <Target className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            <p className="text-xs sm:text-sm text-muted-foreground">Área Total</p>
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+        <Card className="p-3 sm:p-4">
+          <div className="mb-1 sm:mb-2 flex items-center gap-2">
+            <Target className="h-4 w-4 text-primary" />
+            <p className="text-xs text-muted-foreground">Área Total</p>
           </div>
-          <p className="text-xl sm:text-3xl font-bold text-foreground">
+          <p className="text-lg sm:text-2xl font-bold text-foreground">
             {stats.totalArea.toFixed(1)} ha
           </p>
-          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {filteredApplications.length} aplicações
           </p>
         </Card>
 
-        <Card className="p-4 sm:p-6">
-          <div className="mb-2 sm:mb-3 flex items-center gap-2">
-            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
-            <p className="text-xs sm:text-sm text-muted-foreground">Custo Total</p>
+        <Card className="p-3 sm:p-4">
+          <div className="mb-1 sm:mb-2 flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-green-600" />
+            <p className="text-xs text-muted-foreground">Custo Total</p>
           </div>
-          <p className="text-xl sm:text-3xl font-bold text-foreground">
+          <p className="text-lg sm:text-2xl font-bold text-foreground">
             R$ {stats.totalCost.toFixed(2)}
           </p>
         </Card>
 
-        <Card className="p-4 sm:p-6">
-          <div className="mb-2 sm:mb-3 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
-            <p className="text-xs sm:text-sm text-muted-foreground">Custo/ha</p>
+        <Card className="p-3 sm:p-4">
+          <div className="mb-1 sm:mb-2 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-orange-500" />
+            <p className="text-xs text-muted-foreground">Custo/ha</p>
           </div>
-          <p className="text-xl sm:text-3xl font-bold text-foreground">
+          <p className="text-lg sm:text-2xl font-bold text-foreground">
             R$ {stats.avgCostPerHa.toFixed(2)}
           </p>
         </Card>
 
-        <Card className="p-4 sm:p-6">
-          <div className="mb-2 sm:mb-3 flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
-            <p className="text-xs sm:text-sm text-muted-foreground">Eficiência</p>
+        <Card className="p-3 sm:p-4">
+          <div className="mb-1 sm:mb-2 flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-blue-500" />
+            <p className="text-xs text-muted-foreground">Eficiência</p>
           </div>
-          <p className="text-xl sm:text-3xl font-bold text-foreground">
+          <p className="text-lg sm:text-2xl font-bold text-foreground">
             {stats.efficiency.toFixed(0)}%
           </p>
+          <p className="text-xs text-muted-foreground">
+            {statusStats.concluída} concluídas
+          </p>
+        </Card>
+      </div>
+
+      {/* Status e Tipo breakdown */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="p-4">
+          <h3 className="font-semibold mb-3 text-sm">Por Status</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Planejadas</span>
+              <span className="font-medium">{statusStats.planejada}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Em Andamento</span>
+              <span className="font-medium">{statusStats.em_andamento}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Concluídas</span>
+              <span className="font-medium text-green-600">{statusStats.concluída}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Canceladas</span>
+              <span className="font-medium text-red-500">{statusStats.cancelada}</span>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <h3 className="font-semibold mb-3 text-sm">Por Tipo</h3>
+          <div className="space-y-2">
+            {Object.entries(typeStats).length > 0 ? (
+              Object.entries(typeStats).map(([type, count]) => (
+                <div key={type} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground capitalize">{type}</span>
+                  <span className="font-medium">{count}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum dado</p>
+            )}
+          </div>
         </Card>
       </div>
 
@@ -506,7 +786,7 @@ export default function Reports() {
               {propertyStats.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
-                    Nenhum dado disponível para o período selecionado
+                    Nenhum dado disponível para os filtros selecionados
                   </td>
                 </tr>
               ) : (
@@ -543,7 +823,7 @@ export default function Reports() {
         <div className="space-y-4">
           {filteredApplications.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-8">
-              Nenhuma aplicação no período selecionado
+              Nenhuma aplicação encontrada para os filtros selecionados
             </p>
           ) : (
             filteredApplications.map((app: any) => (
@@ -557,6 +837,14 @@ export default function Reports() {
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })} • {app.application_type} • {app.area_applied} ha
                     </p>
+                    <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full ${
+                      app.status === 'concluída' ? 'bg-green-100 text-green-800' :
+                      app.status === 'em_andamento' ? 'bg-blue-100 text-blue-800' :
+                      app.status === 'cancelada' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {app.status}
+                    </span>
                   </div>
                   <p className="font-semibold text-foreground">
                     R$ {Number(app.total_cost).toFixed(2)}
