@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useProperties } from "@/hooks/useProperties";
 import { useProducts, Product } from "@/hooks/useProducts";
+import { useRecipes } from "@/hooks/useRecipes";
 import { Application } from "@/hooks/useApplications";
 import { z } from "zod";
-import { Plus, X, Check } from "lucide-react";
+import { Plus, X, Check, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -210,6 +211,32 @@ function ProductAutocomplete({
 export function ApplicationDialog({ open, onOpenChange, onSave, application }: ApplicationDialogProps) {
   const { properties } = useProperties();
   const { products } = useProducts();
+  const { recipes } = useRecipes();
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
+
+  const loadRecipe = (recipeId: string) => {
+    const recipe = recipes.find(r => r.id === recipeId);
+    if (!recipe || !recipe.recipe_products) return;
+
+    const newProducts: ProductItem[] = recipe.recipe_products.map(rp => {
+      const prod = products.find(p => p.id === rp.product_id);
+      return {
+        product_id: rp.product_id,
+        dose_per_ha: rp.dose_per_ha,
+        dose_input: rp.dose_per_ha.toString(),
+        dose_unit: rp.dose_unit || prod?.unit || 'L',
+        total_amount: formData.area_applied > 0 ? rp.dose_per_ha * formData.area_applied : 0,
+        unit_cost: prod?.unit_price || 0,
+        total_cost: 0,
+      };
+    });
+
+    if (newProducts.length > 0) {
+      const totalCost = newProducts.reduce((sum, p) => sum + p.total_cost, 0);
+      setFormData(prev => ({ ...prev, products: newProducts, total_cost: totalCost }));
+    }
+    setSelectedRecipeId(recipeId);
+  };
   
   const [formData, setFormData] = useState<{
     property_id: string;
@@ -405,6 +432,31 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
         <div className="flex-1 overflow-y-scroll px-4 sm:px-6 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
           <form id="application-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4 pb-6">
+            {/* Receituário (apenas para nova aplicação) */}
+            {!application && recipes.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-xs sm:text-sm flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Carregar Receituário
+                </Label>
+                <Select value={selectedRecipeId} onValueChange={loadRecipe}>
+                  <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
+                    <SelectValue placeholder="Selecione um receituário (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recipes.map((recipe) => (
+                      <SelectItem key={recipe.id} value={recipe.id} className="text-xs sm:text-sm">
+                        {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Ao selecionar, os produtos serão preenchidos automaticamente
+                </p>
+              </div>
+            )}
+
             {/* Informações Básicas */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
