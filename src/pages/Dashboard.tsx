@@ -15,32 +15,89 @@ import { useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type PeriodFilter = 1 | 7 | 15 | 30;
+type PeriodFilter = 1 | 7 | 15 | 30 | 'month';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(30);
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const { applications, isLoading: loadingApps } = useApplications();
   const { properties } = useProperties();
+
+  // Gerar lista de meses disponíveis baseado nas aplicações
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    (applications || []).forEach((app: any) => {
+      const date = new Date(app.application_date + 'T00:00:00');
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      months.add(monthKey);
+    });
+    return Array.from(months).sort().reverse();
+  }, [applications]);
+
+  const getMonthLabel = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return format(date, "MMM yyyy", { locale: ptBR });
+  };
+
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
+    if (month !== "all") {
+      setPeriodFilter('month');
+    }
+  };
+
+  const handlePeriodChange = (period: PeriodFilter) => {
+    setPeriodFilter(period);
+    if (period !== 'month') {
+      setSelectedMonth("all");
+    }
+  };
 
   // Calcular estatísticas reais
   const stats = useMemo(() => {
     const now = new Date();
-    const periodStart = subDays(now, periodFilter);
+    let periodApps: typeof applications = [];
+    let previousPeriodApps: typeof applications = [];
+    let periodLabel = '';
 
-    // Filtrar apenas aplicações CONCLUÍDAS do período selecionado
-    const periodApps = applications.filter(app => {
-      const appDate = new Date(app.application_date + 'T00:00:00');
-      return appDate >= periodStart && appDate <= now && app.status === 'concluída';
-    });
+    if (periodFilter === 'month' && selectedMonth !== 'all') {
+      // Filtro por mês específico
+      const [year, month] = selectedMonth.split('-').map(Number);
+      periodApps = applications.filter(app => {
+        const appDate = new Date(app.application_date + 'T00:00:00');
+        return appDate.getFullYear() === year && appDate.getMonth() + 1 === month && app.status === 'concluída';
+      });
+      
+      // Mês anterior para comparação
+      const prevMonth = month === 1 ? 12 : month - 1;
+      const prevYear = month === 1 ? year - 1 : year;
+      previousPeriodApps = applications.filter(app => {
+        const appDate = new Date(app.application_date + 'T00:00:00');
+        return appDate.getFullYear() === prevYear && appDate.getMonth() + 1 === prevMonth && app.status === 'concluída';
+      });
+      periodLabel = getMonthLabel(selectedMonth);
+    } else {
+      const days = periodFilter === 'month' ? 30 : periodFilter;
+      const periodStart = subDays(now, days);
 
-    // Período anterior para comparação (apenas concluídas)
-    const previousPeriodStart = subDays(periodStart, periodFilter);
-    const previousPeriodApps = applications.filter(app => {
-      const appDate = new Date(app.application_date + 'T00:00:00');
-      return appDate >= previousPeriodStart && appDate < periodStart && app.status === 'concluída';
-    });
+      // Filtrar apenas aplicações CONCLUÍDAS do período selecionado
+      periodApps = applications.filter(app => {
+        const appDate = new Date(app.application_date + 'T00:00:00');
+        return appDate >= periodStart && appDate <= now && app.status === 'concluída';
+      });
+
+      // Período anterior para comparação (apenas concluídas)
+      const previousPeriodStart = subDays(periodStart, days);
+      previousPeriodApps = applications.filter(app => {
+        const appDate = new Date(app.application_date + 'T00:00:00');
+        return appDate >= previousPeriodStart && appDate < periodStart && app.status === 'concluída';
+      });
+      periodLabel = `${days}d`;
+    }
 
     // Área aplicada no período
     const totalAreaPeriod = periodApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
@@ -71,37 +128,40 @@ export default function Dashboard() {
       ? ((avgCostPerHa - previousAvgCost) / previousAvgCost * 100).toFixed(0)
       : "0";
 
-    return [
-      {
-        label: `Área (${periodFilter}d)`,
-        value: `${totalAreaPeriod.toFixed(1)} ha`,
-        change: `${Number(areaChange) > 0 ? '+' : ''}${areaChange}%`,
-        icon: MapPin,
-        color: "text-primary",
-      },
-      {
-        label: "Aplicações",
-        value: periodApps.length.toString(),
-        change: `${appsChange > 0 ? '+' : ''}${appsChange}`,
-        icon: Droplet,
-        color: "text-success",
-      },
-      {
-        label: "Horas Voo",
-        value: `${Math.floor(totalFlightTimePeriod / 60)}h`,
-        change: `${flightTimeDiff > 0 ? '+' : ''}${Math.floor(flightTimeDiff / 60)}h`,
-        icon: Clock,
-        color: "text-warning",
-      },
-      {
-        label: "R$/ha",
-        value: `${avgCostPerHa.toFixed(0)}`,
-        change: `${Number(costChange) > 0 ? '+' : ''}${costChange}%`,
-        icon: DollarSign,
-        color: Number(costChange) < 0 ? "text-success" : "text-warning",
-      },
-    ];
-  }, [applications, periodFilter]);
+    return {
+      periodLabel,
+      items: [
+        {
+          label: `Área (${periodLabel})`,
+          value: `${totalAreaPeriod.toFixed(1)} ha`,
+          change: `${Number(areaChange) > 0 ? '+' : ''}${areaChange}%`,
+          icon: MapPin,
+          color: "text-primary",
+        },
+        {
+          label: "Aplicações",
+          value: periodApps.length.toString(),
+          change: `${appsChange > 0 ? '+' : ''}${appsChange}`,
+          icon: Droplet,
+          color: "text-success",
+        },
+        {
+          label: "Horas Voo",
+          value: `${Math.floor(totalFlightTimePeriod / 60)}h`,
+          change: `${flightTimeDiff > 0 ? '+' : ''}${Math.floor(flightTimeDiff / 60)}h`,
+          icon: Clock,
+          color: "text-warning",
+        },
+        {
+          label: "R$/ha",
+          value: `${avgCostPerHa.toFixed(0)}`,
+          change: `${Number(costChange) > 0 ? '+' : ''}${costChange}%`,
+          icon: DollarSign,
+          color: Number(costChange) < 0 ? "text-success" : "text-warning",
+        },
+      ]
+    };
+  }, [applications, periodFilter, selectedMonth]);
 
   // Buscar aplicações recentes
   const recentApplications = useMemo(() => {
@@ -149,7 +209,7 @@ export default function Dashboard() {
       </div>
 
       {/* Filtros de Período */}
-      <div className="flex gap-1.5 flex-wrap">
+      <div className="flex gap-1.5 flex-wrap items-center">
         {[
           { value: 1, label: 'Hoje' },
           { value: 7, label: '7d' },
@@ -160,17 +220,33 @@ export default function Dashboard() {
             key={value}
             variant={periodFilter === value ? "default" : "outline"}
             size="sm"
-            onClick={() => setPeriodFilter(value as PeriodFilter)}
+            onClick={() => handlePeriodChange(value as PeriodFilter)}
             className="h-7 px-2.5 text-xs"
           >
             {label}
           </Button>
         ))}
+        
+        <span className="text-xs text-muted-foreground mx-1">ou</span>
+        
+        <Select value={selectedMonth} onValueChange={handleMonthChange}>
+          <SelectTrigger className="h-7 w-[100px] text-xs">
+            <SelectValue placeholder="Mês" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover max-h-[200px]">
+            <SelectItem value="all">Todos</SelectItem>
+            {availableMonths.map((month) => (
+              <SelectItem key={month} value={month} className="capitalize">
+                {getMonthLabel(month)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Stats Grid - Compacto */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {stats.map((stat) => (
+        {stats.items.map((stat) => (
           <Card key={stat.label} className="p-3">
             <div className="flex items-start justify-between">
               <div className={cn("p-1.5 rounded-md bg-muted", stat.color)}>
@@ -190,7 +266,7 @@ export default function Dashboard() {
 
       {/* Info sobre porcentagem */}
       <p className="text-[10px] text-muted-foreground text-center">
-        % compara com o período anterior ({periodFilter} dias antes)
+        % compara com o período anterior
       </p>
 
       <div className="grid gap-3 lg:grid-cols-2">

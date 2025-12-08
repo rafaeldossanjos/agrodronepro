@@ -757,6 +757,7 @@ export default function Reports() {
             <div className="flex gap-1">
               {[
                 { value: "7", label: "7d" },
+                { value: "15", label: "15d" },
                 { value: "30", label: "30d" },
               ].map(({ value, label }) => (
                 <Button
