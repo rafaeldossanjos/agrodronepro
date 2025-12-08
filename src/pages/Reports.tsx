@@ -262,7 +262,7 @@ export default function Reports() {
 
     let yPosition = 45;
 
-    // Resumo Estatístico
+    // Resumo Estatístico (sem custos)
     doc.setTextColor(34, 139, 34);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -270,13 +270,11 @@ export default function Reports() {
     
     yPosition += 8;
     
-    // Stats cards
+    // Stats cards (sem custos)
     const statsData = [
       ['Área Total', `${stats.totalArea.toFixed(1)} ha`],
-      ['Custo Total', `R$ ${stats.totalCost.toFixed(2)}`],
-      ['Custo/ha', `R$ ${stats.avgCostPerHa.toFixed(2)}`],
-      ['Eficiência', `${stats.efficiency.toFixed(0)}%`],
       ['Total Aplicações', `${filteredApplications.length}`],
+      ['Eficiência', `${stats.efficiency.toFixed(0)}%`],
       ['Tempo de Voo', `${stats.totalFlightTime} min`],
     ];
 
@@ -284,10 +282,10 @@ export default function Reports() {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     
-    const cardWidth = (pageWidth - 28) / 3;
+    const cardWidth = (pageWidth - 28) / 2;
     statsData.forEach((stat, i) => {
-      const x = 14 + (i % 3) * cardWidth;
-      const y = yPosition + Math.floor(i / 3) * 16;
+      const x = 14 + (i % 2) * cardWidth;
+      const y = yPosition + Math.floor(i / 2) * 16;
       
       doc.setFillColor(245, 245, 245);
       doc.roundedRect(x, y, cardWidth - 4, 14, 2, 2, 'F');
@@ -303,7 +301,7 @@ export default function Reports() {
 
     yPosition += 40;
 
-    // Produtos Aplicados
+    // Produtos Aplicados (sem custos)
     if (productStats.length > 0) {
       doc.setTextColor(34, 139, 34);
       doc.setFontSize(14);
@@ -313,12 +311,11 @@ export default function Reports() {
 
       autoTable(doc, {
         startY: yPosition,
-        head: [['Produto', 'Quantidade Total', 'Aplicações', 'Custo Total']],
+        head: [['Produto', 'Quantidade Total', 'Aplicações']],
         body: productStats.map(p => [
           p.name,
           `${p.totalAmount.toFixed(2)} ${p.unit}`,
           p.count.toString(),
-          `R$ ${p.totalCost.toFixed(2)}`
         ]),
         theme: 'striped',
         headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
@@ -329,7 +326,7 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Resumo por Propriedade
+    // Resumo por Propriedade (sem custos)
     if (propertyStats.length > 0) {
       if (yPosition > 230) {
         doc.addPage();
@@ -344,13 +341,11 @@ export default function Reports() {
 
       autoTable(doc, {
         startY: yPosition,
-        head: [['Propriedade', 'Área (ha)', 'Aplicações', 'Custo Total', 'Custo/ha']],
+        head: [['Propriedade', 'Área (ha)', 'Aplicações']],
         body: propertyStats.map((p: any) => [
           p.name,
           p.area.toFixed(1),
           p.apps.toString(),
-          `R$ ${p.cost.toFixed(2)}`,
-          `R$ ${(p.cost / p.area).toFixed(2)}`
         ]),
         theme: 'striped',
         headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
@@ -361,7 +356,7 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Detalhes das Aplicações
+    // Detalhes das Aplicações (sem custos)
     if (filteredApplications.length > 0) {
       if (yPosition > 200) {
         doc.addPage();
@@ -388,13 +383,12 @@ export default function Reports() {
           app.status,
           `${app.area_applied} ha`,
           appProducts,
-          `R$ ${Number(app.total_cost).toFixed(2)}`
         ];
       });
 
       autoTable(doc, {
         startY: yPosition,
-        head: [['Data', 'Propriedade', 'Tipo', 'Status', 'Área', 'Produtos', 'Custo']],
+        head: [['Data', 'Propriedade', 'Tipo', 'Status', 'Área', 'Produtos']],
         body: appRows,
         theme: 'striped',
         headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
@@ -402,12 +396,11 @@ export default function Reports() {
         alternateRowStyles: { fillColor: [245, 250, 245] },
         columnStyles: {
           0: { cellWidth: 18 },
-          1: { cellWidth: 35 },
-          2: { cellWidth: 25 },
-          3: { cellWidth: 22 },
-          4: { cellWidth: 18 },
-          5: { cellWidth: 50 },
-          6: { cellWidth: 22 },
+          1: { cellWidth: 38 },
+          2: { cellWidth: 28 },
+          3: { cellWidth: 24 },
+          4: { cellWidth: 20 },
+          5: { cellWidth: 55 },
         },
       });
     }
@@ -427,6 +420,189 @@ export default function Reports() {
     }
 
     doc.save(`relatorio_aplicacoes_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  };
+
+  const exportCostPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFillColor(139, 69, 19);
+    doc.rect(0, 0, pageWidth, 35, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AgroDrone PRO', 14, 18);
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Relatório de Custos', 14, 28);
+    
+    // Período e filtros
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    
+    let filterText = "";
+    if (dateFrom || dateTo) {
+      filterText = `Período: ${dateFrom ? format(new Date(dateFrom + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Início'} - ${dateTo ? format(new Date(dateTo + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Hoje'}`;
+    } else {
+      filterText = `Período: ${selectedPeriod} dias`;
+    }
+    
+    const propertyText = selectedProperty === "all" 
+      ? "Todas as Propriedades" 
+      : properties.find(p => p.id === selectedProperty)?.name || "N/A";
+    doc.text(`${filterText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
+    doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, pageWidth - 14, 28, { align: 'right' });
+
+    let yPosition = 45;
+
+    // Resumo de Custos
+    doc.setTextColor(139, 69, 19);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resumo de Custos', 14, yPosition);
+    
+    yPosition += 8;
+    
+    const statsData = [
+      ['Custo Total', `R$ ${stats.totalCost.toFixed(2)}`],
+      ['Custo por Hectare', `R$ ${stats.avgCostPerHa.toFixed(2)}`],
+      ['Área Total', `${stats.totalArea.toFixed(1)} ha`],
+      ['Total Aplicações', `${filteredApplications.length}`],
+    ];
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    
+    const cardWidth = (pageWidth - 28) / 2;
+    statsData.forEach((stat, i) => {
+      const x = 14 + (i % 2) * cardWidth;
+      const y = yPosition + Math.floor(i / 2) * 16;
+      
+      doc.setFillColor(255, 248, 240);
+      doc.roundedRect(x, y, cardWidth - 4, 14, 2, 2, 'F');
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text(stat[0], x + 4, y + 5);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text(stat[1], x + 4, y + 11);
+    });
+
+    yPosition += 40;
+
+    // Custos por Produto
+    if (productStats.length > 0) {
+      doc.setTextColor(139, 69, 19);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Custos por Produto', 14, yPosition);
+      yPosition += 4;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Produto', 'Quantidade', 'Custo Total', 'Custo Médio/Aplicação']],
+        body: productStats.map(p => [
+          p.name,
+          `${p.totalAmount.toFixed(2)} ${p.unit}`,
+          `R$ ${p.totalCost.toFixed(2)}`,
+          `R$ ${(p.totalCost / p.count).toFixed(2)}`,
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [255, 248, 240] },
+      });
+
+      yPosition = (doc as any).lastAutoTable.finalY + 12;
+    }
+
+    // Custos por Propriedade
+    if (propertyStats.length > 0) {
+      if (yPosition > 230) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setTextColor(139, 69, 19);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Custos por Propriedade', 14, yPosition);
+      yPosition += 4;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Propriedade', 'Área (ha)', 'Aplicações', 'Custo Total', 'Custo/ha']],
+        body: propertyStats.map((p: any) => [
+          p.name,
+          p.area.toFixed(1),
+          p.apps.toString(),
+          `R$ ${p.cost.toFixed(2)}`,
+          `R$ ${(p.cost / p.area).toFixed(2)}`
+        ]),
+        theme: 'striped',
+        headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [255, 248, 240] },
+      });
+
+      yPosition = (doc as any).lastAutoTable.finalY + 12;
+    }
+
+    // Detalhes de Custos por Aplicação
+    if (filteredApplications.length > 0) {
+      if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setTextColor(139, 69, 19);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Detalhes de Custos por Aplicação', 14, yPosition);
+      yPosition += 4;
+
+      const appRows = filteredApplications.map((app: any) => {
+        return [
+          format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }),
+          `${app.properties?.name || 'N/A'}${app.plot_name ? `\n${app.plot_name}` : ''}`,
+          `${app.area_applied} ha`,
+          `R$ ${Number(app.total_cost).toFixed(2)}`,
+          `R$ ${(Number(app.total_cost) / Number(app.area_applied)).toFixed(2)}`
+        ];
+      });
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Data', 'Propriedade', 'Área', 'Custo Total', 'Custo/ha']],
+        body: appRows,
+        theme: 'striped',
+        headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [255, 248, 240] },
+      });
+    }
+
+    // Footer em todas as páginas
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Página ${i} de ${totalPages} - AgroDrone PRO`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'center' }
+      );
+    }
+
+    doc.save(`relatorio_custos_${format(new Date(), "yyyy-MM-dd")}.pdf`);
   };
 
   if (isLoading) {
@@ -458,7 +634,11 @@ export default function Reports() {
           </Button>
           <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto" disabled={filteredApplications.length === 0}>
             <FileText className="h-4 w-4" />
-            Exportar PDF
+            PDF
+          </Button>
+          <Button onClick={exportCostPDF} variant="secondary" className="gap-2 w-full sm:w-auto" disabled={filteredApplications.length === 0}>
+            <DollarSign className="h-4 w-4" />
+            PDF Custos
           </Button>
         </div>
       </div>
