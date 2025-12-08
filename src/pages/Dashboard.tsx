@@ -128,6 +128,16 @@ export default function Dashboard() {
       ? ((avgCostPerHa - previousAvgCost) / previousAvgCost * 100).toFixed(0)
       : "0";
 
+    // Área em andamento
+    const areaEmAndamento = applications
+      .filter(app => app.status === 'em_andamento')
+      .reduce((sum, app) => sum + Number(app.area_applied), 0);
+
+    // Área planejada
+    const areaPlanejada = applications
+      .filter(app => app.status === 'planejada')
+      .reduce((sum, app) => sum + Number(app.area_applied), 0);
+
     return {
       periodLabel,
       items: [
@@ -146,18 +156,18 @@ export default function Dashboard() {
           color: "text-success",
         },
         {
-          label: "Horas Voo",
-          value: `${Math.floor(totalFlightTimePeriod / 60)}h`,
-          change: `${flightTimeDiff > 0 ? '+' : ''}${Math.floor(flightTimeDiff / 60)}h`,
+          label: "Em Andamento",
+          value: `${areaEmAndamento.toFixed(1)} ha`,
+          change: "",
           icon: Clock,
-          color: "text-warning",
+          color: "text-blue-500",
         },
         {
-          label: "R$/ha",
-          value: `${avgCostPerHa.toFixed(0)}`,
-          change: `${Number(costChange) > 0 ? '+' : ''}${costChange}%`,
-          icon: DollarSign,
-          color: Number(costChange) < 0 ? "text-success" : "text-warning",
+          label: "Planejadas",
+          value: `${areaPlanejada.toFixed(1)} ha`,
+          change: "",
+          icon: TrendingUp,
+          color: "text-warning",
         },
       ]
     };
@@ -325,7 +335,7 @@ export default function Dashboard() {
         <h2 className="mb-2 text-sm font-semibold text-foreground">
           Ações Rápidas
         </h2>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           <button 
             onClick={() => navigate('/applications')}
             className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
@@ -346,6 +356,27 @@ export default function Dashboard() {
           >
             <TrendingUp className="h-5 w-5 text-primary" />
             <span className="text-xs font-medium text-foreground">Relatórios</span>
+          </button>
+          <button 
+            onClick={() => navigate('/properties')}
+            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+          >
+            <MapPin className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Propriedades</span>
+          </button>
+          <button 
+            onClick={() => navigate('/products')}
+            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+          >
+            <DollarSign className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Produtos</span>
+          </button>
+          <button 
+            onClick={() => navigate('/recipes')}
+            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+          >
+            <Droplet className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Receituários</span>
           </button>
         </div>
       </Card>
