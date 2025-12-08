@@ -19,31 +19,71 @@ export default function Reports() {
   
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("30");
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedProduct, setSelectedProduct] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
-  const [minCost, setMinCost] = useState<string>("");
-  const [maxCost, setMaxCost] = useState<string>("");
+
+  // Gerar lista de meses disponíveis baseado nas aplicações
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    (applications || []).forEach((app: any) => {
+      const date = new Date(app.application_date + 'T00:00:00');
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      months.add(monthKey);
+    });
+    return Array.from(months).sort().reverse();
+  }, [applications]);
+
+  const getMonthLabel = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return format(date, "MMMM yyyy", { locale: ptBR });
+  };
 
   const isLoading = appsLoading || propsLoading || productsLoading;
 
   const clearFilters = () => {
     setSelectedProperty("all");
     setSelectedPeriod("30");
+    setSelectedMonth("all");
     setSelectedStatus("all");
     setSelectedType("all");
     setSelectedProduct("all");
     setDateFrom("");
     setDateTo("");
-    setMinCost("");
-    setMaxCost("");
   };
 
   const hasActiveFilters = selectedProperty !== "all" || selectedPeriod !== "30" || 
-    selectedStatus !== "all" || selectedType !== "all" || selectedProduct !== "all" ||
-    dateFrom !== "" || dateTo !== "" || minCost !== "" || maxCost !== "";
+    selectedMonth !== "all" || selectedStatus !== "all" || selectedType !== "all" || 
+    selectedProduct !== "all" || dateFrom !== "" || dateTo !== "";
+
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
+    if (month !== "all") {
+      // Limpar período e datas customizadas quando seleciona mês
+      setSelectedPeriod("30");
+      setDateFrom("");
+      setDateTo("");
+    }
+  };
+
+  const handlePeriodChange = (period: string) => {
+    setSelectedPeriod(period);
+    // Limpar mês quando seleciona período
+    setSelectedMonth("all");
+  };
+
+  const handleDateChange = (from: string, to: string) => {
+    setDateFrom(from);
+    setDateTo(to);
+    if (from || to) {
+      // Limpar mês e período quando usa datas customizadas
+      setSelectedMonth("all");
+    }
+  };
 
   const filteredApplications = useMemo(() => {
     let filtered = applications || [];
@@ -70,8 +110,15 @@ export default function Reports() {
       );
     }
 
-    // Filtro por período personalizado ou predefinido
-    if (dateFrom || dateTo) {
+    // Filtro por mês específico (prioridade)
+    if (selectedMonth !== "all") {
+      const [year, month] = selectedMonth.split('-').map(Number);
+      filtered = filtered.filter((app: any) => {
+        const appDate = new Date(app.application_date + 'T00:00:00');
+        return appDate.getFullYear() === year && appDate.getMonth() + 1 === month;
+      });
+    } else if (dateFrom || dateTo) {
+      // Filtro por período personalizado
       filtered = filtered.filter((app: any) => {
         const appDate = new Date(app.application_date + 'T00:00:00');
         if (dateFrom && dateTo) {
@@ -84,7 +131,7 @@ export default function Reports() {
         return true;
       });
     } else {
-      // Usar período predefinido apenas se não houver datas personalizadas
+      // Usar período predefinido
       const now = new Date();
       const daysAgo = new Date(now.getTime() - Number(selectedPeriod) * 24 * 60 * 60 * 1000);
       filtered = filtered.filter((app: any) => {
@@ -93,16 +140,8 @@ export default function Reports() {
       });
     }
 
-    // Filtro por custo
-    if (minCost) {
-      filtered = filtered.filter((app: any) => Number(app.total_cost) >= Number(minCost));
-    }
-    if (maxCost) {
-      filtered = filtered.filter((app: any) => Number(app.total_cost) <= Number(maxCost));
-    }
-
     return filtered;
-  }, [applications, selectedProperty, selectedPeriod, selectedStatus, selectedType, selectedProduct, dateFrom, dateTo, minCost, maxCost]);
+  }, [applications, selectedProperty, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProduct, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
     const totalArea = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied), 0);
@@ -658,72 +697,108 @@ export default function Reports() {
           )}
         </div>
         
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-          <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Propriedade" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">Todas</SelectItem>
-              {properties.map((prop: any) => (
-                <SelectItem key={prop.id} value={prop.id}>{prop.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod} disabled={!!dateFrom || !!dateTo}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="7">7 dias</SelectItem>
-              <SelectItem value="30">30 dias</SelectItem>
-              <SelectItem value="90">90 dias</SelectItem>
-              <SelectItem value="365">1 ano</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="planejada">Planejada</SelectItem>
-              <SelectItem value="em_andamento">Em Andamento</SelectItem>
-              <SelectItem value="concluída">Concluída</SelectItem>
-              <SelectItem value="cancelada">Cancelada</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pulverização">Pulverização</SelectItem>
-              <SelectItem value="adubação">Adubação</SelectItem>
-              <SelectItem value="semeadura">Semeadura</SelectItem>
-              <SelectItem value="outro">Outro</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-3">
+          {/* Linha 1: Propriedade, Status, Tipo */}
+          <div className="grid gap-3 grid-cols-3">
+            <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Propriedade" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Todas</SelectItem>
+                {properties.map((prop: any) => (
+                  <SelectItem key={prop.id} value={prop.id}>{prop.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="planejada">Planejada</SelectItem>
+                <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                <SelectItem value="concluída">Concluída</SelectItem>
+                <SelectItem value="cancelada">Cancelada</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="pulverização">Pulverização</SelectItem>
+                <SelectItem value="adubação">Adubação</SelectItem>
+                <SelectItem value="semeadura">Semeadura</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Input 
-            type="date" 
-            value={dateFrom} 
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="h-9 text-xs"
-            placeholder="De"
-          />
-          
-          <Input 
-            type="date" 
-            value={dateTo} 
-            onChange={(e) => setDateTo(e.target.value)}
-            className="h-9 text-xs"
-            placeholder="Até"
-          />
+          {/* Linha 2: Período (com opções de dias, mês e datas) */}
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-xs text-muted-foreground">Período:</span>
+            
+            {/* Botões rápidos de período */}
+            <div className="flex gap-1">
+              {[
+                { value: "7", label: "7d" },
+                { value: "30", label: "30d" },
+                { value: "90", label: "90d" },
+                { value: "365", label: "1 ano" },
+              ].map(({ value, label }) => (
+                <Button
+                  key={value}
+                  variant={selectedPeriod === value && selectedMonth === "all" && !dateFrom && !dateTo ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePeriodChange(value)}
+                  className="h-7 px-2 text-xs"
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+
+            <span className="text-xs text-muted-foreground mx-1">ou</span>
+
+            {/* Seletor de mês */}
+            <Select value={selectedMonth} onValueChange={handleMonthChange}>
+              <SelectTrigger className="h-7 w-[140px] text-xs">
+                <SelectValue placeholder="Por mês" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover max-h-[200px]">
+                <SelectItem value="all">Todos os meses</SelectItem>
+                {availableMonths.map((month) => (
+                  <SelectItem key={month} value={month} className="capitalize">
+                    {getMonthLabel(month)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <span className="text-xs text-muted-foreground mx-1">ou</span>
+
+            {/* Datas personalizadas */}
+            <div className="flex gap-1 items-center">
+              <Input 
+                type="date" 
+                value={dateFrom} 
+                onChange={(e) => handleDateChange(e.target.value, dateTo)}
+                className="h-7 w-[120px] text-xs"
+              />
+              <span className="text-xs text-muted-foreground">-</span>
+              <Input 
+                type="date" 
+                value={dateTo} 
+                onChange={(e) => handleDateChange(dateFrom, e.target.value)}
+                className="h-7 w-[120px] text-xs"
+              />
+            </div>
+          </div>
         </div>
       </Card>
 
