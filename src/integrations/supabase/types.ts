@@ -336,6 +336,75 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_products: {
+        Row: {
+          created_at: string
+          dose_per_ha: number
+          dose_unit: string
+          id: string
+          product_id: string
+          recipe_id: string
+        }
+        Insert: {
+          created_at?: string
+          dose_per_ha: number
+          dose_unit?: string
+          id?: string
+          product_id: string
+          recipe_id: string
+        }
+        Update: {
+          created_at?: string
+          dose_per_ha?: number
+          dose_unit?: string
+          id?: string
+          product_id?: string
+          recipe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_products_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

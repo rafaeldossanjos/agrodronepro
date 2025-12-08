@@ -38,7 +38,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
     unit_price: product?.unit_price || 0,
     unit: product?.unit || 'L',
     stock_quantity: product?.stock_quantity || 0,
-    recommended_dose: product?.recommended_dose || 0,
+    recommended_dose: product?.recommended_dose?.toString() || '',
     recommended_dose_unit: product?.recommended_dose_unit || 'L/ha',
     active: product?.active ?? true,
   });
@@ -48,7 +48,12 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
     setIsLoading(true);
 
     try {
-      const validated = productSchema.parse(formData);
+      const dataToValidate = {
+        ...formData,
+        recommended_dose: formData.recommended_dose ? parseFloat(formData.recommended_dose) : undefined,
+      };
+      
+      const validated = productSchema.parse(dataToValidate);
 
       if (product) {
         await updateProduct.mutateAsync({ id: product.id, ...validated });
@@ -74,7 +79,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
         unit_price: 0, 
         unit: 'L', 
         stock_quantity: 0, 
-        recommended_dose: 0,
+        recommended_dose: '',
         recommended_dose_unit: 'L/ha',
         active: true 
       });
@@ -185,11 +190,15 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                 <Label htmlFor="recommended_dose" className="text-xs">Dose</Label>
                 <Input
                   id="recommended_dose"
-                  type="number"
-                  step="0.0001"
-                  min="0"
-                  value={formData.recommended_dose || ''}
-                  onChange={(e) => setFormData({ ...formData, recommended_dose: parseFloat(e.target.value) || 0 })}
+                  type="text"
+                  inputMode="decimal"
+                  value={formData.recommended_dose}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                      setFormData({ ...formData, recommended_dose: val });
+                    }
+                  }}
                   placeholder="0.5"
                 />
               </div>

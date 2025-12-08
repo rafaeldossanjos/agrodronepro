@@ -616,25 +616,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           />
                         </div>
 
-                        <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm">Preço Unitário</Label>
-                          <Input
-                            type="text"
-                            value={`R$ ${productItem.unit_cost.toFixed(2)}`}
-                            className="h-9 sm:h-10 text-xs sm:text-sm bg-muted"
-                            readOnly
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm font-semibold">Custo Total</Label>
-                          <Input
-                            type="text"
-                            value={`R$ ${productItem.total_cost.toFixed(2)}`}
-                            className="h-9 sm:h-10 text-xs sm:text-sm bg-muted font-semibold"
-                            readOnly
-                          />
-                        </div>
                       </div>
                     </div>
                   </Card>
@@ -653,22 +634,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
               </Button>
             </div>
 
-            {/* Resumo */}
-            <Card className="p-3 sm:p-4 bg-primary/5 border-primary/20">
-              <div className="flex items-center justify-between">
-                <span className="text-sm sm:text-base font-semibold text-foreground">
-                  Custo Total da Aplicação
-                </span>
-                <span className="text-lg sm:text-xl font-bold text-primary">
-                  R$ {formData.total_cost.toFixed(2)}
-                </span>
-              </div>
-              {formData.area_applied > 0 && (
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  Custo por hectare: R$ {(formData.total_cost / formData.area_applied).toFixed(2)}/ha
-                </p>
-              )}
-            </Card>
 
             {/* Observações */}
             <div className="space-y-2">

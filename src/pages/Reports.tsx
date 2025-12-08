@@ -478,144 +478,72 @@ export default function Reports() {
           )}
         </div>
         
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Propriedade */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Propriedade</label>
-            <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                <SelectItem value="all">Todas as Propriedades</SelectItem>
-                {properties.map((prop: any) => (
-                  <SelectItem key={prop.id} value={prop.id}>
-                    {prop.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+          <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue placeholder="Propriedade" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Todas</SelectItem>
+              {properties.map((prop: any) => (
+                <SelectItem key={prop.id} value={prop.id}>{prop.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           
-          {/* Período predefinido */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Período</label>
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod} disabled={!!dateFrom || !!dateTo}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                <SelectItem value="7">Últimos 7 dias</SelectItem>
-                <SelectItem value="15">Últimos 15 dias</SelectItem>
-                <SelectItem value="30">Últimos 30 dias</SelectItem>
-                <SelectItem value="60">Últimos 60 dias</SelectItem>
-                <SelectItem value="90">Últimos 90 dias</SelectItem>
-                <SelectItem value="180">Últimos 6 meses</SelectItem>
-                <SelectItem value="365">Último ano</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod} disabled={!!dateFrom || !!dateTo}>
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue placeholder="Período" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="7">7 dias</SelectItem>
+              <SelectItem value="30">30 dias</SelectItem>
+              <SelectItem value="90">90 dias</SelectItem>
+              <SelectItem value="365">1 ano</SelectItem>
+            </SelectContent>
+          </Select>
           
-          {/* Status */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Status</label>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="planejada">Planejada</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                <SelectItem value="concluída">Concluída</SelectItem>
-                <SelectItem value="cancelada">Cancelada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="planejada">Planejada</SelectItem>
+              <SelectItem value="em_andamento">Em Andamento</SelectItem>
+              <SelectItem value="concluída">Concluída</SelectItem>
+              <SelectItem value="cancelada">Cancelada</SelectItem>
+            </SelectContent>
+          </Select>
           
-          {/* Tipo */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tipo de Aplicação</label>
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos os Tipos</SelectItem>
-                <SelectItem value="pulverização">Pulverização</SelectItem>
-                <SelectItem value="adubação">Adubação</SelectItem>
-                <SelectItem value="semeadura">Semeadura</SelectItem>
-                <SelectItem value="outro">Outro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="pulverização">Pulverização</SelectItem>
+              <SelectItem value="adubação">Adubação</SelectItem>
+              <SelectItem value="semeadura">Semeadura</SelectItem>
+              <SelectItem value="outro">Outro</SelectItem>
+            </SelectContent>
+          </Select>
 
-          {/* Produto */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Produto</label>
-            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos os Produtos</SelectItem>
-                {products.filter((p: any) => p.active).map((prod: any) => (
-                  <SelectItem key={prod.id} value={prod.id}>
-                    {prod.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Input 
+            type="date" 
+            value={dateFrom} 
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-9 text-xs"
+            placeholder="De"
+          />
           
-          {/* Data inicial */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Data Inicial</label>
-            <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                type="date" 
-                value={dateFrom} 
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          
-          {/* Data final */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Data Final</label>
-            <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                type="date" 
-                value={dateTo} 
-                onChange={(e) => setDateTo(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
-          {/* Faixa de Custo */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Faixa de Custo (R$)</label>
-            <div className="flex gap-2">
-              <Input 
-                type="number" 
-                placeholder="Mín" 
-                value={minCost} 
-                onChange={(e) => setMinCost(e.target.value)}
-                className="w-full"
-              />
-              <Input 
-                type="number" 
-                placeholder="Máx" 
-                value={maxCost} 
-                onChange={(e) => setMaxCost(e.target.value)}
-                className="w-full"
-              />
-            </div>
-          </div>
+          <Input 
+            type="date" 
+            value={dateTo} 
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-9 text-xs"
+            placeholder="Até"
+          />
         </div>
       </Card>
 
