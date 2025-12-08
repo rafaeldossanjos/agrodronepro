@@ -43,6 +43,16 @@ export default function Reports() {
     return format(date, "MMMM yyyy", { locale: ptBR });
   };
 
+  const formatStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      'planejada': 'Planejada',
+      'em_andamento': 'Em Andamento',
+      'concluída': 'Concluída',
+      'cancelada': 'Cancelada'
+    };
+    return labels[status] || status;
+  };
+
   const isLoading = appsLoading || propsLoading || productsLoading;
 
   const clearFilters = () => {
@@ -419,7 +429,7 @@ export default function Reports() {
           format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }),
           `${app.properties?.name || 'N/A'}${app.plot_name ? `\n${app.plot_name}` : ''}`,
           app.application_type,
-          app.status,
+          formatStatusLabel(app.status),
           `${app.area_applied} ha`,
           appProducts,
         ];
@@ -748,8 +758,6 @@ export default function Reports() {
               {[
                 { value: "7", label: "7d" },
                 { value: "30", label: "30d" },
-                { value: "90", label: "90d" },
-                { value: "365", label: "1 ano" },
               ].map(({ value, label }) => (
                 <Button
                   key={value}
@@ -783,20 +791,25 @@ export default function Reports() {
             <span className="text-xs text-muted-foreground mx-1">ou</span>
 
             {/* Datas personalizadas */}
-            <div className="flex gap-1 items-center">
-              <Input 
-                type="date" 
-                value={dateFrom} 
-                onChange={(e) => handleDateChange(e.target.value, dateTo)}
-                className="h-7 w-[120px] text-xs"
-              />
-              <span className="text-xs text-muted-foreground">-</span>
-              <Input 
-                type="date" 
-                value={dateTo} 
-                onChange={(e) => handleDateChange(dateFrom, e.target.value)}
-                className="h-7 w-[120px] text-xs"
-              />
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-1 items-center">
+                <Input 
+                  type="date" 
+                  value={dateFrom} 
+                  onChange={(e) => handleDateChange(e.target.value, dateTo)}
+                  className="h-7 w-[120px] text-xs"
+                  placeholder="De"
+                />
+                <span className="text-xs text-muted-foreground">-</span>
+                <Input 
+                  type="date" 
+                  value={dateTo} 
+                  onChange={(e) => handleDateChange(dateFrom, e.target.value)}
+                  className="h-7 w-[120px] text-xs"
+                  placeholder="Até"
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">Data inicial e final para período personalizado</p>
             </div>
           </div>
         </div>
