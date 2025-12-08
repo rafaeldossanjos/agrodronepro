@@ -16,7 +16,7 @@ import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 
-type PeriodFilter = 1 | 7 | 15 | 30 | 90;
+type PeriodFilter = 1 | 7 | 15 | 30;
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -155,7 +155,6 @@ export default function Dashboard() {
           { value: 7, label: '7d' },
           { value: 15, label: '15d' },
           { value: 30, label: '30d' },
-          { value: 90, label: '90d' },
         ].map(({ value, label }) => (
           <Button
             key={value}
