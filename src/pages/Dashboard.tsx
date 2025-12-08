@@ -4,7 +4,6 @@ import {
   TrendingUp, 
   Droplet, 
   MapPin, 
-  Battery, 
   Clock,
   DollarSign,
   Calculator
@@ -12,8 +11,6 @@ import {
 import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
-import { useFlightPlanning } from "@/hooks/useFlightPlanning";
-import { useEquipment } from "@/hooks/useEquipment";
 import { useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -26,8 +23,6 @@ export default function Dashboard() {
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(30);
   const { applications, isLoading: loadingApps } = useApplications();
   const { properties } = useProperties();
-  const { plans } = useFlightPlanning();
-  const { equipment } = useEquipment();
 
   // Calcular estatísticas reais
   const stats = useMemo(() => {
@@ -248,59 +243,6 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        {/* Equipment Status */}
-        <Card className="p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">
-              Equipamentos
-            </h2>
-            <button 
-              onClick={() => navigate('/equipment')}
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              Gerenciar
-            </button>
-          </div>
-          <div className="space-y-2">
-            {equipment.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nenhum equipamento cadastrado.</p>
-            ) : (
-              equipment.slice(0, 3).map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between border-b border-border pb-2 last:border-0 last:pb-0"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {item.total_flights} voos
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <div className="flex items-center gap-1">
-                      <Battery className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs font-medium text-foreground">
-                        {item.battery_capacity}%
-                      </span>
-                    </div>
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                        item.status === "operacional"
-                          ? "bg-success/10 text-success"
-                          : item.status === "manutencao"
-                          ? "bg-warning/10 text-warning"
-                          : "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      {item.status === "operacional" ? "OK" : item.status === "manutencao" ? "Manut." : "Inativo"}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
       </div>
 
       {/* Quick Actions - Compacto */}

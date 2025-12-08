@@ -35,7 +35,6 @@ const navigation = [
   { name: "Aplicações", href: "/applications", icon: ClipboardList },
   { name: "Produtos", href: "/products", icon: Package },
   { name: "Receituários", href: "/recipes", icon: FileText },
-  { name: "Planejamento", href: "/planning", icon: Plane },
   { name: "Relatórios", href: "/reports", icon: BarChart3 },
   { name: "Configurações", href: "/settings", icon: Settings },
 ];
