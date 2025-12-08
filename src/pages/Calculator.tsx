@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator as CalcIcon, Plus, Trash2, Package, Save, Settings2, X } from "lucide-react";
+import { Calculator as CalcIcon, Plus, Trash2, Package, Save, Settings2, X, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -23,6 +23,7 @@ import {
 import { useProducts } from "@/hooks/useProducts";
 import { useProperties } from "@/hooks/useProperties";
 import { useApplications } from "@/hooks/useApplications";
+import { useRecipes } from "@/hooks/useRecipes";
 import { ProductDialog } from "@/components/ProductDialog";
 import { ProductAutocomplete } from "@/components/ProductAutocomplete";
 
@@ -38,7 +39,6 @@ const productSchema = z.object({
   name: z.string().min(1, 'Nome do produto é obrigatório').max(100),
   dose: z.number().min(0.0001, 'Dose deve ser maior que 0').max(100000, 'Dose muito alta'),
   unit: z.string().min(1, 'Unidade é obrigatória'),
-  price: z.number().min(0, 'Preço não pode ser negativo').max(1000000, 'Preço muito alto'),
 });
 
 type Product = {
@@ -47,7 +47,6 @@ type Product = {
   name: string;
   dose: string;
   unit: string;
-  price: number;
 };
 
 type CalculationResults = {
@@ -63,13 +62,9 @@ type CalculationResults = {
     name: string;
     dose: number;
     unit: string;
-    price: number;
     quantityPerTank: number;
     totalQuantity: number;
-    totalCost: number;
   }>;
-  totalCost: number;
-  costPerHectare: number;
 };
 
 type SavedParams = {
@@ -77,12 +72,32 @@ type SavedParams = {
   tankVolume: string;
 };
 
+// Helper para formatar quantidade com unidade adequada
+const formatQuantity = (value: number, unit: string): string => {
+  const baseUnit = unit.replace('/ha', '');
+  
+  // Converter L para mL se for menor que 1L
+  if (baseUnit === 'L' && value < 1 && value > 0) {
+    return `${Math.round(value * 1000)} mL`;
+  }
+  // Converter kg para g se for menor que 1kg
+  if (baseUnit === 'kg' && value < 1 && value > 0) {
+    return `${Math.round(value * 1000)} g`;
+  }
+  
+  // Arredondar valores pequenos para 2 casas decimais
+  if (value < 10) {
+    return `${value.toFixed(2)} ${baseUnit}`;
+  }
+  return `${value.toFixed(1)} ${baseUnit}`;
+};
+
 export default function Calculator() {
   const { products: registeredProducts, isLoading: loadingProducts } = useProducts();
   const { properties } = useProperties();
   const { createApplication } = useApplications();
+  const { recipes } = useRecipes();
   
-  // Carregar parâmetros salvos do localStorage
   const getSavedParams = (): SavedParams | null => {
     try {
       const saved = localStorage.getItem(SAVED_PARAMS_KEY);
@@ -124,7 +139,6 @@ export default function Calculator() {
         name: "",
         dose: "",
         unit: "L/ha",
-        price: 0,
       },
     ]);
   };
@@ -137,7 +151,6 @@ export default function Calculator() {
               ...p, 
               productId: selectedProduct.id,
               name: selectedProduct.name,
-              price: selectedProduct.unit_price,
               unit: selectedProduct.recommended_dose_unit || 
                     (selectedProduct.unit === 'L' ? 'L/ha' : 
                      selectedProduct.unit === 'mL' ? 'mL/ha' :
@@ -148,6 +161,26 @@ export default function Calculator() {
       )
     );
     setCalculated(false);
+  };
+
+  const loadRecipe = (recipeId: string) => {
+    const recipe = recipes.find(r => r.id === recipeId);
+    if (!recipe || !recipe.recipe_products) return;
+
+    const newProducts = recipe.recipe_products.map(rp => {
+      const registeredProduct = registeredProducts.find(p => p.id === rp.product_id);
+      return {
+        id: Date.now().toString() + Math.random(),
+        productId: rp.product_id,
+        name: registeredProduct?.name || rp.products?.name || "",
+        dose: String(rp.dose_per_ha),
+        unit: rp.dose_unit,
+      };
+    });
+
+    setProducts(newProducts);
+    setCalculated(false);
+    toast.success(`Receituário "${recipe.name}" carregado!`);
   };
 
   const removeProduct = (id: string) => {
@@ -184,7 +217,6 @@ export default function Calculator() {
     const flowRateNum = parseFloat(flowRate) || 0;
     const tankVolumeNum = parseFloat(tankVolume) || 0;
     
-    // Validar campos obrigatórios
     if (!area || areaNum <= 0) {
       toast.error("Área é obrigatória");
       return;
@@ -232,14 +264,12 @@ export default function Calculator() {
       const doseValue = parseFloat(p.dose) || 0;
       const totalQuantity = doseValue * areaNum;
       const quantityPerTank = totalQuantity / tanks;
-      const totalCost = totalQuantity * p.price;
 
       return {
         ...p,
         dose: doseValue,
         quantityPerTank,
         totalQuantity,
-        totalCost,
       };
     });
 
@@ -250,8 +280,6 @@ export default function Calculator() {
 
     const waterPerTank = volumePerTank - totalProductVolume;
     const totalWater = waterPerTank * tanks;
-    const totalCost = productPerTank.reduce((sum, p) => sum + p.totalCost, 0);
-    const costPerHectare = totalCost / areaNum;
 
     const calculationResults: CalculationResults = {
       totalVolume,
@@ -261,15 +289,12 @@ export default function Calculator() {
       waterPerTank,
       totalWater,
       productPerTank,
-      totalCost,
-      costPerHectare,
     };
 
     setResults(calculationResults);
     setCalculated(true);
     toast.success(`Cálculo realizado! ${tanks} tanque(s) necessário(s)`);
     
-    // Perguntar se quer salvar parâmetros se não tiver salvos
     if (!hasSavedParams && flowRate && tankVolume) {
       setShowSaveParamsDialog(true);
     }
@@ -283,7 +308,6 @@ export default function Calculator() {
 
     if (!results) return;
 
-    // Verificar se todos os produtos têm productId cadastrado
     const productsWithId = results.productPerTank.filter(p => p.productId);
     if (productsWithId.length !== results.productPerTank.length) {
       toast.error("Todos os produtos precisam estar cadastrados no sistema para salvar como aplicação");
@@ -297,15 +321,15 @@ export default function Calculator() {
       application_type: 'pulverização' as const,
       status: saveStatus,
       area_applied: parseFloat(area) || 0,
-      total_cost: results.totalCost,
+      total_cost: 0,
       flight_time_minutes: null,
-      notes: `Gerado pela calculadora de calda. Volume total: ${results.totalVolume.toFixed(2)}L, ${results.tanks} tanque(s).`,
+      notes: `Gerado pela calculadora de calda. Volume total: ${results.totalVolume.toFixed(0)}L, ${results.tanks} tanque(s).`,
       products: productsWithId.map(p => ({
         product_id: p.productId!,
         dose_per_ha: p.dose,
         total_amount: p.totalQuantity,
-        unit_cost: p.price,
-        total_cost: p.totalCost,
+        unit_cost: 0,
+        total_cost: 0,
       })),
     };
 
@@ -415,18 +439,35 @@ export default function Calculator() {
           </Card>
 
           <Card className="p-3 sm:p-4">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-foreground">
                 Produtos
               </h2>
-              <ProductDialog 
-                trigger={
-                  <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2">
-                    <Package className="h-3 w-3" />
-                    Cadastrar
-                  </Button>
-                }
-              />
+              <div className="flex gap-1">
+                {recipes.length > 0 && (
+                  <Select onValueChange={loadRecipe}>
+                    <SelectTrigger className="h-7 text-xs w-auto gap-1">
+                      <FileText className="h-3 w-3" />
+                      <span className="hidden sm:inline">Receituário</span>
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {recipes.map((r) => (
+                        <SelectItem key={r.id} value={r.id} className="text-xs">
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <ProductDialog 
+                  trigger={
+                    <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2">
+                      <Package className="h-3 w-3" />
+                      Cadastrar
+                    </Button>
+                  }
+                />
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -458,7 +499,7 @@ export default function Calculator() {
                       placeholder="Buscar produto..."
                     />
                     
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="text-[10px]">Dose</Label>
                         <Input
@@ -494,24 +535,9 @@ export default function Calculator() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div>
-                        <Label className="text-[10px]">R$/un</Label>
-                        <Input
-                          type="number"
-                          value={product.price || ""}
-                          onChange={(e) =>
-                            updateProduct(product.id, "price", Number(e.target.value))
-                          }
-                          min="0"
-                          step="0.01"
-                          placeholder="0"
-                          className="h-7 text-xs"
-                        />
-                      </div>
                     </div>
                   </div>
                   
-                  {/* Botão adicionar abaixo de cada produto */}
                   {index === products.length - 1 && (
                     <Button 
                       onClick={addProduct} 
@@ -562,7 +588,7 @@ export default function Calculator() {
                     <div className="rounded-lg bg-primary/10 p-2.5">
                       <p className="text-[10px] text-muted-foreground">Volume Total</p>
                       <p className="text-base font-bold text-primary">
-                        {results.totalVolume.toFixed(2)} L
+                        {Math.round(results.totalVolume)} L
                       </p>
                     </div>
 
@@ -576,7 +602,7 @@ export default function Calculator() {
                       <div className="rounded-lg bg-muted p-2">
                         <p className="text-[10px] text-muted-foreground">Vol/Tanque</p>
                         <p className="text-sm font-semibold text-foreground">
-                          {results.volumePerTank.toFixed(2)} L
+                          {results.volumePerTank.toFixed(1)} L
                         </p>
                       </div>
                     </div>
@@ -592,14 +618,14 @@ export default function Calculator() {
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Água</span>
                         <span className="font-medium text-foreground">
-                          {results.waterPerTank.toFixed(2)} L
+                          {Math.round(results.waterPerTank)} L
                         </span>
                       </div>
                       {results.productPerTank.map((p) => (
                         <div key={p.id} className="flex justify-between text-xs">
                           <span className="text-muted-foreground truncate max-w-[60%]">{p.name}</span>
                           <span className="font-medium text-foreground">
-                            {p.quantityPerTank.toFixed(3)} {p.unit.replace('/ha', '')}
+                            {formatQuantity(p.quantityPerTank, p.unit)}
                           </span>
                         </div>
                       ))}
@@ -616,53 +642,18 @@ export default function Calculator() {
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground">Água Total</span>
                         <span className="font-medium text-foreground">
-                          {results.totalWater.toFixed(2)} L
+                          {Math.round(results.totalWater)} L
                         </span>
                       </div>
                       {results.productPerTank.map((p) => (
                         <div key={p.id} className="flex justify-between text-xs">
                           <span className="text-muted-foreground truncate max-w-[60%]">{p.name}</span>
                           <span className="font-medium text-foreground">
-                            {p.totalQuantity.toFixed(3)} {p.unit.replace('/ha', '')}
+                            {formatQuantity(p.totalQuantity, p.unit)}
                           </span>
                         </div>
                       ))}
                     </div>
-                  </div>
-
-                  {/* Custos */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-semibold text-foreground border-l-2 border-primary pl-2">
-                      Custos
-                    </h3>
-                    
-                    <div className="rounded-lg bg-success/10 p-2.5 space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Custo Total</span>
-                        <span className="font-bold text-success">
-                          R$ {results.totalCost.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Custo/ha</span>
-                        <span className="font-medium text-foreground">
-                          R$ {results.costPerHectare.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {results.productPerTank.length > 0 && (
-                      <div className="rounded-lg border border-border p-2 space-y-1">
-                        {results.productPerTank.map((p) => (
-                          <div key={p.id} className="flex justify-between text-xs">
-                            <span className="text-muted-foreground truncate max-w-[60%]">{p.name}</span>
-                            <span className="font-medium text-foreground">
-                              R$ {p.totalCost.toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
 
                   {/* Teste de Compatibilidade */}
@@ -692,7 +683,7 @@ export default function Calculator() {
                                 <div key={p.id} className="flex justify-between text-[10px]">
                                   <span className="text-muted-foreground truncate max-w-[50%]">{p.name}</span>
                                   <span className="font-medium text-foreground">
-                                    {(p.quantityPerTank * ratio).toFixed(4)} {p.unit.replace('/ha', '')}
+                                    {formatQuantity(p.quantityPerTank * ratio, p.unit)}
                                   </span>
                                 </div>
                               ))}

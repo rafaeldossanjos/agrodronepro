@@ -12,7 +12,7 @@ import Calculator from "./pages/Calculator";
 import Properties from "./pages/Properties";
 import Applications from "./pages/Applications";
 import Products from "./pages/Products";
-import Equipment from "./pages/Equipment";
+import Recipes from "./pages/Recipes";
 import Planning from "./pages/Planning";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
@@ -48,7 +48,7 @@ const AppContent = () => {
             <Route path="/properties" element={<ProtectedRoute><Layout><Properties /></Layout></ProtectedRoute>} />
             <Route path="/applications" element={<ProtectedRoute><Layout><Applications /></Layout></ProtectedRoute>} />
             <Route path="/products" element={<ProtectedRoute><Layout><Products /></Layout></ProtectedRoute>} />
-            <Route path="/equipment" element={<ProtectedRoute><Layout><Equipment /></Layout></ProtectedRoute>} />
+            <Route path="/recipes" element={<ProtectedRoute><Layout><Recipes /></Layout></ProtectedRoute>} />
             <Route path="/planning" element={<ProtectedRoute><Layout><Planning /></Layout></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />

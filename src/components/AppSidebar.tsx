@@ -10,7 +10,7 @@ import {
   Settings,
   LogOut,
   User,
-  Wrench
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ const navigation = [
   { name: "Propriedades", href: "/properties", icon: MapPin },
   { name: "Aplicações", href: "/applications", icon: ClipboardList },
   { name: "Produtos", href: "/products", icon: Package },
-  { name: "Equipamentos", href: "/equipment", icon: Wrench },
+  { name: "Receituários", href: "/recipes", icon: FileText },
   { name: "Planejamento", href: "/planning", icon: Plane },
   { name: "Relatórios", href: "/reports", icon: BarChart3 },
   { name: "Configurações", href: "/settings", icon: Settings },
