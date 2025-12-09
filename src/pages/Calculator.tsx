@@ -72,6 +72,18 @@ type SavedParams = {
   tankVolume: string;
 };
 
+// Helper para normalizar entrada decimal (aceita vírgula ou ponto)
+const normalizeDecimalInput = (value: string): string => {
+  return value.replace(',', '.');
+};
+
+// Helper para validar entrada decimal (aceita vírgula ou ponto)
+const isValidDecimalInput = (value: string): boolean => {
+  if (value === "") return true;
+  // Aceita números com ponto ou vírgula como separador decimal
+  return /^\d*[.,]?\d*$/.test(value);
+};
+
 // Helper para formatar quantidade com unidade adequada
 const formatQuantity = (value: number, unit: string): string => {
   const baseUnit = unit.replace('/ha', '');
@@ -213,9 +225,9 @@ export default function Calculator() {
   };
 
   const calculate = () => {
-    const areaNum = parseFloat(area) || 0;
-    const flowRateNum = parseFloat(flowRate) || 0;
-    const tankVolumeNum = parseFloat(tankVolume) || 0;
+    const areaNum = parseFloat(normalizeDecimalInput(area)) || 0;
+    const flowRateNum = parseFloat(normalizeDecimalInput(flowRate)) || 0;
+    const tankVolumeNum = parseFloat(normalizeDecimalInput(tankVolume)) || 0;
     
     if (!area || areaNum <= 0) {
       toast.error("Área é obrigatória");
@@ -245,7 +257,7 @@ export default function Calculator() {
     }
 
     for (const p of products) {
-      const doseValue = parseFloat(p.dose) || 0;
+      const doseValue = parseFloat(normalizeDecimalInput(p.dose)) || 0;
       try {
         productSchema.parse({ ...p, dose: doseValue });
       } catch (error) {
@@ -261,7 +273,7 @@ export default function Calculator() {
     const volumePerTank = totalVolume / tanks;
 
     const productPerTank = products.map((p) => {
-      const doseValue = parseFloat(p.dose) || 0;
+      const doseValue = parseFloat(normalizeDecimalInput(p.dose)) || 0;
       const totalQuantity = doseValue * areaNum;
       const quantityPerTank = totalQuantity / tanks;
 
@@ -320,7 +332,7 @@ export default function Calculator() {
       application_date: saveDate,
       application_type: 'pulverização' as const,
       status: saveStatus,
-      area_applied: parseFloat(area) || 0,
+      area_applied: parseFloat(normalizeDecimalInput(area)) || 0,
       total_cost: 0,
       flight_time_minutes: null,
       notes: `Gerado pela calculadora de calda. Volume total: ${results.totalVolume.toFixed(0)}L, ${results.tanks} tanque(s).`,
@@ -388,7 +400,7 @@ export default function Calculator() {
                   value={area}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                    if (isValidDecimalInput(val)) {
                       setArea(val);
                       setCalculated(false);
                     }
@@ -407,7 +419,7 @@ export default function Calculator() {
                   value={flowRate}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                    if (isValidDecimalInput(val)) {
                       setFlowRate(val);
                       setCalculated(false);
                     }
@@ -426,7 +438,7 @@ export default function Calculator() {
                   value={tankVolume}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                    if (isValidDecimalInput(val)) {
                       setTankVolume(val);
                       setCalculated(false);
                     }
@@ -509,7 +521,7 @@ export default function Calculator() {
                           value={product.dose}
                           onChange={(e) => {
                             const val = e.target.value;
-                            if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                            if (isValidDecimalInput(val)) {
                               updateProduct(product.id, "dose", val);
                             }
                           }}
