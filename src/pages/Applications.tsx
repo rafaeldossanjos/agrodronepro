@@ -73,20 +73,18 @@ export default function Applications() {
     updateApplication.mutate(updateData);
   };
 
-  const handleSave = (data: any) => {
-    if (editingApp) {
-      updateApplication.mutate({ id: editingApp.id, ...data }, {
-        onSuccess: () => {
-          setDialogOpen(false);
-          setEditingApp(null);
-        }
-      });
-    } else {
-      createApplication.mutate(data, {
-        onSuccess: () => {
-          setDialogOpen(false);
-        }
-      });
+  const handleSave = async (data: any) => {
+    try {
+      if (editingApp) {
+        await updateApplication.mutateAsync({ id: editingApp.id, ...data });
+        setDialogOpen(false);
+        setEditingApp(null);
+      } else {
+        await createApplication.mutateAsync(data);
+        setDialogOpen(false);
+      }
+    } catch (error) {
+      // Error already handled in hook
     }
   };
 

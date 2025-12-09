@@ -300,7 +300,7 @@ export default function Calculator() {
     }
   };
 
-  const handleSaveAsApplication = () => {
+  const handleSaveAsApplication = async () => {
     if (!savePropertyId) {
       toast.error("Selecione uma propriedade");
       return;
@@ -333,16 +333,17 @@ export default function Calculator() {
       })),
     };
 
-    createApplication.mutate(applicationData, {
-      onSuccess: () => {
-        setSaveDialogOpen(false);
-        setSavePropertyId("");
-        setSavePlotName("");
-        setSaveDate(new Date().toISOString().split('T')[0]);
-        setSaveStatus("planejada");
-        toast.success("Aplicação salva com sucesso!");
-      },
-    });
+    try {
+      await createApplication.mutateAsync(applicationData);
+      setSaveDialogOpen(false);
+      setSavePropertyId("");
+      setSavePlotName("");
+      setSaveDate(new Date().toISOString().split('T')[0]);
+      setSaveStatus("planejada");
+      toast.success("Aplicação salva com sucesso!");
+    } catch (error) {
+      // Error already handled in hook
+    }
   };
 
   return (
