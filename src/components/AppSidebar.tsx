@@ -10,7 +10,8 @@ import {
   Settings,
   LogOut,
   User,
-  FileText
+  FileText,
+  Users
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ const navigation = [
   { name: "Produtos", href: "/products", icon: Package },
   { name: "Receituários", href: "/recipes", icon: FileText },
   { name: "Relatórios", href: "/reports", icon: BarChart3 },
+  { name: "Equipe", href: "/team", icon: Users },
   { name: "Configurações", href: "/settings", icon: Settings },
 ];
 
