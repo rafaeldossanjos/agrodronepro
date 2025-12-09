@@ -10,6 +10,7 @@ import { useRecipes, Recipe } from "@/hooks/useRecipes";
 import { Plus, Trash2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { isValidDecimalInput, parseDecimalInput } from "@/lib/utils";
 
 interface RecipeProductItem {
   product_id: string;
@@ -76,7 +77,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
       return;
     }
 
-    const validProducts = recipeProducts.filter(p => p.product_id && parseFloat(p.dose_per_ha) > 0);
+    const validProducts = recipeProducts.filter(p => p.product_id && parseDecimalInput(p.dose_per_ha) > 0);
     if (validProducts.length === 0) {
       toast.error("Adicione pelo menos um produto com dose válida");
       return;
@@ -89,7 +90,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
         description: description.trim() || undefined,
         products: validProducts.map(p => ({
           product_id: p.product_id,
-          dose_per_ha: parseFloat(p.dose_per_ha),
+          dose_per_ha: parseDecimalInput(p.dose_per_ha),
           dose_unit: p.dose_unit
         }))
       };
@@ -192,7 +193,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
                       value={item.dose_per_ha}
                       onChange={(e) => {
                         const val = e.target.value;
-                        if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                        if (isValidDecimalInput(val)) {
                           updateProduct(index, "dose_per_ha", val);
                         }
                       }}

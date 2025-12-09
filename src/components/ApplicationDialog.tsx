@@ -12,7 +12,7 @@ import { Application } from "@/hooks/useApplications";
 import { z } from "zod";
 import { Plus, X, Check, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, isValidDecimalInput, parseDecimalInput } from "@/lib/utils";
 
 const productItemSchema = z.object({
   product_id: z.string().uuid("Selecione um produto"),
@@ -327,7 +327,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     
     // Se mudou o dose_input (texto), converter para número
     if (updates.dose_input !== undefined) {
-      const numValue = parseFloat(updates.dose_input) || 0;
+      const numValue = parseDecimalInput(updates.dose_input);
       const selectedProduct = products.find(p => p.id === product.product_id);
       const targetUnit = selectedProduct?.unit || product.dose_unit;
       
@@ -337,7 +337,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     
     // Se mudou a unidade, reconverter a dose
     if (updates.dose_unit && product.dose_input) {
-      const numValue = parseFloat(product.dose_input) || 0;
+      const numValue = parseDecimalInput(product.dose_input);
       const selectedProduct = products.find(p => p.id === product.product_id);
       const targetUnit = selectedProduct?.unit || updates.dose_unit;
       
@@ -549,10 +549,15 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   <Label htmlFor="area_applied" className="text-xs sm:text-sm">Área Aplicada (ha) *</Label>
                   <Input
                     id="area_applied"
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.area_applied || ""}
-                    onChange={(e) => handleAreaChange(Number(e.target.value))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (isValidDecimalInput(val)) {
+                        handleAreaChange(parseDecimalInput(val));
+                      }
+                    }}
                     className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.area_applied ? "border-destructive" : ""}`}
                     placeholder="Ex: 10.5"
                   />
@@ -565,9 +570,15 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   <Label htmlFor="flight_time_minutes" className="text-xs sm:text-sm">Tempo de Voo (min)</Label>
                   <Input
                     id="flight_time_minutes"
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.flight_time_minutes || ""}
-                    onChange={(e) => setFormData({ ...formData, flight_time_minutes: e.target.value ? Number(e.target.value) : null })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "" || /^\d*$/.test(val)) {
+                        setFormData({ ...formData, flight_time_minutes: val ? parseInt(val) : null });
+                      }
+                    }}
                     className="h-9 sm:h-10 text-xs sm:text-sm"
                     placeholder="Ex: 45"
                   />

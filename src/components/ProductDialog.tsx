@@ -8,6 +8,7 @@ import { useProducts, Product } from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Plus } from 'lucide-react';
+import { isValidDecimalInput, parseDecimalInput } from '@/lib/utils';
 
 const productSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100),
@@ -50,7 +51,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
     try {
       const dataToValidate = {
         ...formData,
-        recommended_dose: formData.recommended_dose ? parseFloat(formData.recommended_dose) : undefined,
+        recommended_dose: formData.recommended_dose ? parseDecimalInput(formData.recommended_dose) : undefined,
       };
       
       const validated = productSchema.parse(dataToValidate);
@@ -152,11 +153,15 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
               <Label htmlFor="unit_price">Preço Unitário (R$)</Label>
               <Input
                 id="unit_price"
-                type="number"
-                step="0.01"
-                min="0"
+                type="text"
+                inputMode="decimal"
                 value={formData.unit_price || ''}
-                onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (isValidDecimalInput(val)) {
+                    setFormData({ ...formData, unit_price: parseDecimalInput(val) });
+                  }
+                }}
                 placeholder="0.00"
               />
             </div>
@@ -195,7 +200,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                   value={formData.recommended_dose}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                    if (isValidDecimalInput(val)) {
                       setFormData({ ...formData, recommended_dose: val });
                     }
                   }}
@@ -226,11 +231,15 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
             <Label htmlFor="stock_quantity">Estoque Inicial</Label>
             <Input
               id="stock_quantity"
-              type="number"
-              step="0.01"
-              min="0"
+              type="text"
+              inputMode="decimal"
               value={formData.stock_quantity || ''}
-              onChange={(e) => setFormData({ ...formData, stock_quantity: parseFloat(e.target.value) || 0 })}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (isValidDecimalInput(val)) {
+                  setFormData({ ...formData, stock_quantity: parseDecimalInput(val) });
+                }
+              }}
               placeholder="0"
             />
           </div>
