@@ -74,6 +74,7 @@ export type Database = {
           plot_name: string | null
           property_id: string
           status: Database["public"]["Enums"]["application_status"]
+          team_id: string | null
           total_cost: number
           updated_at: string
           user_id: string
@@ -89,6 +90,7 @@ export type Database = {
           plot_name?: string | null
           property_id: string
           status?: Database["public"]["Enums"]["application_status"]
+          team_id?: string | null
           total_cost: number
           updated_at?: string
           user_id: string
@@ -104,6 +106,7 @@ export type Database = {
           plot_name?: string | null
           property_id?: string
           status?: Database["public"]["Enums"]["application_status"]
+          team_id?: string | null
           total_cost?: number
           updated_at?: string
           user_id?: string
@@ -114,6 +117,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
@@ -233,6 +243,7 @@ export type Database = {
           recommended_dose: number | null
           recommended_dose_unit: string | null
           stock_quantity: number
+          team_id: string | null
           unit: string
           unit_price: number
           updated_at: string
@@ -248,6 +259,7 @@ export type Database = {
           recommended_dose?: number | null
           recommended_dose_unit?: string | null
           stock_quantity?: number
+          team_id?: string | null
           unit?: string
           unit_price: number
           updated_at?: string
@@ -263,12 +275,21 @@ export type Database = {
           recommended_dose?: number | null
           recommended_dose_unit?: string | null
           stock_quantity?: number
+          team_id?: string | null
           unit?: string
           unit_price?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -308,6 +329,7 @@ export type Database = {
           name: string
           notes: string | null
           plot_count: number
+          team_id: string | null
           total_area: number
           updated_at: string
           user_id: string
@@ -319,6 +341,7 @@ export type Database = {
           name: string
           notes?: string | null
           plot_count?: number
+          team_id?: string | null
           total_area: number
           updated_at?: string
           user_id: string
@@ -330,11 +353,20 @@ export type Database = {
           name?: string
           notes?: string | null
           plot_count?: number
+          team_id?: string | null
           total_area?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "properties_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recipe_products: {
         Row: {
@@ -384,6 +416,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          team_id: string | null
           updated_at: string
           user_id: string
         }
@@ -392,6 +425,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          team_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -400,8 +434,73 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          team_id?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -410,7 +509,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_team_id: { Args: { _user_id: string }; Returns: string }
+      is_team_admin: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_belongs_to_team: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       application_status:
@@ -419,6 +526,7 @@ export type Database = {
         | "concluída"
         | "cancelada"
       application_type: "pulverização" | "adubação" | "semeadura" | "outro"
+      team_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -553,6 +661,7 @@ export const Constants = {
         "cancelada",
       ],
       application_type: ["pulverização", "adubação", "semeadura", "outro"],
+      team_role: ["owner", "admin", "member"],
     },
   },
 } as const
