@@ -17,6 +17,7 @@ import Products from "./pages/Products";
 import Recipes from "./pages/Recipes";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Team from "./pages/Team";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -65,6 +66,7 @@ const AppContent = () => {
         <Route path="/recipes" element={<ProtectedRoute><Layout><Recipes /></Layout></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+        <Route path="/team" element={<ProtectedRoute><Layout><Team /></Layout></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
