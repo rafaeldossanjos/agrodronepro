@@ -8,6 +8,7 @@ import { useProperties, Property } from '@/hooks/useProperties';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Plus } from 'lucide-react';
+import { isValidDecimalInput, parseDecimalInput } from '@/lib/utils';
 
 const propertySchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100),
@@ -40,7 +41,10 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
     setIsLoading(true);
 
     try {
-      const validated = propertySchema.parse(formData);
+      const validated = propertySchema.parse({
+        ...formData,
+        total_area: typeof formData.total_area === 'string' ? parseDecimalInput(formData.total_area as string) : formData.total_area,
+      });
 
       if (property) {
         await updateProperty.mutateAsync({ id: property.id, ...validated });
@@ -107,11 +111,15 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
               <Label htmlFor="total_area">Área Total (ha) *</Label>
               <Input
                 id="total_area"
-                type="number"
-                step="0.01"
-                min="0.01"
+                type="text"
+                inputMode="decimal"
                 value={formData.total_area || ''}
-                onChange={(e) => setFormData({ ...formData, total_area: parseFloat(e.target.value) })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (isValidDecimalInput(val)) {
+                    setFormData({ ...formData, total_area: parseDecimalInput(val) });
+                  }
+                }}
                 required
               />
             </div>

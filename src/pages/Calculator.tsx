@@ -26,6 +26,7 @@ import { useApplications } from "@/hooks/useApplications";
 import { useRecipes } from "@/hooks/useRecipes";
 import { ProductDialog } from "@/components/ProductDialog";
 import { ProductAutocomplete } from "@/components/ProductAutocomplete";
+import { isValidDecimalInput, parseDecimalInput } from "@/lib/utils";
 
 const SAVED_PARAMS_KEY = "calculator_default_params";
 
@@ -70,18 +71,6 @@ type CalculationResults = {
 type SavedParams = {
   flowRate: string;
   tankVolume: string;
-};
-
-// Helper para normalizar entrada decimal (aceita vírgula ou ponto)
-const normalizeDecimalInput = (value: string): string => {
-  return value.replace(',', '.');
-};
-
-// Helper para validar entrada decimal (aceita vírgula ou ponto)
-const isValidDecimalInput = (value: string): boolean => {
-  if (value === "") return true;
-  // Aceita números com ponto ou vírgula como separador decimal
-  return /^\d*[.,]?\d*$/.test(value);
 };
 
 // Helper para formatar quantidade com unidade adequada
@@ -225,9 +214,9 @@ export default function Calculator() {
   };
 
   const calculate = () => {
-    const areaNum = parseFloat(normalizeDecimalInput(area)) || 0;
-    const flowRateNum = parseFloat(normalizeDecimalInput(flowRate)) || 0;
-    const tankVolumeNum = parseFloat(normalizeDecimalInput(tankVolume)) || 0;
+    const areaNum = parseDecimalInput(area);
+    const flowRateNum = parseDecimalInput(flowRate);
+    const tankVolumeNum = parseDecimalInput(tankVolume);
     
     if (!area || areaNum <= 0) {
       toast.error("Área é obrigatória");
@@ -257,7 +246,7 @@ export default function Calculator() {
     }
 
     for (const p of products) {
-      const doseValue = parseFloat(normalizeDecimalInput(p.dose)) || 0;
+      const doseValue = parseDecimalInput(p.dose);
       try {
         productSchema.parse({ ...p, dose: doseValue });
       } catch (error) {
@@ -273,7 +262,7 @@ export default function Calculator() {
     const volumePerTank = totalVolume / tanks;
 
     const productPerTank = products.map((p) => {
-      const doseValue = parseFloat(normalizeDecimalInput(p.dose)) || 0;
+      const doseValue = parseDecimalInput(p.dose);
       const totalQuantity = doseValue * areaNum;
       const quantityPerTank = totalQuantity / tanks;
 
@@ -332,7 +321,7 @@ export default function Calculator() {
       application_date: saveDate,
       application_type: 'pulverização' as const,
       status: saveStatus,
-      area_applied: parseFloat(normalizeDecimalInput(area)) || 0,
+      area_applied: parseDecimalInput(area),
       total_cost: 0,
       flight_time_minutes: null,
       notes: `Gerado pela calculadora de calda. Volume total: ${results.totalVolume.toFixed(0)}L, ${results.tanks} tanque(s).`,
