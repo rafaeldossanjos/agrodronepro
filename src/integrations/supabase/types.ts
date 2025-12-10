@@ -71,6 +71,7 @@ export type Database = {
           flight_time_minutes: number | null
           id: string
           notes: string | null
+          plot_id: string | null
           plot_name: string | null
           property_id: string
           status: Database["public"]["Enums"]["application_status"]
@@ -87,6 +88,7 @@ export type Database = {
           flight_time_minutes?: number | null
           id?: string
           notes?: string | null
+          plot_id?: string | null
           plot_name?: string | null
           property_id: string
           status?: Database["public"]["Enums"]["application_status"]
@@ -103,6 +105,7 @@ export type Database = {
           flight_time_minutes?: number | null
           id?: string
           notes?: string | null
+          plot_id?: string | null
           plot_name?: string | null
           property_id?: string
           status?: Database["public"]["Enums"]["application_status"]
@@ -112,6 +115,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "applications_plot_id_fkey"
+            columns: ["plot_id"]
+            isOneToOne: false
+            referencedRelation: "plots"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "applications_property_id_fkey"
             columns: ["property_id"]
@@ -228,6 +238,63 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plots: {
+        Row: {
+          area_hectares: number | null
+          color: string | null
+          created_at: string
+          geometry: Json
+          id: string
+          name: string
+          notes: string | null
+          property_id: string | null
+          team_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area_hectares?: number | null
+          color?: string | null
+          created_at?: string
+          geometry: Json
+          id?: string
+          name: string
+          notes?: string | null
+          property_id?: string | null
+          team_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area_hectares?: number | null
+          color?: string | null
+          created_at?: string
+          geometry?: Json
+          id?: string
+          name?: string
+          notes?: string | null
+          property_id?: string | null
+          team_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plots_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plots_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
