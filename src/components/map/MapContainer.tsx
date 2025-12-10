@@ -48,24 +48,14 @@ export function MapContainer({
   const drawingLayerRef = useRef<L.Polygon | null>(null);
   const drawingPointsRef = useRef<L.LatLng[]>([]);
   const markersRef = useRef<L.CircleMarker[]>([]);
+  const userMarkerRef = useRef<L.Marker | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   // Initialize map
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    const map = L.map(mapRef.current, {
-      center: center,
-      zoom: zoom,
-      zoomControl: true,
-    });
-
-    // Add OpenStreetMap tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(map);
-
-    // Add satellite layer option
+    // Satellite layer as default
     const satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
@@ -74,24 +64,121 @@ export function MapContainer({
       }
     );
 
+    const map = L.map(mapRef.current, {
+      center: center,
+      zoom: zoom,
+      zoomControl: true,
+      layers: [satellite], // Start with satellite
+    });
+
     // Layer control
+    const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    });
+
     const baseMaps = {
-      'Mapa': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-      }),
       'Satélite': satellite,
+      'Mapa': streets,
     };
 
     L.control.layers(baseMaps).addTo(map);
 
+    // Custom locate control
+    const LocateControl = L.Control.extend({
+      onAdd: function() {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        const button = L.DomUtil.create('a', '', container);
+        button.href = '#';
+        button.title = 'Minha Localização';
+        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:6px"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>`;
+        button.style.display = 'flex';
+        button.style.alignItems = 'center';
+        button.style.justifyContent = 'center';
+        button.style.width = '30px';
+        button.style.height = '30px';
+        button.style.backgroundColor = 'white';
+        button.style.cursor = 'pointer';
+        
+        L.DomEvent.on(button, 'click', function(e) {
+          L.DomEvent.preventDefault(e);
+          locateUser();
+        });
+        
+        return container;
+      },
+    });
+
+    new LocateControl({ position: 'topright' }).addTo(map);
+
     mapInstanceRef.current = map;
+
+    // Try to get user location on load
+    locateUser();
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
     };
   }, []);
+
+  const locateUser = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    setIsLocating(true);
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const latlng = L.latLng(latitude, longitude);
+
+          // Remove existing user marker
+          if (userMarkerRef.current) {
+            map.removeLayer(userMarkerRef.current);
+          }
+
+          // Add user location marker
+          const userIcon = L.divIcon({
+            className: 'user-location-marker',
+            html: `<div style="
+              width: 20px;
+              height: 20px;
+              background: #3B82F6;
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            "></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+          });
+
+          userMarkerRef.current = L.marker(latlng, { icon: userIcon })
+            .addTo(map)
+            .bindPopup('Sua localização');
+
+          // Only fly to location if no plots are loaded
+          if (polygonsRef.current.size === 0) {
+            map.flyTo(latlng, 15, { duration: 1.5 });
+          }
+
+          setIsLocating(false);
+        },
+        (error) => {
+          console.warn('Erro ao obter localização:', error.message);
+          setIsLocating(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        }
+      );
+    } else {
+      setIsLocating(false);
+    }
+  };
 
   // Handle drawing mode
   useEffect(() => {
