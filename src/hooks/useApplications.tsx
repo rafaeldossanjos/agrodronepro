@@ -10,6 +10,7 @@ export interface Application {
   id: string;
   user_id: string;
   property_id: string;
+  plot_id?: string | null;
   plot_name?: string | null;
   application_date: string;
   application_type: 'pulverização' | 'adubação' | 'semeadura' | 'outro';

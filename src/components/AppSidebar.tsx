@@ -32,7 +32,8 @@ import {
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Calculadora", href: "/calculator", icon: Calculator },
-  { name: "Propriedades", href: "/properties", icon: MapPin },
+  { name: "Mapa", href: "/map", icon: MapPin },
+  { name: "Propriedades", href: "/properties", icon: Plane },
   { name: "Aplicações", href: "/applications", icon: ClipboardList },
   { name: "Produtos", href: "/products", icon: Package },
   { name: "Receituários", href: "/recipes", icon: FileText },
