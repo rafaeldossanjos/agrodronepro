@@ -161,12 +161,12 @@ export function KMLImportDialog({ open, onOpenChange, onImport }: KMLImportDialo
           {/* Property Selection */}
           <div className="space-y-2">
             <Label>Vincular à Propriedade (opcional)</Label>
-            <Select value={propertyId} onValueChange={setPropertyId}>
+            <Select value={propertyId || "none"} onValueChange={(value) => setPropertyId(value === "none" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma propriedade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma</SelectItem>
+                <SelectItem value="none">Nenhuma</SelectItem>
                 {properties.map((prop) => (
                   <SelectItem key={prop.id} value={prop.id}>
                     {prop.name}

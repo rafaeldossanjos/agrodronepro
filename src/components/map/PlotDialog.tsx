@@ -119,14 +119,14 @@ export function PlotDialog({
           <div className="space-y-2">
             <Label htmlFor="property">Propriedade</Label>
             <Select
-              value={formData.property_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, property_id: value }))}
+              value={formData.property_id || "none"}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, property_id: value === "none" ? "" : value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma propriedade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma</SelectItem>
+                <SelectItem value="none">Nenhuma</SelectItem>
                 {properties.map((prop) => (
                   <SelectItem key={prop.id} value={prop.id}>
                     {prop.name}
