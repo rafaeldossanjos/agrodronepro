@@ -396,22 +396,24 @@ export default function Map() {
                           className="w-3 h-3 rounded-full flex-shrink-0"
                           style={{ backgroundColor: plot.color }}
                         />
-                        <span className="truncate flex-1">{plot.name}</span>
-                        {plot.area_hectares && (
-                          <span className="text-muted-foreground text-xs">
-                            {plot.area_hectares} ha
-                          </span>
-                        )}
+                        <span className="truncate flex-1 font-medium">{plot.name}</span>
                       </div>
-                      <div className="flex items-center justify-between mt-1 ml-5">
-                        <Badge variant="secondary" className={`text-xs ${statusColors[plot.displayStatus] || ''}`}>
-                          {statusLabels[plot.displayStatus] || plot.displayStatus}
-                        </Badge>
+                      <div className="flex items-center justify-between mt-1.5 ml-5">
+                        <div className="flex items-center gap-2">
+                          {plot.area_hectares && (
+                            <span className="text-sm font-semibold text-primary">
+                              {Number(plot.area_hectares).toFixed(2)} ha
+                            </span>
+                          )}
+                          <Badge variant="secondary" className={`text-xs ${statusColors[plot.displayStatus] || ''}`}>
+                            {statusLabels[plot.displayStatus] || plot.displayStatus}
+                          </Badge>
+                        </div>
                         <div className="flex gap-1">
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-6 w-6"
+                            className="h-8 w-8"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedPlot(plot);
@@ -419,19 +421,19 @@ export default function Map() {
                               setPlotDialogOpen(true);
                             }}
                           >
-                            <Pencil className="h-3 w-3" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-6 w-6 text-destructive hover:text-destructive"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
                             onClick={(e) => {
                               e.stopPropagation();
                               setPlotToDelete(plot);
                               setDeleteDialogOpen(true);
                             }}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
