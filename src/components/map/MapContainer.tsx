@@ -302,11 +302,20 @@ export function MapContainer({
       const statusKey = (plot.displayStatus || plot.status || 'pending') as keyof typeof STATUS_COLORS;
       const color = STATUS_COLORS[statusKey] || '#3B82F6';
       const isSelected = plot.id === selectedPlotId;
+      
+      // Darken the color for selected border
+      const darkenColor = (hex: string) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        const factor = 0.6; // darker
+        return `rgb(${Math.round(r * factor)}, ${Math.round(g * factor)}, ${Math.round(b * factor)})`;
+      };
 
       const polygon = L.polygon(latLngs, {
-        color: isSelected ? '#1D4ED8' : color,
+        color: isSelected ? darkenColor(color) : color,
         fillColor: color,
-        fillOpacity: isSelected ? 0.5 : 0.3,
+        fillOpacity: isSelected ? 0.55 : 0.4,
         weight: isSelected ? 3 : 2,
       });
 
