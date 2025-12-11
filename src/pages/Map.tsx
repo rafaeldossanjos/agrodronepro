@@ -367,7 +367,7 @@ export default function Map() {
               Talhões ({filteredPlots.length})
             </label>
             <ScrollArea className="h-[280px]">
-              <div className="space-y-1">
+              <div className="divide-y divide-border">
                 {filteredPlots.map(plot => {
                   const statusLabels: Record<string, string> = {
                     'planejada': 'Planejada',
@@ -385,9 +385,9 @@ export default function Map() {
                     <div
                       key={plot.id}
                       onClick={() => setSelectedPlot(plot)}
-                      className={`w-full text-left p-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                      className={`w-full text-left p-3 text-sm transition-colors cursor-pointer ${
                         selectedPlot?.id === plot.id
-                          ? 'bg-primary/10 border border-primary'
+                          ? 'bg-primary/10'
                           : 'hover:bg-accent'
                       }`}
                     >
@@ -398,7 +398,7 @@ export default function Map() {
                         />
                         <span className="truncate flex-1 font-medium">{plot.name}</span>
                       </div>
-                      <div className="flex items-center justify-between mt-1.5 ml-5">
+                      <div className="flex items-center justify-between mt-2 ml-5">
                         <div className="flex items-center gap-2">
                           {plot.area_hectares && (
                             <span className="text-sm font-semibold text-primary">
@@ -409,11 +409,11 @@ export default function Map() {
                             {statusLabels[plot.displayStatus] || plot.displayStatus}
                           </Badge>
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1.5">
                           <Button
                             size="icon"
-                            variant="ghost"
-                            className="h-8 w-8"
+                            variant="outline"
+                            className="h-9 w-9"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedPlot(plot);
@@ -425,8 +425,8 @@ export default function Map() {
                           </Button>
                           <Button
                             size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            variant="outline"
+                            className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
                             onClick={(e) => {
                               e.stopPropagation();
                               setPlotToDelete(plot);
