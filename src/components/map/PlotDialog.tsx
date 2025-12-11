@@ -20,20 +20,15 @@ interface PlotDialogProps {
     property_id: string | null;
     area_hectares: number | null;
     geometry: PlotGeometry;
-    color: string;
+    status: string;
     notes: string | null;
   }) => Promise<void>;
 }
 
-const COLORS = [
-  { name: 'Azul', value: '#3B82F6' },
-  { name: 'Verde', value: '#22C55E' },
-  { name: 'Amarelo', value: '#F59E0B' },
-  { name: 'Vermelho', value: '#EF4444' },
-  { name: 'Roxo', value: '#8B5CF6' },
-  { name: 'Rosa', value: '#EC4899' },
-  { name: 'Ciano', value: '#06B6D4' },
-  { name: 'Laranja', value: '#F97316' },
+const STATUS_OPTIONS = [
+  { label: 'Pendente', value: 'pending' },
+  { label: 'Em Andamento', value: 'in_progress' },
+  { label: 'Concluído', value: 'completed' },
 ];
 
 export function PlotDialog({ 
@@ -50,7 +45,7 @@ export function PlotDialog({
     name: '',
     property_id: '',
     area_hectares: '',
-    color: '#3B82F6',
+    status: 'pending',
     notes: '',
   });
 
@@ -60,7 +55,7 @@ export function PlotDialog({
         name: plot.name,
         property_id: plot.property_id || '',
         area_hectares: plot.area_hectares?.toString() || '',
-        color: plot.color || '#3B82F6',
+        status: plot.status || 'pending',
         notes: plot.notes || '',
       });
     } else {
@@ -68,7 +63,7 @@ export function PlotDialog({
         name: '',
         property_id: '',
         area_hectares: calculatedArea?.toString() || '',
-        color: '#3B82F6',
+        status: 'pending',
         notes: '',
       });
     }
@@ -88,7 +83,7 @@ export function PlotDialog({
         property_id: formData.property_id || null,
         area_hectares: formData.area_hectares ? parseFloat(normalizeDecimalInput(formData.area_hectares)) : null,
         geometry: geom,
-        color: formData.color,
+        status: formData.status,
         notes: formData.notes.trim() || null,
       });
       onOpenChange(false);
@@ -148,23 +143,22 @@ export function PlotDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Cor</Label>
-            <div className="flex flex-wrap gap-2">
-              {COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, color: c.value }))}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    formData.color === c.value 
-                      ? 'border-foreground scale-110' 
-                      : 'border-transparent hover:scale-105'
-                  }`}
-                  style={{ backgroundColor: c.value }}
-                  title={c.name}
-                />
-              ))}
-            </div>
+            <Label>Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o status" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

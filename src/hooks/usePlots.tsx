@@ -17,6 +17,7 @@ export interface Plot {
   area_hectares: number | null;
   geometry: PlotGeometry;
   color: string;
+  status: string;
   notes: string | null;
   created_at: string;
   updated_at: string;

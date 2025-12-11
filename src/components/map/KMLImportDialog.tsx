@@ -20,6 +20,7 @@ interface KMLImportDialogProps {
     area_hectares: number | null;
     geometry: { type: 'Polygon'; coordinates: number[][][] };
     color: string;
+    status: string;
     notes: string | null;
   }>) => Promise<void>;
 }
@@ -92,7 +93,8 @@ export function KMLImportDialog({ open, onOpenChange, onImport }: KMLImportDialo
           property_id: propertyId || null,
           area_hectares: f.areaHectares,
           geometry: f.geometry,
-          color: '#3B82F6',
+          color: '#EF4444', // Red for pending status
+          status: 'pending',
           notes: null,
         }));
 
