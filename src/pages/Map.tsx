@@ -17,7 +17,7 @@ import {
 import { MapContainer } from '@/components/map/MapContainer';
 import { PlotDialog } from '@/components/map/PlotDialog';
 import { KMLImportDialog } from '@/components/map/KMLImportDialog';
-import { MapLegend } from '@/components/map/MapLegend';
+import { Badge } from '@/components/ui/badge';
 import { usePlots, Plot, PlotGeometry } from '@/hooks/usePlots';
 import { useProperties } from '@/hooks/useProperties';
 import { useApplications } from '@/hooks/useApplications';
@@ -338,64 +338,83 @@ export default function Map() {
             </div>
           </div>
 
-          {/* Selected Plot Actions */}
-          {selectedPlot && (
-            <Card className="bg-accent/50">
-              <CardContent className="p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4" />
-                  <span className="font-medium truncate">{selectedPlot.name}</span>
-                </div>
-                {selectedPlot.area_hectares && (
-                  <p className="text-sm text-muted-foreground">
-                    Área: {selectedPlot.area_hectares} ha
-                  </p>
-                )}
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={handleEditPlot}>
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Editar
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={handleDeleteClick}>
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Excluir
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Plot List */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
               Talhões ({filteredPlots.length})
             </label>
-            <ScrollArea className="h-[200px]">
+            <ScrollArea className="h-[280px]">
               <div className="space-y-1">
-                {filteredPlots.map(plot => (
-                  <button
-                    key={plot.id}
-                    onClick={() => setSelectedPlot(plot)}
-                    className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
-                      selectedPlot?.id === plot.id
-                        ? 'bg-primary/10 border border-primary'
-                        : 'hover:bg-accent'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: plot.color }}
-                      />
-                      <span className="truncate flex-1">{plot.name}</span>
-                      {plot.area_hectares && (
-                        <span className="text-muted-foreground">
-                          {plot.area_hectares} ha
-                        </span>
-                      )}
+                {filteredPlots.map(plot => {
+                  const statusLabels: Record<string, string> = {
+                    'planejada': 'Planejada',
+                    'em_andamento': 'Em Andamento',
+                    'concluída': 'Concluída',
+                    'cancelada': 'Cancelada',
+                  };
+                  const statusColors: Record<string, string> = {
+                    'planejada': 'bg-blue-500/20 text-blue-700',
+                    'em_andamento': 'bg-amber-500/20 text-amber-700',
+                    'concluída': 'bg-green-500/20 text-green-700',
+                    'cancelada': 'bg-gray-500/20 text-gray-700',
+                  };
+                  return (
+                    <div
+                      key={plot.id}
+                      onClick={() => setSelectedPlot(plot)}
+                      className={`w-full text-left p-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                        selectedPlot?.id === plot.id
+                          ? 'bg-primary/10 border border-primary'
+                          : 'hover:bg-accent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: plot.color }}
+                        />
+                        <span className="truncate flex-1">{plot.name}</span>
+                        {plot.area_hectares && (
+                          <span className="text-muted-foreground text-xs">
+                            {plot.area_hectares} ha
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-1 ml-5">
+                        <Badge variant="secondary" className={`text-xs ${statusColors[plot.displayStatus] || ''}`}>
+                          {statusLabels[plot.displayStatus] || plot.displayStatus}
+                        </Badge>
+                        <div className="flex gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPlot(plot);
+                              setNewGeometry(null);
+                              setPlotDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 text-destructive hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPlotToDelete(plot);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </button>
-                ))}
+                  );
+                })}
                 {filteredPlots.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     Nenhum talhão cadastrado
@@ -404,9 +423,6 @@ export default function Map() {
               </div>
             </ScrollArea>
           </div>
-
-          {/* Legend */}
-          <MapLegend />
         </CardContent>
       </Card>
 
