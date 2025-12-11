@@ -51,15 +51,38 @@ export default function Map() {
   const [calculatedArea, setCalculatedArea] = useState<number>(0);
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
 
-  // Calculate plot display status based on saved status or applications
+  // Calculate plot display status based on linked applications
   const plotsWithStatus = useMemo<PlotWithStatus[]>(() => {
     return plots.map(plot => {
-      // Use the saved status from the plot
-      let displayStatus: PlotStatus = (plot.status as PlotStatus) || 'planejada';
+      // Find applications linked to this plot
+      const plotApps = applications.filter(app => app.plot_id === plot.id);
       
-      return { ...plot, displayStatus };
+      let displayStatus: PlotStatus = 'planejada';
+      
+      if (plotApps.length > 0) {
+        // Priority: em_andamento > concluída > planejada > cancelada
+        const hasEmAndamento = plotApps.some(app => app.status === 'em_andamento');
+        const hasConcluida = plotApps.some(app => app.status === 'concluída');
+        const hasPlanejada = plotApps.some(app => app.status === 'planejada');
+        const allCancelada = plotApps.every(app => app.status === 'cancelada');
+        
+        if (hasEmAndamento) {
+          displayStatus = 'em_andamento';
+        } else if (hasConcluida) {
+          displayStatus = 'concluída';
+        } else if (hasPlanejada) {
+          displayStatus = 'planejada';
+        } else if (allCancelada) {
+          displayStatus = 'cancelada';
+        }
+      }
+      
+      // Update plot color based on derived status
+      const color = STATUS_COLORS[displayStatus] || '#3B82F6';
+      
+      return { ...plot, displayStatus, color };
     });
-  }, [plots]);
+  }, [plots, applications]);
 
   // Build map of plot -> applied products
   const plotApplicationProducts = useMemo(() => {
