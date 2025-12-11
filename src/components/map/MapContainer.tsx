@@ -276,19 +276,68 @@ export function MapContainer({
     };
 
     const createDraggableIcon = (isFirst: boolean = false) => {
+      const pointColor = isFirst ? '#22C55E' : '#3B82F6';
+      const borderColor = isFirst ? '#16A34A' : '#1D4ED8';
+      const pointSize = isFirst ? 14 : 10;
+      const handleSize = 32;
+      const stemHeight = 40;
+      
       return L.divIcon({
         className: 'drawing-point-marker',
-        html: `<div style="
-          width: ${isFirst ? '16px' : '12px'};
-          height: ${isFirst ? '16px' : '12px'};
-          background: ${isFirst ? '#22C55E' : '#3B82F6'};
-          border: 2px solid ${isFirst ? '#16A34A' : '#1D4ED8'};
-          border-radius: 50%;
-          cursor: move;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        "></div>`,
-        iconSize: [isFirst ? 16 : 12, isFirst ? 16 : 12],
-        iconAnchor: [isFirst ? 8 : 6, isFirst ? 8 : 6],
+        html: `
+          <div style="
+            position: relative;
+            width: ${handleSize}px;
+            height: ${stemHeight + pointSize}px;
+          ">
+            <!-- Drag handle (top) -->
+            <div style="
+              position: absolute;
+              top: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              width: ${handleSize}px;
+              height: ${handleSize}px;
+              background: white;
+              border: 3px solid ${pointColor};
+              border-radius: 8px;
+              cursor: move;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${pointColor}" stroke-width="2.5">
+                <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/>
+              </svg>
+            </div>
+            <!-- Stem (line connecting handle to point) -->
+            <div style="
+              position: absolute;
+              top: ${handleSize}px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 2px;
+              height: ${stemHeight - handleSize}px;
+              background: ${pointColor};
+            "></div>
+            <!-- Actual point (bottom) -->
+            <div style="
+              position: absolute;
+              bottom: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              width: ${pointSize}px;
+              height: ${pointSize}px;
+              background: ${pointColor};
+              border: 2px solid ${borderColor};
+              border-radius: 50%;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            "></div>
+          </div>
+        `,
+        iconSize: [handleSize, stemHeight + pointSize],
+        iconAnchor: [handleSize / 2, stemHeight + pointSize],
       });
     };
 
