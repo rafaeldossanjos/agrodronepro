@@ -26,9 +26,10 @@ interface PlotDialogProps {
 }
 
 const STATUS_OPTIONS = [
-  { label: 'Pendente', value: 'pending' },
-  { label: 'Em Andamento', value: 'in_progress' },
-  { label: 'Concluído', value: 'completed' },
+  { label: 'Planejada', value: 'planejada' },
+  { label: 'Em Andamento', value: 'em_andamento' },
+  { label: 'Concluída', value: 'concluída' },
+  { label: 'Cancelada', value: 'cancelada' },
 ];
 
 export function PlotDialog({ 
@@ -45,7 +46,7 @@ export function PlotDialog({
     name: '',
     property_id: '',
     area_hectares: '',
-    status: 'pending',
+    status: 'planejada',
     notes: '',
   });
 
@@ -55,7 +56,7 @@ export function PlotDialog({
         name: plot.name,
         property_id: plot.property_id || '',
         area_hectares: plot.area_hectares?.toString() || '',
-        status: plot.status || 'pending',
+        status: plot.status || 'planejada',
         notes: plot.notes || '',
       });
     } else {
@@ -63,7 +64,7 @@ export function PlotDialog({
         name: '',
         property_id: '',
         area_hectares: calculatedArea?.toString() || '',
-        status: 'pending',
+        status: 'planejada',
         notes: '',
       });
     }

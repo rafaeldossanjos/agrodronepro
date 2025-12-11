@@ -23,11 +23,18 @@ import { useProperties } from '@/hooks/useProperties';
 import { useApplications } from '@/hooks/useApplications';
 import { toast } from 'sonner';
 
-type PlotStatus = 'completed' | 'in_progress' | 'pending' | 'none';
+type PlotStatus = 'planejada' | 'em_andamento' | 'concluída' | 'cancelada';
 
 interface PlotWithStatus extends Plot {
   displayStatus: PlotStatus;
 }
+
+const STATUS_COLORS: Record<string, string> = {
+  'concluída': '#22C55E',
+  'em_andamento': '#F59E0B',
+  'planejada': '#3B82F6',
+  'cancelada': '#6B7280',
+};
 
 export default function Map() {
   const { plots, isLoading, createPlot, updatePlot, deletePlot, refetch } = usePlots();
@@ -48,7 +55,7 @@ export default function Map() {
   const plotsWithStatus = useMemo<PlotWithStatus[]>(() => {
     return plots.map(plot => {
       // Use the saved status from the plot
-      let displayStatus: PlotStatus = (plot.status as PlotStatus) || 'pending';
+      let displayStatus: PlotStatus = (plot.status as PlotStatus) || 'planejada';
       
       return { ...plot, displayStatus };
     });
@@ -142,12 +149,6 @@ export default function Map() {
     setNewGeometry(null);
   };
 
-  const STATUS_COLORS: Record<PlotStatus, string> = {
-    completed: '#22C55E',
-    in_progress: '#F59E0B',
-    pending: '#EF4444',
-    none: '#3B82F6',
-  };
 
   const handleImport = async (features: Array<{
     name: string;
@@ -223,13 +224,13 @@ export default function Map() {
   // Stats
   const totalArea = filteredPlots.reduce((sum, p) => sum + (p.area_hectares || 0), 0);
   const completedArea = filteredPlots
-    .filter(p => p.displayStatus === 'completed')
+    .filter(p => p.displayStatus === 'concluída')
     .reduce((sum, p) => sum + (p.area_hectares || 0), 0);
   const inProgressArea = filteredPlots
-    .filter(p => p.displayStatus === 'in_progress')
+    .filter(p => p.displayStatus === 'em_andamento')
     .reduce((sum, p) => sum + (p.area_hectares || 0), 0);
-  const pendingArea = filteredPlots
-    .filter(p => p.displayStatus === 'pending')
+  const plannedArea = filteredPlots
+    .filter(p => p.displayStatus === 'planejada')
     .reduce((sum, p) => sum + (p.area_hectares || 0), 0);
 
   if (isLoading) {
@@ -331,9 +332,9 @@ export default function Map() {
               <p className="text-amber-600">Em Andamento</p>
               <p className="font-semibold">{inProgressArea.toFixed(1)} ha</p>
             </div>
-            <div className="p-2 bg-red-500/10 rounded-lg">
-              <p className="text-red-600">Pendente</p>
-              <p className="font-semibold">{pendingArea.toFixed(1)} ha</p>
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <p className="text-blue-600">Planejada</p>
+              <p className="font-semibold">{plannedArea.toFixed(1)} ha</p>
             </div>
           </div>
 

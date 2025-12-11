@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { useRecipes } from "@/hooks/useRecipes";
 import { usePlots } from "@/hooks/usePlots";
 import { Application } from "@/hooks/useApplications";
 import { z } from "zod";
-import { Plus, X, Check, BookOpen, MapPin } from "lucide-react";
+import { Plus, X, Check, BookOpen, MapPin, Map as MapIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn, isValidDecimalInput, parseDecimalInput } from "@/lib/utils";
 
@@ -211,6 +212,7 @@ function ProductAutocomplete({
 }
 
 export function ApplicationDialog({ open, onOpenChange, onSave, application }: ApplicationDialogProps) {
+  const navigate = useNavigate();
   const { properties } = useProperties();
   const { products } = useProducts();
   const { recipes } = useRecipes();
@@ -507,38 +509,55 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                     <MapPin className="h-3 w-3" />
                     Talhão
                   </Label>
-                  <Select
-                    value={formData.plot_id || "none"}
-                    onValueChange={(value) => {
-                      const selectedPlot = plots.find(p => p.id === value);
-                      setFormData({ 
-                        ...formData, 
-                        plot_id: value === "none" ? null : value,
-                        plot_name: selectedPlot?.name || formData.plot_name,
-                        area_applied: selectedPlot?.area_hectares || formData.area_applied
-                      });
-                      // Recalculate products with new area
-                      if (selectedPlot?.area_hectares) {
-                        handleAreaChange(selectedPlot.area_hectares);
-                      }
-                    }}
-                    disabled={!formData.property_id && availablePlots.length === 0}
-                  >
-                    <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
-                      <SelectValue placeholder={!formData.property_id ? "Selecione a propriedade primeiro" : "Selecione um talhão"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum (digitar manualmente)</SelectItem>
-                      {availablePlots.map((plot) => (
-                        <SelectItem key={plot.id} value={plot.id} className="text-xs sm:text-sm">
-                          {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select
+                      value={formData.plot_id || "none"}
+                      onValueChange={(value) => {
+                        const selectedPlot = plots.find(p => p.id === value);
+                        setFormData({ 
+                          ...formData, 
+                          plot_id: value === "none" ? null : value,
+                          plot_name: selectedPlot?.name || formData.plot_name,
+                          area_applied: selectedPlot?.area_hectares || formData.area_applied
+                        });
+                        // Recalculate products with new area
+                        if (selectedPlot?.area_hectares) {
+                          handleAreaChange(selectedPlot.area_hectares);
+                        }
+                      }}
+                      disabled={!formData.property_id && availablePlots.length === 0}
+                    >
+                      <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm flex-1">
+                        <SelectValue placeholder={!formData.property_id ? "Selecione a propriedade primeiro" : "Selecione um talhão"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum (digitar manualmente)</SelectItem>
+                        {availablePlots.map((plot) => (
+                          <SelectItem key={plot.id} value={plot.id} className="text-xs sm:text-sm">
+                            {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {formData.plot_id && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-9 sm:h-10 w-9 sm:w-10 shrink-0"
+                        onClick={() => {
+                          onOpenChange(false);
+                          navigate('/map');
+                        }}
+                        title="Ver no Mapa"
+                      >
+                        <MapIcon className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                   {availablePlots.length === 0 && formData.property_id && (
                     <p className="text-xs text-muted-foreground">
-                      Nenhum talhão cadastrado para esta propriedade
+                      Nenhum talhão cadastrado para esta propriedade. <button type="button" className="text-primary underline" onClick={() => { onOpenChange(false); navigate('/map'); }}>Criar talhão no mapa</button>
                     </p>
                   )}
                 </div>
