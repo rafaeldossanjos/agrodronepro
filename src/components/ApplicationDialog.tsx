@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useProperties } from "@/hooks/useProperties";
 import { useProducts, Product } from "@/hooks/useProducts";
 import { useRecipes } from "@/hooks/useRecipes";
+import { usePlots } from "@/hooks/usePlots";
 import { Application } from "@/hooks/useApplications";
 import { z } from "zod";
-import { Plus, X, Check, BookOpen } from "lucide-react";
+import { Plus, X, Check, BookOpen, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn, isValidDecimalInput, parseDecimalInput } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ const productItemSchema = z.object({
 
 const applicationSchema = z.object({
   property_id: z.string().uuid("Selecione uma propriedade"),
+  plot_id: z.string().uuid().nullable().optional(),
   plot_name: z.string().optional(),
   application_date: z.string().min(1, "Data é obrigatória"),
   application_type: z.enum(['pulverização', 'adubação', 'semeadura', 'outro']),
@@ -212,6 +214,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
   const { properties } = useProperties();
   const { products } = useProducts();
   const { recipes } = useRecipes();
+  const { plots } = usePlots();
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
 
   const loadRecipe = (recipeId: string) => {
@@ -240,6 +243,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
   
   const [formData, setFormData] = useState<{
     property_id: string;
+    plot_id: string | null;
     plot_name: string;
     application_date: string;
     application_type: 'pulverização' | 'adubação' | 'semeadura' | 'outro';
@@ -251,6 +255,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     notes: string;
   }>({
     property_id: "",
+    plot_id: null,
     plot_name: "",
     application_date: "",
     application_type: "pulverização",
@@ -261,6 +266,12 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     flight_time_minutes: null,
     notes: "",
   });
+
+  // Filter plots by selected property
+  const availablePlots = useMemo(() => {
+    if (!formData.property_id) return [];
+    return plots.filter(p => p.property_id === formData.property_id || !p.property_id);
+  }, [plots, formData.property_id]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -284,6 +295,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
       setFormData({
         property_id: application.property_id,
+        plot_id: application.plot_id || null,
         plot_name: application.plot_name || "",
         application_date: application.application_date,
         application_type: application.application_type,
@@ -298,6 +310,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
       // Reset form quando não está editando
       setFormData({
         property_id: "",
+        plot_id: null,
         plot_name: "",
         application_date: "",
         application_type: "pulverização",
@@ -394,6 +407,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     try {
       const validatedData = applicationSchema.parse({
         ...formData,
+        plot_id: formData.plot_id || null,
         area_applied: Number(formData.area_applied),
         products: formData.products.map(p => ({
           ...p,
@@ -465,7 +479,12 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   <Label htmlFor="property_id" className="text-xs sm:text-sm">Propriedade *</Label>
                   <Select
                     value={formData.property_id}
-                    onValueChange={(value) => setFormData({ ...formData, property_id: value })}
+                    onValueChange={(value) => setFormData({ 
+                      ...formData, 
+                      property_id: value,
+                      plot_id: null, // Clear plot when property changes
+                      plot_name: "",
+                    })}
                   >
                     <SelectTrigger className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.property_id ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Selecione" />
@@ -484,7 +503,48 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="plot_name" className="text-xs sm:text-sm">Nome do Talhão</Label>
+                  <Label htmlFor="plot_id" className="text-xs sm:text-sm flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    Talhão
+                  </Label>
+                  <Select
+                    value={formData.plot_id || "none"}
+                    onValueChange={(value) => {
+                      const selectedPlot = plots.find(p => p.id === value);
+                      setFormData({ 
+                        ...formData, 
+                        plot_id: value === "none" ? null : value,
+                        plot_name: selectedPlot?.name || formData.plot_name,
+                        area_applied: selectedPlot?.area_hectares || formData.area_applied
+                      });
+                      // Recalculate products with new area
+                      if (selectedPlot?.area_hectares) {
+                        handleAreaChange(selectedPlot.area_hectares);
+                      }
+                    }}
+                    disabled={!formData.property_id && availablePlots.length === 0}
+                  >
+                    <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
+                      <SelectValue placeholder={!formData.property_id ? "Selecione a propriedade primeiro" : "Selecione um talhão"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum (digitar manualmente)</SelectItem>
+                      {availablePlots.map((plot) => (
+                        <SelectItem key={plot.id} value={plot.id} className="text-xs sm:text-sm">
+                          {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {availablePlots.length === 0 && formData.property_id && (
+                    <p className="text-xs text-muted-foreground">
+                      Nenhum talhão cadastrado para esta propriedade
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="plot_name" className="text-xs sm:text-sm">Nome do Talhão (manual)</Label>
                   <Input
                     id="plot_name"
                     type="text"
@@ -492,6 +552,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                     onChange={(e) => setFormData({ ...formData, plot_name: e.target.value })}
                     className="h-9 sm:h-10 text-xs sm:text-sm"
                     placeholder="Ex: Talhão A1"
+                    disabled={!!formData.plot_id}
                   />
                 </div>
 
