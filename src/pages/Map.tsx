@@ -12,7 +12,9 @@ import {
   Map as MapIcon, 
   Layers,
   MousePointer,
-  Download
+  Download,
+  Undo2,
+  Move
 } from 'lucide-react';
 import { MapContainer } from '@/components/map/MapContainer';
 import { PlotDialog } from '@/components/map/PlotDialog';
@@ -51,6 +53,8 @@ export default function Map() {
   const [newGeometry, setNewGeometry] = useState<PlotGeometry | null>(null);
   const [calculatedArea, setCalculatedArea] = useState<number>(0);
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
+  const [drawingPointCount, setDrawingPointCount] = useState(0);
+  const [undoTrigger, setUndoTrigger] = useState(0);
 
   // Calculate plot display status based on linked applications
   const plotsWithStatus = useMemo<PlotWithStatus[]>(() => {
@@ -123,6 +127,11 @@ export default function Map() {
     setSelectedPlot(null);
     setPlotDialogOpen(true);
     setIsDrawing(false);
+    setDrawingPointCount(0);
+  };
+
+  const handleUndoPoint = () => {
+    setUndoTrigger(prev => prev + 1);
   };
 
   const handlePlotClick = (plot: Plot) => {
@@ -315,11 +324,43 @@ export default function Map() {
           </div>
 
           {isDrawing && (
-            <div className="p-3 bg-primary/10 rounded-lg text-sm">
-              <p className="font-medium text-primary">Modo de Desenho Ativo</p>
-              <p className="text-muted-foreground mt-1">
-                Clique no mapa para adicionar pontos. Clique duplo para finalizar o polígono.
-              </p>
+            <div className="p-3 bg-primary/10 rounded-lg text-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="font-medium text-primary">Modo de Desenho Ativo</p>
+                <Badge variant="secondary">{drawingPointCount} pontos</Badge>
+              </div>
+              <div className="text-muted-foreground space-y-1">
+                <p className="flex items-center gap-2">
+                  <MousePointer className="h-3 w-3" /> Clique para adicionar pontos
+                </p>
+                <p className="flex items-center gap-2">
+                  <Move className="h-3 w-3" /> Arraste os pontos para ajustar
+                </p>
+                <p>Clique duplo para finalizar (mín. 3 pontos)</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleUndoPoint}
+                  disabled={drawingPointCount === 0}
+                  className="flex-1"
+                >
+                  <Undo2 className="h-4 w-4 mr-1" />
+                  Desfazer Ponto
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    setIsDrawing(false);
+                    setDrawingPointCount(0);
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+              </div>
             </div>
           )}
 
@@ -464,6 +505,8 @@ export default function Map() {
             isDrawing={isDrawing}
             selectedPlotId={selectedPlot?.id}
             plotApplicationProducts={plotApplicationProducts}
+            onPointsChange={setDrawingPointCount}
+            undoTrigger={undoTrigger}
           />
         </CardContent>
       </Card>

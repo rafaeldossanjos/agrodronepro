@@ -32,6 +32,8 @@ interface MapContainerProps {
   center?: [number, number];
   zoom?: number;
   plotApplicationProducts?: Map<string, ApplicationProduct[]>;
+  onPointsChange?: (count: number) => void;
+  undoTrigger?: number;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -55,6 +57,8 @@ export function MapContainer({
   center = [-15.7801, -47.9292], // Default: Brasília
   zoom = 5,
   plotApplicationProducts,
+  onPointsChange,
+  undoTrigger,
 }: MapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -62,7 +66,7 @@ export function MapContainer({
   const labelsRef = useRef<Map<string, L.Marker>>(new Map());
   const drawingLayerRef = useRef<L.Polygon | null>(null);
   const drawingPointsRef = useRef<L.LatLng[]>([]);
-  const markersRef = useRef<L.CircleMarker[]>([]);
+  const markersRef = useRef<L.Marker[]>([]);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const activePopupRef = useRef<L.Popup | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -196,6 +200,41 @@ export function MapContainer({
     }
   };
 
+  // Handle undo trigger
+  useEffect(() => {
+    if (!isDrawing || undoTrigger === undefined) return;
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (drawingPointsRef.current.length > 0) {
+      // Remove last point
+      drawingPointsRef.current.pop();
+      
+      // Remove last marker
+      const lastMarker = markersRef.current.pop();
+      if (lastMarker) {
+        map.removeLayer(lastMarker);
+      }
+
+      // Update polygon preview
+      if (drawingLayerRef.current) {
+        map.removeLayer(drawingLayerRef.current);
+        drawingLayerRef.current = null;
+      }
+      
+      if (drawingPointsRef.current.length >= 2) {
+        drawingLayerRef.current = L.polygon(drawingPointsRef.current, {
+          color: '#3B82F6',
+          fillColor: '#3B82F6',
+          fillOpacity: 0.3,
+          weight: 2,
+        }).addTo(map);
+      }
+
+      onPointsChange?.(drawingPointsRef.current.length);
+    }
+  }, [undoTrigger, isDrawing, onPointsChange]);
+
   // Handle drawing mode
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -209,6 +248,40 @@ export function MapContainer({
       markersRef.current.forEach(m => map.removeLayer(m));
       markersRef.current = [];
       drawingPointsRef.current = [];
+      onPointsChange?.(0);
+    };
+
+    const updatePolygon = () => {
+      if (drawingLayerRef.current) {
+        map.removeLayer(drawingLayerRef.current);
+        drawingLayerRef.current = null;
+      }
+      
+      if (drawingPointsRef.current.length >= 2) {
+        drawingLayerRef.current = L.polygon(drawingPointsRef.current, {
+          color: '#3B82F6',
+          fillColor: '#3B82F6',
+          fillOpacity: 0.3,
+          weight: 2,
+        }).addTo(map);
+      }
+    };
+
+    const createDraggableIcon = (isFirst: boolean = false) => {
+      return L.divIcon({
+        className: 'drawing-point-marker',
+        html: `<div style="
+          width: ${isFirst ? '16px' : '12px'};
+          height: ${isFirst ? '16px' : '12px'};
+          background: ${isFirst ? '#22C55E' : '#3B82F6'};
+          border: 2px solid ${isFirst ? '#16A34A' : '#1D4ED8'};
+          border-radius: 50%;
+          cursor: move;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        "></div>`,
+        iconSize: [isFirst ? 16 : 12, isFirst ? 16 : 12],
+        iconAnchor: [isFirst ? 8 : 6, isFirst ? 8 : 6],
+      });
     };
 
     if (isDrawing) {
@@ -216,30 +289,27 @@ export function MapContainer({
 
       const handleClick = (e: L.LeafletMouseEvent) => {
         const point = e.latlng;
+        const pointIndex = drawingPointsRef.current.length;
         drawingPointsRef.current.push(point);
 
-        // Add point marker
-        const marker = L.circleMarker(point, {
-          radius: 6,
-          fillColor: '#3B82F6',
-          color: '#1D4ED8',
-          weight: 2,
-          fillOpacity: 1,
+        // Add draggable marker
+        const marker = L.marker(point, {
+          icon: createDraggableIcon(pointIndex === 0),
+          draggable: true,
         }).addTo(map);
+
+        // Handle marker drag
+        marker.on('drag', () => {
+          const newPos = marker.getLatLng();
+          drawingPointsRef.current[pointIndex] = newPos;
+          updatePolygon();
+        });
+
         markersRef.current.push(marker);
+        onPointsChange?.(drawingPointsRef.current.length);
 
         // Update polygon preview
-        if (drawingPointsRef.current.length >= 2) {
-          if (drawingLayerRef.current) {
-            map.removeLayer(drawingLayerRef.current);
-          }
-          drawingLayerRef.current = L.polygon(drawingPointsRef.current, {
-            color: '#3B82F6',
-            fillColor: '#3B82F6',
-            fillOpacity: 0.3,
-            weight: 2,
-          }).addTo(map);
-        }
+        updatePolygon();
       };
 
       const handleDoubleClick = (e: L.LeafletMouseEvent) => {
@@ -277,7 +347,7 @@ export function MapContainer({
       map.getContainer().style.cursor = '';
       clearDrawing();
     }
-  }, [isDrawing, onDrawComplete]);
+  }, [isDrawing, onDrawComplete, onPointsChange]);
 
   // Render plots
   useEffect(() => {
