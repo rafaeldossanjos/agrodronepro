@@ -25,12 +25,6 @@ interface PlotDialogProps {
   }) => Promise<void>;
 }
 
-const STATUS_OPTIONS = [
-  { label: 'Planejada', value: 'planejada' },
-  { label: 'Em Andamento', value: 'em_andamento' },
-  { label: 'Concluída', value: 'concluída' },
-  { label: 'Cancelada', value: 'cancelada' },
-];
 
 export function PlotDialog({ 
   open, 
@@ -46,7 +40,6 @@ export function PlotDialog({
     name: '',
     property_id: '',
     area_hectares: '',
-    status: 'planejada',
     notes: '',
   });
 
@@ -56,7 +49,6 @@ export function PlotDialog({
         name: plot.name,
         property_id: plot.property_id || '',
         area_hectares: plot.area_hectares?.toString() || '',
-        status: plot.status || 'planejada',
         notes: plot.notes || '',
       });
     } else {
@@ -64,7 +56,6 @@ export function PlotDialog({
         name: '',
         property_id: '',
         area_hectares: calculatedArea?.toString() || '',
-        status: 'planejada',
         notes: '',
       });
     }
@@ -84,7 +75,7 @@ export function PlotDialog({
         property_id: formData.property_id || null,
         area_hectares: formData.area_hectares ? parseFloat(normalizeDecimalInput(formData.area_hectares)) : null,
         geometry: geom,
-        status: formData.status,
+        status: 'planejada', // Default status - actual status derived from applications
         notes: formData.notes.trim() || null,
       });
       onOpenChange(false);
@@ -143,23 +134,8 @@ export function PlotDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <Select
-              value={formData.status}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+            <p>O status do talhão é definido automaticamente pelas aplicações vinculadas.</p>
           </div>
 
           <div className="space-y-2">
