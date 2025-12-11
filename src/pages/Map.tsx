@@ -23,7 +23,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useApplications } from '@/hooks/useApplications';
 import { toast } from 'sonner';
 
-type PlotStatus = 'planejada' | 'em_andamento' | 'concluída' | 'cancelada';
+type PlotStatus = 'planejada' | 'em_andamento' | 'concluída' | 'cancelada' | 'sem_vinculo';
 
 interface PlotWithStatus extends Plot {
   displayStatus: PlotStatus;
@@ -34,6 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
   'em_andamento': '#F59E0B',
   'planejada': '#3B82F6',
   'cancelada': '#6B7280',
+  'sem_vinculo': '#9CA3AF', // Gray for unlinked plots
 };
 
 export default function Map() {
@@ -57,7 +58,7 @@ export default function Map() {
       // Find applications linked to this plot
       const plotApps = applications.filter(app => app.plot_id === plot.id);
       
-      let displayStatus: PlotStatus = 'planejada';
+      let displayStatus: PlotStatus = 'sem_vinculo'; // Default: no linked applications
       
       if (plotApps.length > 0) {
         // Priority: em_andamento > concluída > planejada > cancelada
@@ -78,7 +79,7 @@ export default function Map() {
       }
       
       // Update plot color based on derived status
-      const color = STATUS_COLORS[displayStatus] || '#3B82F6';
+      const color = STATUS_COLORS[displayStatus] || '#9CA3AF';
       
       return { ...plot, displayStatus, color };
     });
@@ -374,12 +375,14 @@ export default function Map() {
                     'em_andamento': 'Em Andamento',
                     'concluída': 'Concluída',
                     'cancelada': 'Cancelada',
+                    'sem_vinculo': 'Sem Vínculo',
                   };
                   const statusColors: Record<string, string> = {
                     'planejada': 'bg-blue-500/20 text-blue-700',
                     'em_andamento': 'bg-amber-500/20 text-amber-700',
                     'concluída': 'bg-green-500/20 text-green-700',
                     'cancelada': 'bg-gray-500/20 text-gray-700',
+                    'sem_vinculo': 'bg-gray-400/20 text-gray-500',
                   };
                   return (
                     <div
