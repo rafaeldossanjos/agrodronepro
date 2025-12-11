@@ -69,6 +69,7 @@ export function MapContainer({
   const markersRef = useRef<L.Marker[]>([]);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const activePopupRef = useRef<L.Popup | null>(null);
+  const areaLabelRef = useRef<L.Marker | null>(null);
   const onPointsChangeRef = useRef(onPointsChange);
   const onDrawCompleteRef = useRef(onDrawComplete);
   const [isLocating, setIsLocating] = useState(false);
@@ -253,6 +254,10 @@ export function MapContainer({
         map.removeLayer(drawingLayerRef.current);
         drawingLayerRef.current = null;
       }
+      if (areaLabelRef.current) {
+        map.removeLayer(areaLabelRef.current);
+        areaLabelRef.current = null;
+      }
       markersRef.current.forEach(m => map.removeLayer(m));
       markersRef.current = [];
       drawingPointsRef.current = [];
@@ -264,6 +269,10 @@ export function MapContainer({
         map.removeLayer(drawingLayerRef.current);
         drawingLayerRef.current = null;
       }
+      if (areaLabelRef.current) {
+        map.removeLayer(areaLabelRef.current);
+        areaLabelRef.current = null;
+      }
       
       if (drawingPointsRef.current.length >= 2) {
         drawingLayerRef.current = L.polygon(drawingPointsRef.current, {
@@ -272,6 +281,36 @@ export function MapContainer({
           fillOpacity: 0.3,
           weight: 2,
         }).addTo(map);
+
+        // Show area label if we have at least 3 points (valid polygon)
+        if (drawingPointsRef.current.length >= 3) {
+          const coordinates = drawingPointsRef.current.map(p => [p.lng, p.lat]);
+          coordinates.push([...coordinates[0]]); // Close polygon
+          const area = calculatePolygonArea(coordinates);
+          
+          // Calculate center of polygon for label
+          const bounds = drawingLayerRef.current.getBounds();
+          const center = bounds.getCenter();
+          
+          areaLabelRef.current = L.marker(center, {
+            icon: L.divIcon({
+              className: 'area-label-marker',
+              html: `<div style="
+                background: rgba(0, 0, 0, 0.75);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 16px;
+                white-space: nowrap;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              ">${area.toFixed(2)} ha</div>`,
+              iconSize: [0, 0],
+              iconAnchor: [0, 0],
+            }),
+            interactive: false,
+          }).addTo(map);
+        }
       }
     };
 
@@ -279,8 +318,8 @@ export function MapContainer({
       const pointColor = isFirst ? '#22C55E' : '#3B82F6';
       const borderColor = isFirst ? '#16A34A' : '#1D4ED8';
       const pointSize = isFirst ? 14 : 10;
-      const handleSize = 32;
-      const stemHeight = 40;
+      const handleSize = 36;
+      const stemHeight = 50;
       
       return L.divIcon({
         className: 'drawing-point-marker',
@@ -290,10 +329,33 @@ export function MapContainer({
             width: ${handleSize}px;
             height: ${stemHeight + pointSize}px;
           ">
-            <!-- Drag handle (top) -->
+            <!-- Actual point (top) -->
             <div style="
               position: absolute;
               top: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              width: ${pointSize}px;
+              height: ${pointSize}px;
+              background: ${pointColor};
+              border: 2px solid ${borderColor};
+              border-radius: 50%;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            "></div>
+            <!-- Stem (line connecting point to handle) -->
+            <div style="
+              position: absolute;
+              top: ${pointSize}px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 2px;
+              height: ${stemHeight - handleSize}px;
+              background: ${pointColor};
+            "></div>
+            <!-- Drag handle (bottom) -->
+            <div style="
+              position: absolute;
+              bottom: 0;
               left: 50%;
               transform: translateX(-50%);
               width: ${handleSize}px;
@@ -307,37 +369,14 @@ export function MapContainer({
               align-items: center;
               justify-content: center;
             ">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${pointColor}" stroke-width="2.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${pointColor}" stroke-width="2.5">
                 <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/>
               </svg>
             </div>
-            <!-- Stem (line connecting handle to point) -->
-            <div style="
-              position: absolute;
-              top: ${handleSize}px;
-              left: 50%;
-              transform: translateX(-50%);
-              width: 2px;
-              height: ${stemHeight - handleSize}px;
-              background: ${pointColor};
-            "></div>
-            <!-- Actual point (bottom) -->
-            <div style="
-              position: absolute;
-              bottom: 0;
-              left: 50%;
-              transform: translateX(-50%);
-              width: ${pointSize}px;
-              height: ${pointSize}px;
-              background: ${pointColor};
-              border: 2px solid ${borderColor};
-              border-radius: 50%;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-            "></div>
           </div>
         `,
         iconSize: [handleSize, stemHeight + pointSize],
-        iconAnchor: [handleSize / 2, stemHeight + pointSize],
+        iconAnchor: [handleSize / 2, 0],
       });
     };
 
