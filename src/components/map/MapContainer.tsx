@@ -12,8 +12,15 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-interface PlotWithStatus extends Plot {
-  status?: 'completed' | 'in_progress' | 'pending' | 'none';
+interface PlotWithStatus extends Omit<Plot, 'status'> {
+  status: string;
+  displayStatus?: string;
+}
+
+interface ApplicationProduct {
+  product_name: string;
+  dose_per_ha: number;
+  total_amount: number;
 }
 
 interface MapContainerProps {
@@ -24,6 +31,7 @@ interface MapContainerProps {
   selectedPlotId?: string | null;
   center?: [number, number];
   zoom?: number;
+  plotApplicationProducts?: Map<string, ApplicationProduct[]>;
 }
 
 const STATUS_COLORS = {
@@ -41,14 +49,17 @@ export function MapContainer({
   selectedPlotId,
   center = [-15.7801, -47.9292], // Default: Brasília
   zoom = 5,
+  plotApplicationProducts,
 }: MapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const polygonsRef = useRef<Map<string, L.Polygon>>(new Map());
+  const labelsRef = useRef<Map<string, L.Marker>>(new Map());
   const drawingLayerRef = useRef<L.Polygon | null>(null);
   const drawingPointsRef = useRef<L.LatLng[]>([]);
   const markersRef = useRef<L.CircleMarker[]>([]);
   const userMarkerRef = useRef<L.Marker | null>(null);
+  const activePopupRef = useRef<L.Popup | null>(null);
   const [isLocating, setIsLocating] = useState(false);
 
   // Initialize map
@@ -268,9 +279,11 @@ export function MapContainer({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Clear existing polygons
+    // Clear existing polygons and labels
     polygonsRef.current.forEach(polygon => map.removeLayer(polygon));
     polygonsRef.current.clear();
+    labelsRef.current.forEach(label => map.removeLayer(label));
+    labelsRef.current.clear();
 
     // Add plot polygons
     plots.forEach(plot => {
@@ -281,7 +294,8 @@ export function MapContainer({
         L.latLng(coord[1], coord[0])
       );
 
-      const color = STATUS_COLORS[plot.status || 'none'] || plot.color || '#3B82F6';
+      const statusKey = (plot.displayStatus || plot.status || 'pending') as keyof typeof STATUS_COLORS;
+      const color = STATUS_COLORS[statusKey] || '#3B82F6';
       const isSelected = plot.id === selectedPlotId;
 
       const polygon = L.polygon(latLngs, {
@@ -291,17 +305,96 @@ export function MapContainer({
         weight: isSelected ? 3 : 2,
       });
 
-      // Add popup with plot info
-      polygon.bindPopup(`
-        <div class="p-2">
-          <strong>${plot.name}</strong><br/>
-          ${plot.area_hectares ? `Área: ${plot.area_hectares} ha` : ''}
-        </div>
-      `);
+      // Calculate center for label
+      const bounds = polygon.getBounds();
+      const center = bounds.getCenter();
 
-      polygon.on('click', () => {
-        if (onPlotClick && !isDrawing) {
-          onPlotClick(plot);
+      // Create label with name and area
+      const labelContent = `<div style="
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        text-align: center;
+        pointer-events: none;
+      ">
+        <div>${plot.name}</div>
+        ${plot.area_hectares ? `<div style="font-size:10px;opacity:0.9">${plot.area_hectares} ha</div>` : ''}
+      </div>`;
+
+      const labelIcon = L.divIcon({
+        className: 'plot-label',
+        html: labelContent,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      });
+
+      const labelMarker = L.marker(center, { 
+        icon: labelIcon,
+        interactive: false,
+      }).addTo(map);
+      labelsRef.current.set(plot.id, labelMarker);
+
+      // Build popup content with products
+      const products = plotApplicationProducts?.get(plot.id) || [];
+      let popupContent = `
+        <div style="min-width: 180px; padding: 8px;">
+          <strong style="font-size: 14px;">${plot.name}</strong><br/>
+          ${plot.area_hectares ? `<span style="color: #666;">Área: ${plot.area_hectares} ha</span><br/>` : ''}
+      `;
+      
+      if (products.length > 0) {
+        popupContent += `
+          <hr style="margin: 8px 0; border: 0; border-top: 1px solid #ddd;"/>
+          <div style="font-weight: 500; margin-bottom: 4px;">Produtos Aplicados:</div>
+          <ul style="margin: 0; padding-left: 16px; font-size: 12px;">
+        `;
+        products.forEach(p => {
+          popupContent += `<li>${p.product_name}: ${p.dose_per_ha} /ha (${p.total_amount} total)</li>`;
+        });
+        popupContent += `</ul>`;
+      } else {
+        popupContent += `<span style="font-size: 12px; color: #999;">Nenhum produto aplicado</span>`;
+      }
+      
+      popupContent += `</div>`;
+
+      polygon.on('click', (e) => {
+        if (isDrawing) return;
+        
+        // Close active popup if clicking same polygon
+        if (activePopupRef.current && map.hasLayer(activePopupRef.current)) {
+          map.closePopup(activePopupRef.current);
+          activePopupRef.current = null;
+          
+          if (onPlotClick) {
+            onPlotClick(plot as Plot);
+          }
+          return;
+        }
+        
+        // Close any existing popup
+        if (activePopupRef.current) {
+          map.closePopup(activePopupRef.current);
+        }
+        
+        // Open new popup
+        const popup = L.popup({
+          closeButton: true,
+          autoClose: true,
+          closeOnClick: false,
+        })
+          .setLatLng(e.latlng)
+          .setContent(popupContent)
+          .openOn(map);
+        
+        activePopupRef.current = popup;
+        
+        if (onPlotClick) {
+          onPlotClick(plot as Plot);
         }
       });
 
@@ -325,7 +418,7 @@ export function MapContainer({
         map.fitBounds(bounds, { padding: [50, 50] });
       }
     }
-  }, [plots, selectedPlotId, isDrawing, onPlotClick]);
+  }, [plots, selectedPlotId, isDrawing, onPlotClick, plotApplicationProducts]);
 
   return (
     <div 

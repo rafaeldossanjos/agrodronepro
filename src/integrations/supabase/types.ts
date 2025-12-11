@@ -252,6 +252,7 @@ export type Database = {
           name: string
           notes: string | null
           property_id: string | null
+          status: string | null
           team_id: string | null
           updated_at: string
           user_id: string
@@ -265,6 +266,7 @@ export type Database = {
           name: string
           notes?: string | null
           property_id?: string | null
+          status?: string | null
           team_id?: string | null
           updated_at?: string
           user_id: string
@@ -278,6 +280,7 @@ export type Database = {
           name?: string
           notes?: string | null
           property_id?: string | null
+          status?: string | null
           team_id?: string | null
           updated_at?: string
           user_id?: string

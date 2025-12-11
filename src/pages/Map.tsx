@@ -26,7 +26,7 @@ import { toast } from 'sonner';
 type PlotStatus = 'completed' | 'in_progress' | 'pending' | 'none';
 
 interface PlotWithStatus extends Plot {
-  status?: PlotStatus;
+  displayStatus: PlotStatus;
 }
 
 export default function Map() {
@@ -44,31 +44,40 @@ export default function Map() {
   const [calculatedArea, setCalculatedArea] = useState<number>(0);
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
 
-  // Calculate plot status based on applications
+  // Calculate plot display status based on saved status or applications
   const plotsWithStatus = useMemo<PlotWithStatus[]>(() => {
     return plots.map(plot => {
-      // Find applications for this plot
-      const plotApplications = applications.filter(app => app.plot_id === plot.id);
+      // Use the saved status from the plot
+      let displayStatus: PlotStatus = (plot.status as PlotStatus) || 'pending';
       
-      let status: PlotStatus = 'none';
-      
-      if (plotApplications.length > 0) {
-        const hasCompleted = plotApplications.some(app => app.status === 'concluída');
-        const hasInProgress = plotApplications.some(app => app.status === 'em_andamento');
-        const hasPending = plotApplications.some(app => app.status === 'planejada');
-        
-        if (hasCompleted) {
-          status = 'completed';
-        } else if (hasInProgress) {
-          status = 'in_progress';
-        } else if (hasPending) {
-          status = 'pending';
-        }
-      }
-      
-      return { ...plot, status };
+      return { ...plot, displayStatus };
     });
-  }, [plots, applications]);
+  }, [plots]);
+
+  // Build map of plot -> applied products
+  const plotApplicationProducts = useMemo(() => {
+    type ProductInfo = {
+      product_name: string;
+      dose_per_ha: number;
+      total_amount: number;
+    };
+    const productMap = new globalThis.Map<string, ProductInfo[]>();
+
+    applications.forEach(app => {
+      if (app.plot_id && app.application_products) {
+        const products: ProductInfo[] = app.application_products.map(ap => ({
+          product_name: ap.products?.name || 'Produto desconhecido',
+          dose_per_ha: ap.dose_per_ha,
+          total_amount: ap.total_amount,
+        }));
+        
+        const existing = productMap.get(app.plot_id) || [];
+        productMap.set(app.plot_id, [...existing, ...products]);
+      }
+    });
+
+    return productMap;
+  }, [applications]);
 
   // Filter plots by property
   const filteredPlots = useMemo(() => {
@@ -117,16 +126,27 @@ export default function Map() {
     property_id: string | null;
     area_hectares: number | null;
     geometry: PlotGeometry;
-    color: string;
+    status: string;
     notes: string | null;
   }) => {
+    const saveData = {
+      ...data,
+      color: STATUS_COLORS[data.status as PlotStatus] || '#3B82F6',
+    };
     if (selectedPlot) {
-      await updatePlot({ id: selectedPlot.id, ...data });
+      await updatePlot({ id: selectedPlot.id, ...saveData });
     } else {
-      await createPlot(data);
+      await createPlot(saveData);
     }
     setSelectedPlot(null);
     setNewGeometry(null);
+  };
+
+  const STATUS_COLORS: Record<PlotStatus, string> = {
+    completed: '#22C55E',
+    in_progress: '#F59E0B',
+    pending: '#EF4444',
+    none: '#3B82F6',
   };
 
   const handleImport = async (features: Array<{
@@ -135,6 +155,7 @@ export default function Map() {
     area_hectares: number | null;
     geometry: { type: 'Polygon'; coordinates: number[][][] };
     color: string;
+    status: string;
     notes: string | null;
   }>) => {
     for (const feature of features) {
@@ -202,13 +223,13 @@ export default function Map() {
   // Stats
   const totalArea = filteredPlots.reduce((sum, p) => sum + (p.area_hectares || 0), 0);
   const completedArea = filteredPlots
-    .filter(p => p.status === 'completed')
+    .filter(p => p.displayStatus === 'completed')
     .reduce((sum, p) => sum + (p.area_hectares || 0), 0);
   const inProgressArea = filteredPlots
-    .filter(p => p.status === 'in_progress')
+    .filter(p => p.displayStatus === 'in_progress')
     .reduce((sum, p) => sum + (p.area_hectares || 0), 0);
   const pendingArea = filteredPlots
-    .filter(p => p.status === 'pending')
+    .filter(p => p.displayStatus === 'pending')
     .reduce((sum, p) => sum + (p.area_hectares || 0), 0);
 
   if (isLoading) {
@@ -397,6 +418,7 @@ export default function Map() {
             onDrawComplete={handleDrawComplete}
             isDrawing={isDrawing}
             selectedPlotId={selectedPlot?.id}
+            plotApplicationProducts={plotApplicationProducts}
           />
         </CardContent>
       </Card>
