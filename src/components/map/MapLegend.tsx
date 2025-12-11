@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const LEGEND_ITEMS = [
-  { color: '#22C55E', label: 'Concluído' },
+  { color: '#22C55E', label: 'Concluída' },
   { color: '#F59E0B', label: 'Em Andamento' },
-  { color: '#EF4444', label: 'Pendente' },
-  { color: '#3B82F6', label: 'Sem Aplicações' },
+  { color: '#3B82F6', label: 'Planejada' },
+  { color: '#6B7280', label: 'Cancelada' },
 ];
 
 interface MapLegendProps {

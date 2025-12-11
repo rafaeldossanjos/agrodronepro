@@ -93,8 +93,8 @@ export function KMLImportDialog({ open, onOpenChange, onImport }: KMLImportDialo
           property_id: propertyId || null,
           area_hectares: f.areaHectares,
           geometry: f.geometry,
-          color: '#EF4444', // Red for pending status
-          status: 'pending',
+          color: '#3B82F6', // Blue for planejada status
+          status: 'planejada',
           notes: null,
         }));
 

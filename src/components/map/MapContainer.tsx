@@ -34,11 +34,16 @@ interface MapContainerProps {
   plotApplicationProducts?: Map<string, ApplicationProduct[]>;
 }
 
-const STATUS_COLORS = {
-  completed: '#22C55E', // green
-  in_progress: '#F59E0B', // amber
-  pending: '#EF4444', // red
-  none: '#3B82F6', // blue
+const STATUS_COLORS: Record<string, string> = {
+  'concluída': '#22C55E', // green
+  'em_andamento': '#F59E0B', // amber
+  'planejada': '#3B82F6', // blue
+  'cancelada': '#6B7280', // gray
+  // Legacy fallbacks
+  'completed': '#22C55E',
+  'in_progress': '#F59E0B',
+  'pending': '#EF4444',
+  'none': '#3B82F6',
 };
 
 export function MapContainer({
@@ -385,7 +390,7 @@ export function MapContainer({
         const popup = L.popup({
           closeButton: true,
           autoClose: true,
-          closeOnClick: false,
+          closeOnClick: true,
         })
           .setLatLng(e.latlng)
           .setContent(popupContent)

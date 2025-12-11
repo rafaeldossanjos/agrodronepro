@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, Edit, Trash2, Check, Clock, Play, X } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2, Check, Clock, Play, X, Map } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { format } from "date-fns";
@@ -30,6 +31,7 @@ const typeConfig = {
 };
 
 export default function Applications() {
+  const navigate = useNavigate();
   const { applications, isLoading, createApplication, updateApplication, deleteApplication } = useApplications();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingApp, setEditingApp] = useState<any>(null);
@@ -218,6 +220,18 @@ export default function Applications() {
         </div>
 
         <div className="flex sm:flex-col gap-2">
+          {app.plot_id && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/map')}
+              className="flex-1 sm:flex-none"
+              title="Ver no Mapa"
+            >
+              <Map className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Mapa</span>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
