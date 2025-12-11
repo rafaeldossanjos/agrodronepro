@@ -296,6 +296,11 @@ export function MapContainer({
       map.getContainer().style.cursor = 'crosshair';
 
       const handleClick = (e: L.LeafletMouseEvent) => {
+        // Ignore clicks on markers (they handle their own events)
+        if ((e.originalEvent.target as HTMLElement)?.closest('.drawing-point-marker')) {
+          return;
+        }
+        
         const point = e.latlng;
         const pointIndex = drawingPointsRef.current.length;
         drawingPointsRef.current.push(point);
@@ -304,12 +309,22 @@ export function MapContainer({
         const marker = L.marker(point, {
           icon: createDraggableIcon(pointIndex === 0),
           draggable: true,
+          autoPan: true,
         }).addTo(map);
+
+        // Prevent map click when interacting with marker
+        marker.on('mousedown', (e) => {
+          L.DomEvent.stopPropagation(e as any);
+        });
 
         // Handle marker drag
         marker.on('drag', () => {
           const newPos = marker.getLatLng();
           drawingPointsRef.current[pointIndex] = newPos;
+          updatePolygon();
+        });
+
+        marker.on('dragend', () => {
           updatePolygon();
         });
 
