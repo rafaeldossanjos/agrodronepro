@@ -392,14 +392,16 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     }
   };
 
-  const handleAreaChange = (area: number) => {
-    const newProducts = formData.products.map(p => {
-      const total_amount = area > 0 && p.dose_per_ha > 0 ? p.dose_per_ha * area : 0;
-      const total_cost = total_amount * p.unit_cost;
-      return { ...p, total_amount, total_cost };
+  const handleAreaChange = (area: number, additionalUpdates?: Partial<typeof formData>) => {
+    setFormData(prev => {
+      const newProducts = prev.products.map(p => {
+        const total_amount = area > 0 && p.dose_per_ha > 0 ? p.dose_per_ha * area : 0;
+        const total_cost = total_amount * p.unit_cost;
+        return { ...p, total_amount, total_cost };
+      });
+      const totalCost = newProducts.reduce((sum, p) => sum + p.total_cost, 0);
+      return { ...prev, ...additionalUpdates, area_applied: area, products: newProducts, total_cost: totalCost };
     });
-    const totalCost = newProducts.reduce((sum, p) => sum + p.total_cost, 0);
-    setFormData({ ...formData, area_applied: area, products: newProducts, total_cost: totalCost });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -513,16 +515,24 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                     <Select
                       value={formData.plot_id || "none"}
                       onValueChange={(value) => {
-                        const selectedPlot = plots.find(p => p.id === value);
-                        setFormData({ 
-                          ...formData, 
-                          plot_id: value === "none" ? null : value,
-                          plot_name: selectedPlot?.name || formData.plot_name,
-                          area_applied: selectedPlot?.area_hectares || formData.area_applied
-                        });
-                        // Recalculate products with new area
+                        const selectedPlot = availablePlots.find(p => p.id === value);
+                        const newPlotId = value === "none" ? null : value;
+                        const newPlotName = selectedPlot?.name || (value === "none" ? "" : formData.plot_name);
+                        const newArea = selectedPlot?.area_hectares || formData.area_applied;
+                        
+                        // Recalculate products with new area and include plot updates
                         if (selectedPlot?.area_hectares) {
-                          handleAreaChange(selectedPlot.area_hectares);
+                          handleAreaChange(selectedPlot.area_hectares, {
+                            plot_id: newPlotId,
+                            plot_name: newPlotName,
+                          });
+                        } else {
+                          setFormData(prev => ({ 
+                            ...prev, 
+                            plot_id: newPlotId,
+                            plot_name: newPlotName,
+                            area_applied: newArea,
+                          }));
                         }
                       }}
                       disabled={!formData.property_id && availablePlots.length === 0}
