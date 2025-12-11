@@ -69,7 +69,15 @@ export function MapContainer({
   const markersRef = useRef<L.Marker[]>([]);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const activePopupRef = useRef<L.Popup | null>(null);
+  const onPointsChangeRef = useRef(onPointsChange);
+  const onDrawCompleteRef = useRef(onDrawComplete);
   const [isLocating, setIsLocating] = useState(false);
+
+  // Keep refs updated
+  useEffect(() => {
+    onPointsChangeRef.current = onPointsChange;
+    onDrawCompleteRef.current = onDrawComplete;
+  }, [onPointsChange, onDrawComplete]);
 
   // Initialize map
   useEffect(() => {
@@ -202,7 +210,7 @@ export function MapContainer({
 
   // Handle undo trigger
   useEffect(() => {
-    if (!isDrawing || undoTrigger === undefined) return;
+    if (!isDrawing || undoTrigger === undefined || undoTrigger === 0) return;
     const map = mapInstanceRef.current;
     if (!map) return;
 
@@ -231,9 +239,9 @@ export function MapContainer({
         }).addTo(map);
       }
 
-      onPointsChange?.(drawingPointsRef.current.length);
+      onPointsChangeRef.current?.(drawingPointsRef.current.length);
     }
-  }, [undoTrigger, isDrawing, onPointsChange]);
+  }, [undoTrigger, isDrawing]);
 
   // Handle drawing mode
   useEffect(() => {
@@ -248,7 +256,7 @@ export function MapContainer({
       markersRef.current.forEach(m => map.removeLayer(m));
       markersRef.current = [];
       drawingPointsRef.current = [];
-      onPointsChange?.(0);
+      onPointsChangeRef.current?.(0);
     };
 
     const updatePolygon = () => {
@@ -306,7 +314,7 @@ export function MapContainer({
         });
 
         markersRef.current.push(marker);
-        onPointsChange?.(drawingPointsRef.current.length);
+        onPointsChangeRef.current?.(drawingPointsRef.current.length);
 
         // Update polygon preview
         updatePolygon();
@@ -315,7 +323,7 @@ export function MapContainer({
       const handleDoubleClick = (e: L.LeafletMouseEvent) => {
         L.DomEvent.stopPropagation(e);
         
-        if (drawingPointsRef.current.length >= 3 && onDrawComplete) {
+        if (drawingPointsRef.current.length >= 3 && onDrawCompleteRef.current) {
           const coordinates = drawingPointsRef.current.map(p => [p.lng, p.lat]);
           // Close the polygon
           coordinates.push([...coordinates[0]]);
@@ -326,7 +334,7 @@ export function MapContainer({
           };
           
           const area = calculatePolygonArea(coordinates);
-          onDrawComplete(geometry, area);
+          onDrawCompleteRef.current(geometry, area);
         }
         
         clearDrawing();
@@ -347,7 +355,7 @@ export function MapContainer({
       map.getContainer().style.cursor = '';
       clearDrawing();
     }
-  }, [isDrawing, onDrawComplete, onPointsChange]);
+  }, [isDrawing]);
 
   // Render plots
   useEffect(() => {
