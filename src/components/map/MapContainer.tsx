@@ -357,7 +357,7 @@ export function MapContainer({
       let popupContent = `
         <div style="min-width: 180px; padding: 8px;">
           <strong style="font-size: 14px;">${plot.name}</strong><br/>
-          ${plot.area_hectares ? `<span style="color: #666;">Área: ${plot.area_hectares} ha</span><br/>` : ''}
+          ${plot.area_hectares ? `<span style="color: #666;">Área: ${Number(plot.area_hectares).toFixed(2)} ha</span><br/>` : ''}
       `;
       
       if (products.length > 0) {
@@ -367,7 +367,7 @@ export function MapContainer({
           <ul style="margin: 0; padding-left: 16px; font-size: 12px;">
         `;
         products.forEach(p => {
-          popupContent += `<li>${p.product_name}: ${p.dose_per_ha} /ha (${p.total_amount} total)</li>`;
+          popupContent += `<li>${p.product_name}: ${Number(p.dose_per_ha).toFixed(2)} /ha (${Number(p.total_amount).toFixed(2)} total)</li>`;
         });
         popupContent += `</ul>`;
       } else {

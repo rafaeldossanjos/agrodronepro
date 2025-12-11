@@ -95,7 +95,7 @@ export function PlotDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md z-[9999]">
         <DialogHeader>
           <DialogTitle>{plot ? 'Editar Talhão' : 'Novo Talhão'}</DialogTitle>
         </DialogHeader>
