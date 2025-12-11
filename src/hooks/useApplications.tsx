@@ -131,6 +131,7 @@ export const useApplications = () => {
       id: appId,
       user_id: user.id,
       property_id: application.property_id,
+      plot_id: application.plot_id || null,
       plot_name: application.plot_name || null,
       application_date: application.application_date,
       application_type: application.application_type,
@@ -217,6 +218,7 @@ export const useApplications = () => {
           .from('applications')
           .update({
             property_id: application.property_id,
+            plot_id: (application as any).plot_id || null,
             plot_name: application.plot_name || null,
             application_date: application.application_date,
             application_type: application.application_type,
