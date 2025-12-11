@@ -369,6 +369,7 @@ export function MapContainer({
 
       polygon.on('click', (e) => {
         if (isDrawing) return;
+        L.DomEvent.stopPropagation(e);
         
         // Close active popup if clicking same polygon
         if (activePopupRef.current && map.hasLayer(activePopupRef.current)) {
@@ -390,7 +391,7 @@ export function MapContainer({
         const popup = L.popup({
           closeButton: true,
           autoClose: true,
-          closeOnClick: true,
+          closeOnClick: false,
         })
           .setLatLng(e.latlng)
           .setContent(popupContent)
@@ -423,6 +424,19 @@ export function MapContainer({
         map.fitBounds(bounds, { padding: [50, 50] });
       }
     }
+
+    // Close popup when clicking on map (not on polygon)
+    const handleMapClick = () => {
+      if (activePopupRef.current) {
+        map.closePopup(activePopupRef.current);
+        activePopupRef.current = null;
+      }
+    };
+    map.on('click', handleMapClick);
+
+    return () => {
+      map.off('click', handleMapClick);
+    };
   }, [plots, selectedPlotId, isDrawing, onPlotClick, plotApplicationProducts]);
 
   return (
