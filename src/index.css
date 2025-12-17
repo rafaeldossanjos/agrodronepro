@@ -121,7 +121,37 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-size: 16px;
+  }
+
+  /* Better mobile scaling */
+  @media (max-width: 640px) {
+    html {
+      font-size: 17px;
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Larger touch targets on mobile */
+  @media (max-width: 640px) {
+    button, 
+    [role="button"],
+    input,
+    select,
+    textarea {
+      min-height: 44px;
+    }
+
+    .leaflet-control-zoom a {
+      width: 36px !important;
+      height: 36px !important;
+      line-height: 36px !important;
+      font-size: 18px !important;
+    }
   }
 }

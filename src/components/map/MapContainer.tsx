@@ -37,15 +37,24 @@ interface MapContainerProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  'concluída': '#22C55E', // green
-  'em_andamento': '#F59E0B', // amber
-  'planejada': '#3B82F6', // blue
-  'cancelada': '#6B7280', // gray
-  // Legacy fallbacks
+  'concluída': '#22C55E',
+  'em_andamento': '#F59E0B',
+  'planejada': '#3B82F6',
+  'cancelada': '#6B7280',
   'completed': '#22C55E',
   'in_progress': '#F59E0B',
   'pending': '#EF4444',
   'none': '#3B82F6',
+};
+
+// Calculate font size based on zoom level
+const getFontSizeForZoom = (zoom: number): number => {
+  if (zoom >= 18) return 16;
+  if (zoom >= 16) return 14;
+  if (zoom >= 14) return 12;
+  if (zoom >= 12) return 11;
+  if (zoom >= 10) return 10;
+  return 9;
 };
 
 export function MapContainer({
@@ -54,7 +63,7 @@ export function MapContainer({
   onDrawComplete,
   isDrawing = false,
   selectedPlotId,
-  center = [-15.7801, -47.9292], // Default: Brasília
+  center = [-15.7801, -47.9292],
   zoom = 5,
   plotApplicationProducts,
   onPointsChange,
@@ -73,18 +82,54 @@ export function MapContainer({
   const onPointsChangeRef = useRef(onPointsChange);
   const onDrawCompleteRef = useRef(onDrawComplete);
   const [isLocating, setIsLocating] = useState(false);
+  const currentZoomRef = useRef(zoom);
 
-  // Keep refs updated
   useEffect(() => {
     onPointsChangeRef.current = onPointsChange;
     onDrawCompleteRef.current = onDrawComplete;
   }, [onPointsChange, onDrawComplete]);
 
+  // Update labels when zoom changes
+  const updateLabelsForZoom = (zoomLevel: number) => {
+    const fontSize = getFontSizeForZoom(zoomLevel);
+    currentZoomRef.current = zoomLevel;
+    
+    labelsRef.current.forEach((marker, plotId) => {
+      const plot = plots.find(p => p.id === plotId);
+      if (!plot) return;
+      
+      const labelContent = `<div style="
+        background: rgba(255,255,255,0.95);
+        color: #1f2937;
+        padding: ${Math.max(4, fontSize * 0.3)}px ${Math.max(8, fontSize * 0.5)}px;
+        border-radius: 6px;
+        font-size: ${fontSize}px;
+        font-weight: 600;
+        white-space: nowrap;
+        text-align: center;
+        pointer-events: none;
+        border: 2px solid ${plot.color || '#3B82F6'};
+      ">
+        <div>${plot.name}</div>
+        ${plot.area_hectares ? `<div style="font-size:${Math.max(fontSize - 2, 8)}px;opacity:0.8;font-weight:500">${plot.area_hectares} ha</div>` : ''}
+      </div>`;
+
+      const icon = marker.getIcon() as L.DivIcon;
+      if (icon) {
+        marker.setIcon(L.divIcon({
+          className: 'plot-label',
+          html: labelContent,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        }));
+      }
+    });
+  };
+
   // Initialize map
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Satellite layer as default
     const satellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
@@ -97,10 +142,9 @@ export function MapContainer({
       center: center,
       zoom: zoom,
       zoomControl: true,
-      layers: [satellite], // Start with satellite
+      layers: [satellite],
     });
 
-    // Layer control
     const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
@@ -112,6 +156,12 @@ export function MapContainer({
     };
 
     L.control.layers(baseMaps).addTo(map);
+
+    // Zoom change handler for responsive labels
+    map.on('zoomend', () => {
+      const newZoom = map.getZoom();
+      updateLabelsForZoom(newZoom);
+    });
 
     // Custom locate control
     const LocateControl = L.Control.extend({
@@ -141,8 +191,6 @@ export function MapContainer({
     new LocateControl({ position: 'topright' }).addTo(map);
 
     mapInstanceRef.current = map;
-
-    // Try to get user location on load
     locateUser();
 
     return () => {
@@ -163,12 +211,10 @@ export function MapContainer({
           const { latitude, longitude } = position.coords;
           const latlng = L.latLng(latitude, longitude);
 
-          // Remove existing user marker
           if (userMarkerRef.current) {
             map.removeLayer(userMarkerRef.current);
           }
 
-          // Add user location marker
           const userIcon = L.divIcon({
             className: 'user-location-marker',
             html: `<div style="
@@ -187,7 +233,6 @@ export function MapContainer({
             .addTo(map)
             .bindPopup('Sua localização');
 
-          // Only fly to location if no plots are loaded
           if (polygonsRef.current.size === 0) {
             map.flyTo(latlng, 15, { duration: 1.5 });
           }
@@ -216,16 +261,13 @@ export function MapContainer({
     if (!map) return;
 
     if (drawingPointsRef.current.length > 0) {
-      // Remove last point
       drawingPointsRef.current.pop();
       
-      // Remove last marker
       const lastMarker = markersRef.current.pop();
       if (lastMarker) {
         map.removeLayer(lastMarker);
       }
 
-      // Update polygon preview
       if (drawingLayerRef.current) {
         map.removeLayer(drawingLayerRef.current);
         drawingLayerRef.current = null;
@@ -282,28 +324,28 @@ export function MapContainer({
           weight: 2,
         }).addTo(map);
 
-        // Show area label if we have at least 3 points (valid polygon)
         if (drawingPointsRef.current.length >= 3) {
           const coordinates = drawingPointsRef.current.map(p => [p.lng, p.lat]);
-          coordinates.push([...coordinates[0]]); // Close polygon
+          coordinates.push([...coordinates[0]]);
           const area = calculatePolygonArea(coordinates);
           
-          // Calculate center of polygon for label
           const bounds = drawingLayerRef.current.getBounds();
           const center = bounds.getCenter();
+          const fontSize = getFontSizeForZoom(map.getZoom());
           
           areaLabelRef.current = L.marker(center, {
             icon: L.divIcon({
               className: 'area-label-marker',
               html: `<div style="
-                background: rgba(0, 0, 0, 0.75);
-                color: white;
-                padding: 8px 12px;
+                background: rgba(255,255,255,0.95);
+                color: #1f2937;
+                padding: ${Math.max(6, fontSize * 0.4)}px ${Math.max(12, fontSize * 0.7)}px;
                 border-radius: 8px;
-                font-weight: bold;
-                font-size: 16px;
+                font-weight: 700;
+                font-size: ${fontSize + 2}px;
                 white-space: nowrap;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                border: 2px solid #3B82F6;
+                transform: translate(-50%, -50%);
               ">${area.toFixed(2)} ha</div>`,
               iconSize: [0, 0],
               iconAnchor: [0, 0],
@@ -329,7 +371,6 @@ export function MapContainer({
             width: ${handleSize}px;
             height: ${stemHeight + pointSize}px;
           ">
-            <!-- Actual point (top) -->
             <div style="
               position: absolute;
               top: 0;
@@ -342,7 +383,6 @@ export function MapContainer({
               border-radius: 50%;
               box-shadow: 0 2px 4px rgba(0,0,0,0.4);
             "></div>
-            <!-- Stem (line connecting point to handle) -->
             <div style="
               position: absolute;
               top: ${pointSize}px;
@@ -352,7 +392,6 @@ export function MapContainer({
               height: ${stemHeight - handleSize}px;
               background: ${pointColor};
             "></div>
-            <!-- Drag handle (bottom) -->
             <div style="
               position: absolute;
               bottom: 0;
@@ -384,7 +423,6 @@ export function MapContainer({
       map.getContainer().style.cursor = 'crosshair';
 
       const handleClick = (e: L.LeafletMouseEvent) => {
-        // Ignore clicks on markers (they handle their own events)
         if ((e.originalEvent.target as HTMLElement)?.closest('.drawing-point-marker')) {
           return;
         }
@@ -393,19 +431,16 @@ export function MapContainer({
         const pointIndex = drawingPointsRef.current.length;
         drawingPointsRef.current.push(point);
 
-        // Add draggable marker
         const marker = L.marker(point, {
           icon: createDraggableIcon(pointIndex === 0),
           draggable: true,
           autoPan: true,
         }).addTo(map);
 
-        // Prevent map click when interacting with marker
         marker.on('mousedown', (e) => {
           L.DomEvent.stopPropagation(e as any);
         });
 
-        // Handle marker drag
         marker.on('drag', () => {
           const newPos = marker.getLatLng();
           drawingPointsRef.current[pointIndex] = newPos;
@@ -419,7 +454,6 @@ export function MapContainer({
         markersRef.current.push(marker);
         onPointsChangeRef.current?.(drawingPointsRef.current.length);
 
-        // Update polygon preview
         updatePolygon();
       };
 
@@ -428,7 +462,6 @@ export function MapContainer({
         
         if (drawingPointsRef.current.length >= 3 && onDrawCompleteRef.current) {
           const coordinates = drawingPointsRef.current.map(p => [p.lng, p.lat]);
-          // Close the polygon
           coordinates.push([...coordinates[0]]);
           
           const geometry: PlotGeometry = {
@@ -465,17 +498,17 @@ export function MapContainer({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Clear existing polygons and labels
     polygonsRef.current.forEach(polygon => map.removeLayer(polygon));
     polygonsRef.current.clear();
     labelsRef.current.forEach(label => map.removeLayer(label));
     labelsRef.current.clear();
 
-    // Add plot polygons
+    const currentZoom = map.getZoom();
+    const fontSize = getFontSizeForZoom(currentZoom);
+
     plots.forEach(plot => {
       if (!plot.geometry?.coordinates) return;
 
-      // Convert GeoJSON coordinates to Leaflet format
       const latLngs = plot.geometry.coordinates[0].map(coord => 
         L.latLng(coord[1], coord[0])
       );
@@ -484,12 +517,11 @@ export function MapContainer({
       const color = STATUS_COLORS[statusKey] || '#3B82F6';
       const isSelected = plot.id === selectedPlotId;
       
-      // Darken the color for selected border
       const darkenColor = (hex: string) => {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
-        const factor = 0.6; // darker
+        const factor = 0.6;
         return `rgb(${Math.round(r * factor)}, ${Math.round(g * factor)}, ${Math.round(b * factor)})`;
       };
 
@@ -500,24 +532,25 @@ export function MapContainer({
         weight: isSelected ? 3 : 2,
       });
 
-      // Calculate center for label
+      // Calculate centroid for better label placement
       const bounds = polygon.getBounds();
       const center = bounds.getCenter();
 
-      // Create label with name and area
       const labelContent = `<div style="
-        background: rgba(0,0,0,0.7);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
+        background: rgba(255,255,255,0.95);
+        color: #1f2937;
+        padding: ${Math.max(4, fontSize * 0.3)}px ${Math.max(8, fontSize * 0.5)}px;
+        border-radius: 6px;
+        font-size: ${fontSize}px;
+        font-weight: 600;
         white-space: nowrap;
         text-align: center;
         pointer-events: none;
+        border: 2px solid ${color};
+        transform: translate(-50%, -50%);
       ">
         <div>${plot.name}</div>
-        ${plot.area_hectares ? `<div style="font-size:10px;opacity:0.9">${plot.area_hectares} ha</div>` : ''}
+        ${plot.area_hectares ? `<div style="font-size:${Math.max(fontSize - 2, 8)}px;opacity:0.8;font-weight:500">${plot.area_hectares} ha</div>` : ''}
       </div>`;
 
       const labelIcon = L.divIcon({
@@ -533,7 +566,6 @@ export function MapContainer({
       }).addTo(map);
       labelsRef.current.set(plot.id, labelMarker);
 
-      // Build popup content with products
       const products = plotApplicationProducts?.get(plot.id) || [];
       let popupContent = `
         <div style="min-width: 180px; padding: 8px;">
@@ -561,7 +593,6 @@ export function MapContainer({
         if (isDrawing) return;
         L.DomEvent.stopPropagation(e);
         
-        // Close active popup if clicking same polygon
         if (activePopupRef.current && map.hasLayer(activePopupRef.current)) {
           map.closePopup(activePopupRef.current);
           activePopupRef.current = null;
@@ -572,12 +603,10 @@ export function MapContainer({
           return;
         }
         
-        // Close any existing popup
         if (activePopupRef.current) {
           map.closePopup(activePopupRef.current);
         }
         
-        // Open new popup
         const popup = L.popup({
           closeButton: true,
           autoClose: true,
@@ -598,7 +627,6 @@ export function MapContainer({
       polygonsRef.current.set(plot.id, polygon);
     });
 
-    // Fit bounds if there are plots
     if (plots.length > 0) {
       const allCoords: L.LatLng[] = [];
       plots.forEach(plot => {
@@ -615,7 +643,6 @@ export function MapContainer({
       }
     }
 
-    // Close popup when clicking on map (not on polygon)
     const handleMapClick = () => {
       if (activePopupRef.current) {
         map.closePopup(activePopupRef.current);

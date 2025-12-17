@@ -116,8 +116,8 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
                 value={formData.total_area || ''}
                 onChange={(e) => {
                   const val = e.target.value;
-                  if (isValidDecimalInput(val)) {
-                    setFormData({ ...formData, total_area: parseDecimalInput(val) });
+                  if (val === '' || /^[\d]*[.,]?[\d]*$/.test(val)) {
+                    setFormData({ ...formData, total_area: val as any });
                   }
                 }}
                 required

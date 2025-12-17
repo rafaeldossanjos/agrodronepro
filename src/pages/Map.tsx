@@ -10,11 +10,13 @@ import {
   Pencil, 
   Trash2, 
   Map as MapIcon, 
-  Layers,
   MousePointer,
   Download,
   Undo2,
-  Move
+  Move,
+  X,
+  Maximize2,
+  Layers
 } from 'lucide-react';
 import { MapContainer } from '@/components/map/MapContainer';
 import { PlotDialog } from '@/components/map/PlotDialog';
@@ -36,7 +38,7 @@ const STATUS_COLORS: Record<string, string> = {
   'em_andamento': '#F59E0B',
   'planejada': '#3B82F6',
   'cancelada': '#6B7280',
-  'sem_vinculo': '#9CA3AF', // Gray for unlinked plots
+  'sem_vinculo': '#9CA3AF',
 };
 
 export default function Map() {
@@ -55,17 +57,16 @@ export default function Map() {
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
   const [drawingPointCount, setDrawingPointCount] = useState(0);
   const [undoTrigger, setUndoTrigger] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Calculate plot display status based on linked applications
   const plotsWithStatus = useMemo<PlotWithStatus[]>(() => {
     return plots.map(plot => {
-      // Find applications linked to this plot
       const plotApps = applications.filter(app => app.plot_id === plot.id);
       
-      let displayStatus: PlotStatus = 'sem_vinculo'; // Default: no linked applications
+      let displayStatus: PlotStatus = 'sem_vinculo';
       
       if (plotApps.length > 0) {
-        // Priority: em_andamento > concluída > planejada > cancelada
         const hasEmAndamento = plotApps.some(app => app.status === 'em_andamento');
         const hasConcluida = plotApps.some(app => app.status === 'concluída');
         const hasPlanejada = plotApps.some(app => app.status === 'planejada');
@@ -82,7 +83,6 @@ export default function Map() {
         }
       }
       
-      // Update plot color based on derived status
       const color = STATUS_COLORS[displayStatus] || '#9CA3AF';
       
       return { ...plot, displayStatus, color };
@@ -274,230 +274,27 @@ export default function Map() {
     );
   }
 
-  return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row gap-4 p-4">
-      {/* Sidebar */}
-      <Card className="w-full lg:w-80 flex-shrink-0">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <MapIcon className="h-5 w-5" />
-            Mapa de Talhões
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant={isDrawing ? 'default' : 'outline'}
-              onClick={() => setIsDrawing(!isDrawing)}
-            >
-              {isDrawing ? (
-                <>
-                  <MousePointer className="h-4 w-4 mr-1" />
-                  Cancelar
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Desenhar
-                </>
-              )}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setImportDialogOpen(true)}
-            >
-              <Upload className="h-4 w-4 mr-1" />
-              Importar KML
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={exportToKML}
-              disabled={filteredPlots.length === 0}
-            >
-              <Download className="h-4 w-4 mr-1" />
-              Exportar
-            </Button>
-          </div>
+  const statusLabels: Record<string, string> = {
+    'planejada': 'Planejada',
+    'em_andamento': 'Em Andamento',
+    'concluída': 'Concluída',
+    'cancelada': 'Cancelada',
+    'sem_vinculo': 'Sem Vínculo',
+  };
+  const statusColors: Record<string, string> = {
+    'planejada': 'bg-blue-500/20 text-blue-700',
+    'em_andamento': 'bg-amber-500/20 text-amber-700',
+    'concluída': 'bg-green-500/20 text-green-700',
+    'cancelada': 'bg-gray-500/20 text-gray-700',
+    'sem_vinculo': 'bg-gray-400/20 text-gray-500',
+  };
 
-          {isDrawing && (
-            <div className="p-3 bg-primary/10 rounded-lg text-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="font-medium text-primary">Modo de Desenho Ativo</p>
-                <Badge variant="secondary">{drawingPointCount} pontos</Badge>
-              </div>
-              <div className="text-muted-foreground space-y-1">
-                <p className="flex items-center gap-2">
-                  <MousePointer className="h-3 w-3" /> Clique para adicionar pontos
-                </p>
-                <p className="flex items-center gap-2">
-                  <Move className="h-3 w-3" /> Arraste os pontos para ajustar
-                </p>
-                <p>Clique duplo para finalizar (mín. 3 pontos)</p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleUndoPoint}
-                  disabled={drawingPointCount === 0}
-                  className="flex-1"
-                >
-                  <Undo2 className="h-4 w-4 mr-1" />
-                  Desfazer Ponto
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => {
-                    setIsDrawing(false);
-                    setDrawingPointCount(0);
-                  }}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Property Filter */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Filtrar por Propriedade</label>
-            <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas as propriedades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Propriedades</SelectItem>
-                <SelectItem value="none">Sem Propriedade</SelectItem>
-                {properties.map(prop => (
-                  <SelectItem key={prop.id} value={prop.id}>
-                    {prop.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="p-2 bg-muted rounded-lg">
-              <p className="text-muted-foreground">Total</p>
-              <p className="font-semibold">{totalArea.toFixed(1)} ha</p>
-            </div>
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <p className="text-green-600">Concluído</p>
-              <p className="font-semibold">{completedArea.toFixed(1)} ha</p>
-            </div>
-            <div className="p-2 bg-amber-500/10 rounded-lg">
-              <p className="text-amber-600">Em Andamento</p>
-              <p className="font-semibold">{inProgressArea.toFixed(1)} ha</p>
-            </div>
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <p className="text-blue-600">Planejada</p>
-              <p className="font-semibold">{plannedArea.toFixed(1)} ha</p>
-            </div>
-          </div>
-
-          {/* Plot List */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Talhões ({filteredPlots.length})
-            </label>
-            <ScrollArea className="h-[280px]">
-              <div className="divide-y divide-border">
-                {filteredPlots.map(plot => {
-                  const statusLabels: Record<string, string> = {
-                    'planejada': 'Planejada',
-                    'em_andamento': 'Em Andamento',
-                    'concluída': 'Concluída',
-                    'cancelada': 'Cancelada',
-                    'sem_vinculo': 'Sem Vínculo',
-                  };
-                  const statusColors: Record<string, string> = {
-                    'planejada': 'bg-blue-500/20 text-blue-700',
-                    'em_andamento': 'bg-amber-500/20 text-amber-700',
-                    'concluída': 'bg-green-500/20 text-green-700',
-                    'cancelada': 'bg-gray-500/20 text-gray-700',
-                    'sem_vinculo': 'bg-gray-400/20 text-gray-500',
-                  };
-                  return (
-                    <div
-                      key={plot.id}
-                      onClick={() => setSelectedPlot(plot)}
-                      className={`w-full text-left p-3 text-sm transition-colors cursor-pointer ${
-                        selectedPlot?.id === plot.id
-                          ? 'bg-primary/10'
-                          : 'hover:bg-accent'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: plot.color }}
-                        />
-                        <span className="truncate flex-1 font-medium">{plot.name}</span>
-                      </div>
-                      <div className="flex items-center justify-between mt-2 ml-5">
-                        <div className="flex items-center gap-2">
-                          {plot.area_hectares && (
-                            <span className="text-sm font-semibold text-primary">
-                              {Number(plot.area_hectares).toFixed(2)} ha
-                            </span>
-                          )}
-                          <Badge variant="secondary" className={`text-xs ${statusColors[plot.displayStatus] || ''}`}>
-                            {statusLabels[plot.displayStatus] || plot.displayStatus}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-1.5">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-9 w-9"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPlot(plot);
-                              setNewGeometry(null);
-                              setPlotDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPlotToDelete(plot);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {filteredPlots.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum talhão cadastrado
-                  </p>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Map */}
-      <Card className="flex-1 min-h-[400px]">
-        <CardContent className="p-0 h-full">
+  // Fullscreen Map View
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background">
+        {/* Map */}
+        <div className="absolute inset-0">
           <MapContainer
             plots={filteredPlots}
             onPlotClick={handlePlotClick}
@@ -508,6 +305,309 @@ export default function Map() {
             onPointsChange={setDrawingPointCount}
             undoTrigger={undoTrigger}
           />
+        </div>
+
+        {/* Top bar with close button */}
+        <div className="absolute top-0 left-0 right-0 p-3 flex items-center justify-between pointer-events-none">
+          <div className="pointer-events-auto">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsFullscreen(false)}
+              className="gap-2 shadow-lg bg-background/95 backdrop-blur"
+            >
+              <X className="h-4 w-4" />
+              <span className="hidden sm:inline">Fechar</span>
+            </Button>
+          </div>
+          
+          {/* Stats badge */}
+          <div className="pointer-events-auto bg-background/95 backdrop-blur rounded-lg px-3 py-2 shadow-lg">
+            <span className="text-sm font-medium">{totalArea.toFixed(1)} ha total</span>
+          </div>
+        </div>
+
+        {/* Floating action buttons */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto">
+          <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-2 shadow-xl border">
+            {!isDrawing ? (
+              <>
+                <Button
+                  size="lg"
+                  onClick={() => setIsDrawing(true)}
+                  className="gap-2 h-12 px-4"
+                >
+                  <Plus className="h-5 w-5" />
+                  Desenhar
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => setImportDialogOpen(true)}
+                  className="gap-2 h-12 px-4"
+                >
+                  <Upload className="h-5 w-5" />
+                  <span className="hidden sm:inline">Importar</span>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={exportToKML}
+                  disabled={filteredPlots.length === 0}
+                  className="gap-2 h-12 px-4"
+                >
+                  <Download className="h-5 w-5" />
+                  <span className="hidden sm:inline">Exportar</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 px-3">
+                  <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
+                  <span className="text-sm font-medium">{drawingPointCount} pontos</span>
+                </div>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={handleUndoPoint}
+                  disabled={drawingPointCount === 0}
+                  className="gap-2 h-12 px-4"
+                >
+                  <Undo2 className="h-5 w-5" />
+                  Desfazer
+                </Button>
+                <Button
+                  size="lg"
+                  variant="destructive"
+                  onClick={() => {
+                    setIsDrawing(false);
+                    setDrawingPointCount(0);
+                  }}
+                  className="gap-2 h-12 px-4"
+                >
+                  <X className="h-5 w-5" />
+                  Cancelar
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Drawing instructions */}
+        {isDrawing && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 pointer-events-none">
+            <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2 shadow-lg text-sm">
+              <p className="flex items-center gap-2">
+                <MousePointer className="h-4 w-4" />
+                Toque para adicionar pontos • Duplo toque para finalizar
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Property filter */}
+        <div className="absolute top-16 right-3 pointer-events-auto">
+          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+            <SelectTrigger className="w-[180px] bg-background/95 backdrop-blur shadow-lg">
+              <Layers className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Propriedades</SelectItem>
+              <SelectItem value="none">Sem Propriedade</SelectItem>
+              {properties.map(prop => (
+                <SelectItem key={prop.id} value={prop.id}>
+                  {prop.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Dialogs */}
+        <PlotDialog
+          open={plotDialogOpen}
+          onOpenChange={setPlotDialogOpen}
+          plot={selectedPlot || undefined}
+          geometry={newGeometry || undefined}
+          calculatedArea={calculatedArea}
+          onSave={handleSavePlot}
+        />
+
+        <KMLImportDialog
+          open={importDialogOpen}
+          onOpenChange={setImportDialogOpen}
+          onImport={handleImport}
+        />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Talhão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o talhão "{plotToDelete?.name}"?
+                Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  }
+
+  // Normal view with sidebar
+  return (
+    <div className="space-y-4 p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <MapIcon className="h-6 w-6" />
+            Mapa de Talhões
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {filteredPlots.length} talhão(ões) • {totalArea.toFixed(1)} ha
+          </p>
+        </div>
+        <Button
+          size="lg"
+          onClick={() => setIsFullscreen(true)}
+          className="gap-2"
+        >
+          <Maximize2 className="h-5 w-5" />
+          Abrir Mapa
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="p-3">
+          <p className="text-xs text-muted-foreground">Total</p>
+          <p className="text-lg font-bold">{totalArea.toFixed(1)} ha</p>
+        </Card>
+        <Card className="p-3 bg-green-500/10">
+          <p className="text-xs text-green-600">Concluído</p>
+          <p className="text-lg font-bold text-green-700">{completedArea.toFixed(1)} ha</p>
+        </Card>
+        <Card className="p-3 bg-amber-500/10">
+          <p className="text-xs text-amber-600">Em Andamento</p>
+          <p className="text-lg font-bold text-amber-700">{inProgressArea.toFixed(1)} ha</p>
+        </Card>
+        <Card className="p-3 bg-blue-500/10">
+          <p className="text-xs text-blue-600">Planejada</p>
+          <p className="text-lg font-bold text-blue-700">{plannedArea.toFixed(1)} ha</p>
+        </Card>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={() => { setIsFullscreen(true); setIsDrawing(true); }} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Desenhar Talhão
+        </Button>
+        <Button variant="outline" onClick={() => setImportDialogOpen(true)} className="gap-2">
+          <Upload className="h-4 w-4" />
+          Importar KML
+        </Button>
+        <Button variant="outline" onClick={exportToKML} disabled={filteredPlots.length === 0} className="gap-2">
+          <Download className="h-4 w-4" />
+          Exportar
+        </Button>
+      </div>
+
+      {/* Property Filter */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Filtrar por Propriedade</label>
+        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Todas as propriedades" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Propriedades</SelectItem>
+            <SelectItem value="none">Sem Propriedade</SelectItem>
+            {properties.map(prop => (
+              <SelectItem key={prop.id} value={prop.id}>
+                {prop.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Plot List */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">
+            Talhões ({filteredPlots.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border">
+            {filteredPlots.map(plot => (
+              <div
+                key={plot.id}
+                className="p-4 hover:bg-accent/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-4 h-4 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: plot.color }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{plot.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {plot.area_hectares && (
+                        <span className="text-sm font-semibold text-primary">
+                          {Number(plot.area_hectares).toFixed(2)} ha
+                        </span>
+                      )}
+                      <Badge variant="secondary" className={`text-xs ${statusColors[plot.displayStatus] || ''}`}>
+                        {statusLabels[plot.displayStatus] || plot.displayStatus}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-10 w-10"
+                      onClick={() => {
+                        setSelectedPlot(plot);
+                        setNewGeometry(null);
+                        setPlotDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => {
+                        setPlotToDelete(plot);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {filteredPlots.length === 0 && (
+              <div className="p-8 text-center text-muted-foreground">
+                <MapIcon className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                <p>Nenhum talhão encontrado</p>
+                <p className="text-sm">Clique em "Abrir Mapa" para desenhar talhões</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -515,8 +615,8 @@ export default function Map() {
       <PlotDialog
         open={plotDialogOpen}
         onOpenChange={setPlotDialogOpen}
-        plot={selectedPlot}
-        geometry={newGeometry}
+        plot={selectedPlot || undefined}
+        geometry={newGeometry || undefined}
         calculatedArea={calculatedArea}
         onSave={handleSavePlot}
       />
@@ -528,9 +628,9 @@ export default function Map() {
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="z-[9999]">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Excluir Talhão</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja excluir o talhão "{plotToDelete?.name}"?
               Esta ação não pode ser desfeita.
@@ -538,7 +638,7 @@ export default function Map() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
