@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { 
   Plus, 
@@ -13,14 +13,16 @@ import {
   MousePointer,
   Download,
   Undo2,
-  Move,
   X,
   Maximize2,
-  Layers
+  Layers,
+  Link,
+  CheckSquare
 } from 'lucide-react';
 import { MapContainer } from '@/components/map/MapContainer';
 import { PlotDialog } from '@/components/map/PlotDialog';
 import { KMLImportDialog } from '@/components/map/KMLImportDialog';
+import { MapLegend } from '@/components/map/MapLegend';
 import { Badge } from '@/components/ui/badge';
 import { usePlots, Plot, PlotGeometry } from '@/hooks/usePlots';
 import { useProperties } from '@/hooks/useProperties';
@@ -58,6 +60,13 @@ export default function Map() {
   const [drawingPointCount, setDrawingPointCount] = useState(0);
   const [undoTrigger, setUndoTrigger] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Multi-select state
+  const [selectedPlotIds, setSelectedPlotIds] = useState<Set<string>>(new Set());
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [bulkLinkDialogOpen, setBulkLinkDialogOpen] = useState(false);
+  const [bulkPropertyId, setBulkPropertyId] = useState<string>('');
 
   // Calculate plot display status based on linked applications
   const plotsWithStatus = useMemo<PlotWithStatus[]>(() => {
@@ -182,7 +191,6 @@ export default function Map() {
     setNewGeometry(null);
   };
 
-
   const handleImport = async (features: Array<{
     name: string;
     property_id: string | null;
@@ -254,6 +262,62 @@ export default function Map() {
     toast.success('Arquivo KML exportado com sucesso!');
   };
 
+  // Multi-select handlers
+  const toggleSelectMode = () => {
+    setIsSelectMode(!isSelectMode);
+    setSelectedPlotIds(new Set());
+  };
+
+  const togglePlotSelection = (plotId: string) => {
+    const newSelected = new Set(selectedPlotIds);
+    if (newSelected.has(plotId)) {
+      newSelected.delete(plotId);
+    } else {
+      newSelected.add(plotId);
+    }
+    setSelectedPlotIds(newSelected);
+  };
+
+  const selectAllPlots = () => {
+    if (selectedPlotIds.size === filteredPlots.length) {
+      setSelectedPlotIds(new Set());
+    } else {
+      setSelectedPlotIds(new Set(filteredPlots.map(p => p.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    for (const plotId of selectedPlotIds) {
+      await deletePlot(plotId);
+    }
+    toast.success(`${selectedPlotIds.size} talhão(ões) excluído(s)`);
+    setSelectedPlotIds(new Set());
+    setBulkDeleteDialogOpen(false);
+    setIsSelectMode(false);
+  };
+
+  const handleBulkLink = async () => {
+    for (const plotId of selectedPlotIds) {
+      const plot = plots.find(p => p.id === plotId);
+      if (plot) {
+        await updatePlot({
+          id: plotId,
+          name: plot.name,
+          property_id: bulkPropertyId || null,
+          area_hectares: plot.area_hectares,
+          geometry: plot.geometry,
+          status: plot.status || 'planejada',
+          notes: plot.notes,
+        });
+      }
+    }
+    toast.success(`${selectedPlotIds.size} talhão(ões) vinculado(s)`);
+    setSelectedPlotIds(new Set());
+    setBulkLinkDialogOpen(false);
+    setBulkPropertyId('');
+    setIsSelectMode(false);
+  };
+
   // Stats
   const totalArea = filteredPlots.reduce((sum, p) => sum + (p.area_hectares || 0), 0);
   const completedArea = filteredPlots
@@ -292,7 +356,7 @@ export default function Map() {
   // Fullscreen Map View
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 z-50 bg-background">
+      <div className="fixed inset-0 z-[100] bg-background">
         {/* Map */}
         <div className="absolute inset-0">
           <MapContainer
@@ -307,35 +371,52 @@ export default function Map() {
           />
         </div>
 
-        {/* Top bar with close button */}
-        <div className="absolute top-0 left-0 right-0 p-3 flex items-center justify-between pointer-events-none">
-          <div className="pointer-events-auto">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsFullscreen(false)}
-              className="gap-2 shadow-lg bg-background/95 backdrop-blur"
-            >
-              <X className="h-4 w-4" />
-              <span className="hidden sm:inline">Fechar</span>
-            </Button>
-          </div>
-          
-          {/* Stats badge */}
-          <div className="pointer-events-auto bg-background/95 backdrop-blur rounded-lg px-3 py-2 shadow-lg">
-            <span className="text-sm font-medium">{totalArea.toFixed(1)} ha total</span>
-          </div>
+        {/* Close button - more prominent */}
+        <div className="absolute top-4 left-4 z-[110]">
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => setIsFullscreen(false)}
+            className="gap-2 shadow-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold"
+          >
+            <X className="h-5 w-5" />
+            Fechar Mapa
+          </Button>
+        </div>
+        
+        {/* Stats badge */}
+        <div className="absolute top-4 right-4 z-[110] bg-background/95 backdrop-blur rounded-lg px-4 py-2 shadow-xl border">
+          <span className="text-sm font-semibold">{totalArea.toFixed(1)} ha total</span>
         </div>
 
-        {/* Floating action buttons */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto">
-          <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-2 shadow-xl border">
+        {/* Property filter - positioned below stats */}
+        <div className="absolute top-16 right-4 z-[110]">
+          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+            <SelectTrigger className="w-[200px] bg-background/95 backdrop-blur shadow-xl border">
+              <Layers className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrar" />
+            </SelectTrigger>
+            <SelectContent className="z-[120]">
+              <SelectItem value="all">Todas as Propriedades</SelectItem>
+              <SelectItem value="none">Sem Propriedade</SelectItem>
+              {properties.map(prop => (
+                <SelectItem key={prop.id} value={prop.id}>
+                  {prop.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Floating action buttons - bottom center */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[110]">
+          <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-3 shadow-xl border">
             {!isDrawing ? (
               <>
                 <Button
                   size="lg"
                   onClick={() => setIsDrawing(true)}
-                  className="gap-2 h-12 px-4"
+                  className="gap-2 h-12 px-5"
                 >
                   <Plus className="h-5 w-5" />
                   Desenhar
@@ -344,25 +425,25 @@ export default function Map() {
                   size="lg"
                   variant="outline"
                   onClick={() => setImportDialogOpen(true)}
-                  className="gap-2 h-12 px-4"
+                  className="gap-2 h-12 px-5"
                 >
                   <Upload className="h-5 w-5" />
-                  <span className="hidden sm:inline">Importar</span>
+                  Importar
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={exportToKML}
                   disabled={filteredPlots.length === 0}
-                  className="gap-2 h-12 px-4"
+                  className="gap-2 h-12 px-5"
                 >
                   <Download className="h-5 w-5" />
-                  <span className="hidden sm:inline">Exportar</span>
+                  Exportar
                 </Button>
               </>
             ) : (
               <>
-                <div className="flex items-center gap-2 px-3">
+                <div className="flex items-center gap-2 px-4">
                   <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
                   <span className="text-sm font-medium">{drawingPointCount} pontos</span>
                 </div>
@@ -371,7 +452,7 @@ export default function Map() {
                   variant="outline"
                   onClick={handleUndoPoint}
                   disabled={drawingPointCount === 0}
-                  className="gap-2 h-12 px-4"
+                  className="gap-2 h-12 px-5"
                 >
                   <Undo2 className="h-5 w-5" />
                   Desfazer
@@ -383,7 +464,7 @@ export default function Map() {
                     setIsDrawing(false);
                     setDrawingPointCount(0);
                   }}
-                  className="gap-2 h-12 px-4"
+                  className="gap-2 h-12 px-5"
                 >
                   <X className="h-5 w-5" />
                   Cancelar
@@ -395,8 +476,8 @@ export default function Map() {
 
         {/* Drawing instructions */}
         {isDrawing && (
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 pointer-events-none">
-            <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2 shadow-lg text-sm">
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[110]">
+            <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2 shadow-xl text-sm">
               <p className="flex items-center gap-2">
                 <MousePointer className="h-4 w-4" />
                 Toque para adicionar pontos • Duplo toque para finalizar
@@ -405,23 +486,9 @@ export default function Map() {
           </div>
         )}
 
-        {/* Property filter */}
-        <div className="absolute top-16 right-3 pointer-events-auto">
-          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-            <SelectTrigger className="w-[180px] bg-background/95 backdrop-blur shadow-lg">
-              <Layers className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as Propriedades</SelectItem>
-              <SelectItem value="none">Sem Propriedade</SelectItem>
-              {properties.map(prop => (
-                <SelectItem key={prop.id} value={prop.id}>
-                  {prop.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Legend */}
+        <div className="absolute bottom-24 left-4 z-[110]">
+          <MapLegend />
         </div>
 
         {/* Dialogs */}
@@ -441,7 +508,7 @@ export default function Map() {
         />
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="z-[130]">
             <AlertDialogHeader>
               <AlertDialogTitle>Excluir Talhão</AlertDialogTitle>
               <AlertDialogDescription>
@@ -519,7 +586,49 @@ export default function Map() {
           <Download className="h-4 w-4" />
           Exportar
         </Button>
+        <Button 
+          variant={isSelectMode ? "default" : "outline"} 
+          onClick={toggleSelectMode} 
+          className="gap-2"
+        >
+          <CheckSquare className="h-4 w-4" />
+          Selecionar
+        </Button>
       </div>
+
+      {/* Bulk actions when in select mode */}
+      {isSelectMode && (
+        <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/50 rounded-lg">
+          <Button variant="outline" size="sm" onClick={selectAllPlots}>
+            {selectedPlotIds.size === filteredPlots.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {selectedPlotIds.size} selecionado(s)
+          </span>
+          {selectedPlotIds.size > 0 && (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setBulkLinkDialogOpen(true)}
+                className="gap-1"
+              >
+                <Link className="h-4 w-4" />
+                Vincular
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => setBulkDeleteDialogOpen(true)}
+                className="gap-1"
+              >
+                <Trash2 className="h-4 w-4" />
+                Excluir
+              </Button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Property Filter */}
       <div className="space-y-2">
@@ -555,13 +664,20 @@ export default function Map() {
                 className="p-4 hover:bg-accent/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
+                  {isSelectMode && (
+                    <Checkbox
+                      checked={selectedPlotIds.has(plot.id)}
+                      onCheckedChange={() => togglePlotSelection(plot.id)}
+                      className="h-5 w-5"
+                    />
+                  )}
                   <div
                     className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: plot.color }}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{plot.name}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       {plot.area_hectares && (
                         <span className="text-sm font-semibold text-primary">
                           {Number(plot.area_hectares).toFixed(2)} ha
@@ -570,33 +686,40 @@ export default function Map() {
                       <Badge variant="secondary" className={`text-xs ${statusColors[plot.displayStatus] || ''}`}>
                         {statusLabels[plot.displayStatus] || plot.displayStatus}
                       </Badge>
+                      {plot.property_id && (
+                        <span className="text-xs text-muted-foreground">
+                          {properties.find(p => p.id === plot.property_id)?.name}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-10 w-10"
-                      onClick={() => {
-                        setSelectedPlot(plot);
-                        setNewGeometry(null);
-                        setPlotDialogOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        setPlotToDelete(plot);
-                        setDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {!isSelectMode && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-10 w-10"
+                        onClick={() => {
+                          setSelectedPlot(plot);
+                          setNewGeometry(null);
+                          setPlotDialogOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          setPlotToDelete(plot);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -640,6 +763,58 @@ export default function Map() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Dialog */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Talhões</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir {selectedPlotIds.size} talhão(ões)?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Link Dialog */}
+      <AlertDialog open={bulkLinkDialogOpen} onOpenChange={setBulkLinkDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vincular Talhões</AlertDialogTitle>
+            <AlertDialogDescription>
+              Selecione a propriedade para vincular {selectedPlotIds.size} talhão(ões).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Select value={bulkPropertyId} onValueChange={setBulkPropertyId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma propriedade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Nenhuma (remover vínculo)</SelectItem>
+                {properties.map(prop => (
+                  <SelectItem key={prop.id} value={prop.id}>
+                    {prop.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkLink}>
+              Vincular
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

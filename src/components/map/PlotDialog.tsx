@@ -55,7 +55,7 @@ export function PlotDialog({
       setFormData({
         name: '',
         property_id: '',
-        area_hectares: calculatedArea?.toString() || '',
+        area_hectares: calculatedArea?.toFixed(2) || '',
         notes: '',
       });
     }
@@ -109,10 +109,10 @@ export function PlotDialog({
               value={formData.property_id || "none"}
               onValueChange={(value) => setFormData(prev => ({ ...prev, property_id: value === "none" ? "" : value }))}
             >
-              <SelectTrigger>
+              <SelectTrigger id="property">
                 <SelectValue placeholder="Selecione uma propriedade" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[10000]">
                 <SelectItem value="none">Nenhuma</SelectItem>
                 {properties.map((prop) => (
                   <SelectItem key={prop.id} value={prop.id}>
