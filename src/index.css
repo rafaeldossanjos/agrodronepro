@@ -174,17 +174,24 @@ All colors MUST be HSL.
     }
   }
 
-  /* Prevent iOS zoom on input focus */
-  @supports (-webkit-touch-callout: none) {
-    input, 
-    select, 
-    textarea {
-      font-size: 16px !important;
-    }
+  /* Prevent zoom on input focus - all devices */
+  input, 
+  select, 
+  textarea {
+    font-size: 16px !important;
   }
 
-  /* Disable touch zoom */
-  html {
+  /* Disable pinch zoom and double-tap zoom */
+  html, body {
     touch-action: manipulation;
+    -ms-touch-action: manipulation;
+  }
+
+  /* Prevent all zoom gestures */
+  * {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 }
