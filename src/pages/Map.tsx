@@ -69,6 +69,10 @@ export default function Map() {
   const [bulkLinkDialogOpen, setBulkLinkDialogOpen] = useState(false);
   const [bulkPropertyId, setBulkPropertyId] = useState<string>('');
 
+  // State for editing polygon shape
+  const [isEditingShape, setIsEditingShape] = useState(false);
+  const [editingPlotId, setEditingPlotId] = useState<string | null>(null);
+
   // Calculate plot display status based on linked applications
   const plotsWithStatus = useMemo<PlotWithStatus[]>(() => {
     return plots.map(plot => {
@@ -353,10 +357,6 @@ export default function Map() {
     'cancelada': 'bg-gray-500/20 text-gray-700',
     'sem_vinculo': 'bg-gray-400/20 text-gray-500',
   };
-
-  // State for editing polygon shape
-  const [isEditingShape, setIsEditingShape] = useState(false);
-  const [editingPlotId, setEditingPlotId] = useState<string | null>(null);
 
   const handleStartEditShape = (plot: Plot) => {
     setEditingPlotId(plot.id);
