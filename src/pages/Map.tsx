@@ -356,9 +356,9 @@ export default function Map() {
   // Fullscreen Map View
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 z-[100] bg-background overflow-hidden">
+      <div className="fixed inset-0 z-[100] bg-background" style={{ touchAction: 'manipulation' }}>
         {/* Map - Full coverage */}
-        <div className="absolute inset-0 z-[100]">
+        <div className="absolute inset-0">
           <MapContainer
             plots={filteredPlots}
             onPlotClick={handlePlotClick}
@@ -371,33 +371,32 @@ export default function Map() {
           />
         </div>
 
-        {/* Close button - Fixed position with high z-index */}
-        <div className="fixed top-4 left-4 z-[150]">
-          <Button
-            variant="default"
-            size="lg"
-            onClick={() => setIsFullscreen(false)}
-            className="gap-2 shadow-2xl bg-red-600 hover:bg-red-700 text-white font-bold border-2 border-white"
-          >
-            <X className="h-6 w-6" />
-            Fechar Mapa
-          </Button>
-        </div>
+        {/* Close button - Top left, always visible */}
+        <Button
+          variant="default"
+          size="lg"
+          onClick={() => setIsFullscreen(false)}
+          className="absolute top-4 left-4 z-[200] gap-2 shadow-2xl bg-red-600 hover:bg-red-700 text-white font-bold border-2 border-white"
+          style={{ position: 'absolute' }}
+        >
+          <X className="h-6 w-6" />
+          Fechar
+        </Button>
         
-        {/* Stats badge - Fixed position */}
-        <div className="fixed top-4 right-4 z-[150] bg-background/95 backdrop-blur rounded-lg px-4 py-2 shadow-2xl border-2">
-          <span className="text-base font-bold">{totalArea.toFixed(1)} ha total</span>
+        {/* Stats badge - Top right */}
+        <div className="absolute top-4 right-4 z-[200] bg-background/95 backdrop-blur rounded-lg px-3 py-2 shadow-2xl border-2">
+          <span className="text-sm font-bold">{totalArea.toFixed(1)} ha</span>
         </div>
 
-        {/* Property filter - positioned below stats */}
-        <div className="fixed top-16 right-4 z-[150]">
+        {/* Property filter - Below stats */}
+        <div className="absolute top-14 right-4 z-[200]">
           <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-            <SelectTrigger className="w-[200px] bg-background/95 backdrop-blur shadow-2xl border-2">
-              <Layers className="h-4 w-4 mr-2" />
+            <SelectTrigger className="w-[160px] bg-background/95 backdrop-blur shadow-2xl border-2 h-9 text-sm">
+              <Layers className="h-4 w-4 mr-1" />
               <SelectValue placeholder="Filtrar" />
             </SelectTrigger>
-            <SelectContent className="z-[200]">
-              <SelectItem value="all">Todas as Propriedades</SelectItem>
+            <SelectContent className="z-[300]">
+              <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="none">Sem Propriedade</SelectItem>
               {properties.map(prop => (
                 <SelectItem key={prop.id} value={prop.id}>
@@ -408,86 +407,84 @@ export default function Map() {
           </Select>
         </div>
 
-        {/* Floating action buttons - bottom center - Fixed position */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150]">
-          <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-3 shadow-2xl border-2">
+        {/* Floating action buttons - Bottom center */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[200] max-w-[95vw]">
+          <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-2 shadow-2xl border-2">
             {!isDrawing ? (
               <>
                 <Button
-                  size="lg"
+                  size="default"
                   onClick={() => setIsDrawing(true)}
-                  className="gap-2 h-12 px-5"
+                  className="gap-1 h-10 px-3"
                 >
-                  <Plus className="h-5 w-5" />
-                  Desenhar
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Desenhar</span>
                 </Button>
                 <Button
-                  size="lg"
+                  size="default"
                   variant="outline"
                   onClick={() => setImportDialogOpen(true)}
-                  className="gap-2 h-12 px-5"
+                  className="gap-1 h-10 px-3"
                 >
-                  <Upload className="h-5 w-5" />
-                  Importar
+                  <Upload className="h-4 w-4" />
+                  <span className="hidden sm:inline">Importar</span>
                 </Button>
                 <Button
-                  size="lg"
+                  size="default"
                   variant="outline"
                   onClick={exportToKML}
                   disabled={filteredPlots.length === 0}
-                  className="gap-2 h-12 px-5"
+                  className="gap-1 h-10 px-3"
                 >
-                  <Download className="h-5 w-5" />
-                  Exportar
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Exportar</span>
                 </Button>
               </>
             ) : (
               <>
-                <div className="flex items-center gap-2 px-4">
-                  <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
-                  <span className="text-sm font-medium">{drawingPointCount} pontos</span>
+                <div className="flex items-center gap-1 px-2">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-xs font-medium">{drawingPointCount}pts</span>
                 </div>
                 <Button
-                  size="lg"
+                  size="default"
                   variant="outline"
                   onClick={handleUndoPoint}
                   disabled={drawingPointCount === 0}
-                  className="gap-2 h-12 px-5"
+                  className="gap-1 h-10 px-3"
                 >
-                  <Undo2 className="h-5 w-5" />
-                  Desfazer
+                  <Undo2 className="h-4 w-4" />
                 </Button>
                 <Button
-                  size="lg"
+                  size="default"
                   variant="destructive"
                   onClick={() => {
                     setIsDrawing(false);
                     setDrawingPointCount(0);
                   }}
-                  className="gap-2 h-12 px-5"
+                  className="gap-1 h-10 px-3"
                 >
-                  <X className="h-5 w-5" />
-                  Cancelar
+                  <X className="h-4 w-4" />
                 </Button>
               </>
             )}
           </div>
         </div>
 
-        {/* Drawing instructions - Fixed position */}
+        {/* Drawing instructions */}
         {isDrawing && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150]">
-            <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2 shadow-2xl text-base font-medium">
-              <p className="flex items-center gap-2">
-                <MousePointer className="h-4 w-4" />
-                Toque para adicionar pontos • Duplo toque para finalizar
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[200]">
+            <div className="bg-primary text-primary-foreground rounded-lg px-3 py-1.5 shadow-2xl text-sm font-medium">
+              <p className="flex items-center gap-1">
+                <MousePointer className="h-3 w-3" />
+                Toque para pontos • Duplo toque para finalizar
               </p>
             </div>
           </div>
         )}
 
-        {/* Legend - Fixed position */}
-        <div className="fixed bottom-24 left-4 z-[150]">
+        {/* Legend - Bottom left */}
+        <div className="absolute bottom-16 left-4 z-[200]">
           <MapLegend />
         </div>
 
