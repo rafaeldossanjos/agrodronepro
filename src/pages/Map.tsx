@@ -103,29 +103,43 @@ export default function Map() {
     });
   }, [plots, applications]);
 
-  // Build map of plot -> applied products
-  const plotApplicationProducts = useMemo(() => {
+  // Build map of plot -> application info (products + total area applied)
+  const plotApplicationInfo = useMemo(() => {
     type ProductInfo = {
       product_name: string;
       dose_per_ha: number;
       total_amount: number;
     };
-    const productMap = new globalThis.Map<string, ProductInfo[]>();
+    type PlotInfo = {
+      products: ProductInfo[];
+      totalAreaApplied: number;
+    };
+    const infoMap = new globalThis.Map<string, PlotInfo>();
 
     applications.forEach(app => {
-      if (app.plot_id && app.application_products) {
-        const products: ProductInfo[] = app.application_products.map(ap => ({
-          product_name: ap.products?.name || 'Produto desconhecido',
-          dose_per_ha: ap.dose_per_ha,
-          total_amount: ap.total_amount,
-        }));
+      if (app.plot_id) {
+        const existing = infoMap.get(app.plot_id) || { products: [], totalAreaApplied: 0 };
         
-        const existing = productMap.get(app.plot_id) || [];
-        productMap.set(app.plot_id, [...existing, ...products]);
+        // Add area applied from this application (only completed applications)
+        if (app.status === 'concluída') {
+          existing.totalAreaApplied += app.area_applied || 0;
+        }
+        
+        // Add products
+        if (app.application_products) {
+          const products: ProductInfo[] = app.application_products.map(ap => ({
+            product_name: ap.products?.name || 'Produto desconhecido',
+            dose_per_ha: ap.dose_per_ha,
+            total_amount: ap.total_amount,
+          }));
+          existing.products = [...existing.products, ...products];
+        }
+        
+        infoMap.set(app.plot_id, existing);
       }
     });
 
-    return productMap;
+    return infoMap;
   }, [applications]);
 
   // Filter plots by property
@@ -443,7 +457,7 @@ export default function Map() {
             onDrawComplete={isEditingShape ? handleEditShapeComplete : handleDrawComplete}
             isDrawing={isDrawing || isEditingShape}
             selectedPlotId={isEditingShape ? editingPlotId : selectedPlot?.id}
-            plotApplicationProducts={plotApplicationProducts}
+            plotApplicationInfo={plotApplicationInfo}
             onPointsChange={setDrawingPointCount}
             undoTrigger={undoTrigger}
             editingPlotGeometry={isEditingShape ? plots.find(p => p.id === editingPlotId)?.geometry : undefined}

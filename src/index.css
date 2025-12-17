@@ -180,18 +180,27 @@ All colors MUST be HSL.
   textarea {
     font-size: 16px !important;
   }
+}
 
-  /* Disable pinch zoom and double-tap zoom */
-  html, body {
-    touch-action: manipulation;
-    -ms-touch-action: manipulation;
-  }
+/* CRITICAL: Prevent ALL zoom gestures on mobile - must be outside @media */
+html {
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 
-  /* Prevent all zoom gestures */
-  * {
-    -webkit-text-size-adjust: 100%;
-    -moz-text-size-adjust: 100%;
-    -ms-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
+body {
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+}
+
+/* Prevent zoom on any element */
+* {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
