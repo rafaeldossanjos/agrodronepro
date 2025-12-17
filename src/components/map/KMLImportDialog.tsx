@@ -125,9 +125,9 @@ export function KMLImportDialog({ open, onOpenChange, onImport }: KMLImportDialo
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg z-[9999]">
+      <DialogContent className="sm:max-w-lg z-[10000] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             <Upload className="h-5 w-5" />
             Importar Arquivo KML
           </DialogTitle>
@@ -167,7 +167,7 @@ export function KMLImportDialog({ open, onOpenChange, onImport }: KMLImportDialo
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma propriedade" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[10001]">
                 <SelectItem value="none">Nenhuma</SelectItem>
                 {properties.map((prop) => (
                   <SelectItem key={prop.id} value={prop.id}>

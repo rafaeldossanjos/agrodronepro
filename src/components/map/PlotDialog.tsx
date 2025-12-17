@@ -86,9 +86,9 @@ export function PlotDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md z-[9999]">
+      <DialogContent className="sm:max-w-md z-[10000] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{plot ? 'Editar Talhão' : 'Novo Talhão'}</DialogTitle>
+          <DialogTitle className="text-xl">{plot ? 'Editar Talhão' : 'Novo Talhão'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,7 +112,7 @@ export function PlotDialog({
               <SelectTrigger id="property">
                 <SelectValue placeholder="Selecione uma propriedade" />
               </SelectTrigger>
-              <SelectContent className="z-[10000]">
+              <SelectContent className="z-[10001]">
                 <SelectItem value="none">Nenhuma</SelectItem>
                 {properties.map((prop) => (
                   <SelectItem key={prop.id} value={prop.id}>

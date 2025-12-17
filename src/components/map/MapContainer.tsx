@@ -83,6 +83,7 @@ export function MapContainer({
   const onDrawCompleteRef = useRef(onDrawComplete);
   const [isLocating, setIsLocating] = useState(false);
   const currentZoomRef = useRef(zoom);
+  const hasFittedBoundsRef = useRef(false);
 
   useEffect(() => {
     onPointsChangeRef.current = onPointsChange;
@@ -639,7 +640,8 @@ export function MapContainer({
       polygonsRef.current.set(plot.id, polygon);
     });
 
-    if (plots.length > 0) {
+    // Only fit bounds on initial load, not on every update
+    if (plots.length > 0 && !hasFittedBoundsRef.current) {
       const allCoords: L.LatLng[] = [];
       plots.forEach(plot => {
         if (plot.geometry?.coordinates) {
@@ -652,6 +654,7 @@ export function MapContainer({
       if (allCoords.length > 0) {
         const bounds = L.latLngBounds(allCoords);
         map.fitBounds(bounds, { padding: [50, 50] });
+        hasFittedBoundsRef.current = true;
       }
     }
 
