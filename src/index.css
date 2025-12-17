@@ -128,7 +128,7 @@ All colors MUST be HSL.
   /* Better mobile scaling */
   @media (max-width: 640px) {
     html {
-      font-size: 19px;
+      font-size: 22px;
     }
   }
 
