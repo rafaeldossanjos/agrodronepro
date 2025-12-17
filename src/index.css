@@ -135,19 +135,19 @@ All colors MUST be HSL.
   /* Larger fonts for bigger screens */
   @media (min-width: 1024px) {
     html {
-      font-size: 18px;
+      font-size: 20px;
     }
   }
 
   @media (min-width: 1280px) {
     html {
-      font-size: 19px;
+      font-size: 22px;
     }
   }
 
   @media (min-width: 1536px) {
     html {
-      font-size: 20px;
+      font-size: 24px;
     }
   }
 
