@@ -122,26 +122,26 @@ All colors MUST be HSL.
   }
 
   html {
-    font-size: 20px;
+    font-size: 24px;
   }
 
   /* Better mobile scaling */
   @media (max-width: 640px) {
     html {
-      font-size: 20px;
+      font-size: 24px;
     }
   }
 
   /* Larger fonts for bigger screens */
   @media (min-width: 1024px) {
     html {
-      font-size: 20px;
+      font-size: 24px;
     }
   }
 
   @media (min-width: 1280px) {
     html {
-      font-size: 22px;
+      font-size: 26px;
     }
   }
 
