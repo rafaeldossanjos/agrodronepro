@@ -70,10 +70,10 @@ const SidebarProvider = React.forwardRef<
     [setOpenProp, open],
   );
 
-  // Helper to toggle the sidebar.
+  // Helper to toggle the sidebar - always toggle openMobile since we always use Sheet
   const toggleSidebar = React.useCallback(() => {
-    return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
-  }, [isMobile, setOpen, setOpenMobile]);
+    return setOpenMobile((open) => !open);
+  }, [setOpenMobile]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
