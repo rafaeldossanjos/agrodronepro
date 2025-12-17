@@ -17,7 +17,8 @@ import {
   Maximize2,
   Layers,
   Link,
-  CheckSquare
+  CheckSquare,
+  Move
 } from 'lucide-react';
 import { MapContainer } from '@/components/map/MapContainer';
 import { PlotDialog } from '@/components/map/PlotDialog';
@@ -353,49 +354,59 @@ export default function Map() {
     'sem_vinculo': 'bg-gray-400/20 text-gray-500',
   };
 
+  // State for editing polygon shape
+  const [isEditingShape, setIsEditingShape] = useState(false);
+  const [editingPlotId, setEditingPlotId] = useState<string | null>(null);
+
+  const handleStartEditShape = (plot: Plot) => {
+    setEditingPlotId(plot.id);
+    setIsEditingShape(true);
+    setIsFullscreen(true);
+  };
+
+  const handleEditShapeComplete = async (geometry: PlotGeometry, area: number) => {
+    if (editingPlotId) {
+      const plot = plots.find(p => p.id === editingPlotId);
+      if (plot) {
+        await updatePlot({
+          id: editingPlotId,
+          name: plot.name,
+          property_id: plot.property_id,
+          area_hectares: area,
+          geometry: geometry,
+          status: plot.status || 'planejada',
+          notes: plot.notes,
+        });
+        toast.success('Forma do talhão atualizada!');
+      }
+    }
+    setIsEditingShape(false);
+    setEditingPlotId(null);
+  };
+
   // Fullscreen Map View
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 z-[100] bg-background" style={{ touchAction: 'manipulation' }}>
-        {/* Map - Full coverage */}
-        <div className="absolute inset-0">
-          <MapContainer
-            plots={filteredPlots}
-            onPlotClick={handlePlotClick}
-            onDrawComplete={handleDrawComplete}
-            isDrawing={isDrawing}
-            selectedPlotId={selectedPlot?.id}
-            plotApplicationProducts={plotApplicationProducts}
-            onPointsChange={setDrawingPointCount}
-            undoTrigger={undoTrigger}
-          />
-        </div>
+      <div className="fixed inset-0 z-[9999] bg-background flex flex-col" style={{ touchAction: 'manipulation' }}>
+        {/* Header bar with controls */}
+        <div className="flex-shrink-0 h-14 bg-background/95 backdrop-blur border-b flex items-center justify-between px-3 gap-2 z-10">
+          {/* Left side - Stats */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold">{totalArea.toFixed(1)} ha</span>
+            {isEditingShape && (
+              <Badge variant="secondary" className="bg-amber-500/20 text-amber-700">
+                Editando Forma
+              </Badge>
+            )}
+          </div>
 
-        {/* Close button - Top left, always visible */}
-        <Button
-          variant="default"
-          size="lg"
-          onClick={() => setIsFullscreen(false)}
-          className="absolute top-4 left-4 z-[200] gap-2 shadow-2xl bg-red-600 hover:bg-red-700 text-white font-bold border-2 border-white"
-          style={{ position: 'absolute' }}
-        >
-          <X className="h-6 w-6" />
-          Fechar
-        </Button>
-        
-        {/* Stats badge - Top right */}
-        <div className="absolute top-4 right-4 z-[200] bg-background/95 backdrop-blur rounded-lg px-3 py-2 shadow-2xl border-2">
-          <span className="text-sm font-bold">{totalArea.toFixed(1)} ha</span>
-        </div>
-
-        {/* Property filter - Below stats */}
-        <div className="absolute top-14 right-4 z-[200]">
+          {/* Center - Property filter */}
           <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-            <SelectTrigger className="w-[160px] bg-background/95 backdrop-blur shadow-2xl border-2 h-9 text-sm">
+            <SelectTrigger className="w-[140px] h-9 text-sm">
               <Layers className="h-4 w-4 mr-1" />
               <SelectValue placeholder="Filtrar" />
             </SelectTrigger>
-            <SelectContent className="z-[300]">
+            <SelectContent className="z-[10000]">
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="none">Sem Propriedade</SelectItem>
               {properties.map(prop => (
@@ -405,87 +416,122 @@ export default function Map() {
               ))}
             </SelectContent>
           </Select>
+
+          {/* Right side - Close button */}
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              setIsFullscreen(false);
+              setIsEditingShape(false);
+              setEditingPlotId(null);
+              setIsDrawing(false);
+              setDrawingPointCount(0);
+            }}
+            className="gap-1 h-9"
+          >
+            <X className="h-4 w-4" />
+            Fechar
+          </Button>
         </div>
 
-        {/* Floating action buttons - Bottom center */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[200] max-w-[95vw]">
-          <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-2 shadow-2xl border-2">
-            {!isDrawing ? (
-              <>
-                <Button
-                  size="default"
-                  onClick={() => setIsDrawing(true)}
-                  className="gap-1 h-10 px-3"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Desenhar</span>
-                </Button>
-                <Button
-                  size="default"
-                  variant="outline"
-                  onClick={() => setImportDialogOpen(true)}
-                  className="gap-1 h-10 px-3"
-                >
-                  <Upload className="h-4 w-4" />
-                  <span className="hidden sm:inline">Importar</span>
-                </Button>
-                <Button
-                  size="default"
-                  variant="outline"
-                  onClick={exportToKML}
-                  disabled={filteredPlots.length === 0}
-                  className="gap-1 h-10 px-3"
-                >
-                  <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Exportar</span>
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-1 px-2">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-xs font-medium">{drawingPointCount}pts</span>
-                </div>
-                <Button
-                  size="default"
-                  variant="outline"
-                  onClick={handleUndoPoint}
-                  disabled={drawingPointCount === 0}
-                  className="gap-1 h-10 px-3"
-                >
-                  <Undo2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="default"
-                  variant="destructive"
-                  onClick={() => {
-                    setIsDrawing(false);
-                    setDrawingPointCount(0);
-                  }}
-                  className="gap-1 h-10 px-3"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
+        {/* Map area - fills remaining space */}
+        <div className="flex-1 relative">
+          <MapContainer
+            plots={filteredPlots}
+            onPlotClick={handlePlotClick}
+            onDrawComplete={isEditingShape ? handleEditShapeComplete : handleDrawComplete}
+            isDrawing={isDrawing || isEditingShape}
+            selectedPlotId={isEditingShape ? editingPlotId : selectedPlot?.id}
+            plotApplicationProducts={plotApplicationProducts}
+            onPointsChange={setDrawingPointCount}
+            undoTrigger={undoTrigger}
+            editingPlotGeometry={isEditingShape ? plots.find(p => p.id === editingPlotId)?.geometry : undefined}
+          />
 
-        {/* Drawing instructions */}
-        {isDrawing && (
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[200]">
-            <div className="bg-primary text-primary-foreground rounded-lg px-3 py-1.5 shadow-2xl text-sm font-medium">
-              <p className="flex items-center gap-1">
-                <MousePointer className="h-3 w-3" />
-                Toque para pontos • Duplo toque para finalizar
-              </p>
+          {/* Floating action buttons - Bottom center */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 max-w-[95vw]">
+            <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-2 shadow-xl border">
+              {!isDrawing && !isEditingShape ? (
+                <>
+                  <Button
+                    size="default"
+                    onClick={() => setIsDrawing(true)}
+                    className="gap-1 h-10 px-3"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span className="hidden sm:inline">Desenhar</span>
+                  </Button>
+                  <Button
+                    size="default"
+                    variant="outline"
+                    onClick={() => setImportDialogOpen(true)}
+                    className="gap-1 h-10 px-3"
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span className="hidden sm:inline">Importar</span>
+                  </Button>
+                  <Button
+                    size="default"
+                    variant="outline"
+                    onClick={exportToKML}
+                    disabled={filteredPlots.length === 0}
+                    className="gap-1 h-10 px-3"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span className="hidden sm:inline">Exportar</span>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1 px-2">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs font-medium">{drawingPointCount}pts</span>
+                  </div>
+                  <Button
+                    size="default"
+                    variant="outline"
+                    onClick={handleUndoPoint}
+                    disabled={drawingPointCount === 0}
+                    className="gap-1 h-10 px-3"
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="default"
+                    variant="destructive"
+                    onClick={() => {
+                      setIsDrawing(false);
+                      setIsEditingShape(false);
+                      setEditingPlotId(null);
+                      setDrawingPointCount(0);
+                    }}
+                    className="gap-1 h-10 px-3"
+                  >
+                    <X className="h-4 w-4" />
+                    Cancelar
+                  </Button>
+                </>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Legend - Bottom left */}
-        <div className="absolute bottom-16 left-4 z-[200]">
-          <MapLegend />
+          {/* Drawing instructions */}
+          {(isDrawing || isEditingShape) && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+              <div className="bg-primary text-primary-foreground rounded-lg px-3 py-1.5 shadow-lg text-sm font-medium">
+                <p className="flex items-center gap-1">
+                  <MousePointer className="h-3 w-3" />
+                  {isEditingShape ? 'Redesenhe o talhão • Duplo toque para salvar' : 'Toque para pontos • Duplo toque para finalizar'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Legend - Bottom left */}
+          <div className="absolute bottom-20 left-4 z-10">
+            <MapLegend />
+          </div>
         </div>
 
         {/* Dialogs */}
@@ -694,29 +740,40 @@ export default function Map() {
                       </div>
                     </div>
                     {!isSelectMode && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5 flex-wrap">
                         <Button
                           size="icon"
                           variant="outline"
-                          className="h-12 w-12"
+                          className="h-11 w-11"
+                          title="Editar dados"
                           onClick={() => {
                             setSelectedPlot(plot);
                             setNewGeometry(null);
                             setPlotDialogOpen(true);
                           }}
                         >
-                          <Pencil className="h-5 w-5" />
+                          <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           size="icon"
                           variant="outline"
-                          className="h-12 w-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          className="h-11 w-11"
+                          title="Editar forma"
+                          onClick={() => handleStartEditShape(plot)}
+                        >
+                          <Move className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-11 w-11 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          title="Excluir"
                           onClick={() => {
                             setPlotToDelete(plot);
                             setDeleteDialogOpen(true);
                           }}
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     )}
