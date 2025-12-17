@@ -49,12 +49,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 // Calculate font size based on zoom level
 const getFontSizeForZoom = (zoom: number): number => {
-  if (zoom >= 18) return 16;
-  if (zoom >= 16) return 14;
-  if (zoom >= 14) return 12;
-  if (zoom >= 12) return 11;
-  if (zoom >= 10) return 10;
-  return 9;
+  if (zoom >= 18) return 18;
+  if (zoom >= 16) return 16;
+  if (zoom >= 14) return 14;
+  if (zoom >= 12) return 12;
+  if (zoom >= 10) return 11;
+  return 10;
 };
 
 export function MapContainer({
@@ -98,32 +98,68 @@ export function MapContainer({
       const plot = plots.find(p => p.id === plotId);
       if (!plot) return;
       
-      const labelContent = `<div style="
-        background: rgba(255,255,255,0.95);
-        color: #1f2937;
-        padding: ${Math.max(4, fontSize * 0.3)}px ${Math.max(8, fontSize * 0.5)}px;
-        border-radius: 6px;
-        font-size: ${fontSize}px;
-        font-weight: 600;
-        white-space: nowrap;
-        text-align: center;
-        pointer-events: none;
-        border: 2px solid ${plot.color || '#3B82F6'};
-      ">
-        <div>${plot.name}</div>
-        ${plot.area_hectares ? `<div style="font-size:${Math.max(fontSize - 2, 8)}px;opacity:0.8;font-weight:500">${plot.area_hectares} ha</div>` : ''}
-      </div>`;
+      const labelContent = createLabelContent(plot.name, plot.area_hectares, fontSize);
 
-      const icon = marker.getIcon() as L.DivIcon;
-      if (icon) {
-        marker.setIcon(L.divIcon({
-          className: 'plot-label',
-          html: labelContent,
-          iconSize: [0, 0],
-          iconAnchor: [0, 0],
-        }));
-      }
+      marker.setIcon(L.divIcon({
+        className: 'plot-label',
+        html: labelContent,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      }));
     });
+
+    // Update area label during drawing
+    if (areaLabelRef.current && drawingPointsRef.current.length >= 3) {
+      const coordinates = drawingPointsRef.current.map(p => [p.lng, p.lat]);
+      coordinates.push([...coordinates[0]]);
+      const area = calculatePolygonArea(coordinates);
+      
+      areaLabelRef.current.setIcon(L.divIcon({
+        className: 'area-label-marker',
+        html: createAreaLabelContent(area, fontSize + 2),
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      }));
+    }
+  };
+
+  // Create label content - just text with shadow for visibility
+  const createLabelContent = (name: string, areaHectares: number | null, fontSize: number) => {
+    return `<div style="
+      color: white;
+      font-size: ${fontSize}px;
+      font-weight: 700;
+      white-space: nowrap;
+      text-align: center;
+      pointer-events: none;
+      text-shadow: 
+        -2px -2px 3px rgba(0,0,0,0.9),
+        2px -2px 3px rgba(0,0,0,0.9),
+        -2px 2px 3px rgba(0,0,0,0.9),
+        2px 2px 3px rgba(0,0,0,0.9),
+        0px 0px 6px rgba(0,0,0,0.8);
+      transform: translate(-50%, -50%);
+    ">
+      <div>${name}</div>
+      ${areaHectares ? `<div style="font-size:${Math.max(fontSize - 2, 10)}px;opacity:0.95">${Number(areaHectares).toFixed(2)} ha</div>` : ''}
+    </div>`;
+  };
+
+  // Create area label content during drawing
+  const createAreaLabelContent = (area: number, fontSize: number) => {
+    return `<div style="
+      color: white;
+      font-weight: 700;
+      font-size: ${fontSize}px;
+      white-space: nowrap;
+      text-shadow: 
+        -2px -2px 3px rgba(0,0,0,0.9),
+        2px -2px 3px rgba(0,0,0,0.9),
+        -2px 2px 3px rgba(0,0,0,0.9),
+        2px 2px 3px rgba(0,0,0,0.9),
+        0px 0px 6px rgba(0,0,0,0.8);
+      transform: translate(-50%, -50%);
+    ">${area.toFixed(2)} ha</div>`;
   };
 
   // Initialize map
@@ -336,17 +372,7 @@ export function MapContainer({
           areaLabelRef.current = L.marker(center, {
             icon: L.divIcon({
               className: 'area-label-marker',
-              html: `<div style="
-                background: rgba(255,255,255,0.95);
-                color: #1f2937;
-                padding: ${Math.max(6, fontSize * 0.4)}px ${Math.max(12, fontSize * 0.7)}px;
-                border-radius: 8px;
-                font-weight: 700;
-                font-size: ${fontSize + 2}px;
-                white-space: nowrap;
-                border: 2px solid #3B82F6;
-                transform: translate(-50%, -50%);
-              ">${area.toFixed(2)} ha</div>`,
+              html: createAreaLabelContent(area, fontSize + 2),
               iconSize: [0, 0],
               iconAnchor: [0, 0],
             }),
@@ -536,22 +562,7 @@ export function MapContainer({
       const bounds = polygon.getBounds();
       const center = bounds.getCenter();
 
-      const labelContent = `<div style="
-        background: rgba(255,255,255,0.95);
-        color: #1f2937;
-        padding: ${Math.max(4, fontSize * 0.3)}px ${Math.max(8, fontSize * 0.5)}px;
-        border-radius: 6px;
-        font-size: ${fontSize}px;
-        font-weight: 600;
-        white-space: nowrap;
-        text-align: center;
-        pointer-events: none;
-        border: 2px solid ${color};
-        transform: translate(-50%, -50%);
-      ">
-        <div>${plot.name}</div>
-        ${plot.area_hectares ? `<div style="font-size:${Math.max(fontSize - 2, 8)}px;opacity:0.8;font-weight:500">${plot.area_hectares} ha</div>` : ''}
-      </div>`;
+      const labelContent = createLabelContent(plot.name, plot.area_hectares, fontSize);
 
       const labelIcon = L.divIcon({
         className: 'plot-label',
@@ -611,6 +622,7 @@ export function MapContainer({
           closeButton: true,
           autoClose: true,
           closeOnClick: false,
+          autoPan: false, // Don't change zoom/pan when popup opens
         })
           .setLatLng(e.latlng)
           .setContent(popupContent)
