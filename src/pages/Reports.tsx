@@ -1,32 +1,66 @@
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, DollarSign, Target, Download, Filter, FileText, CalendarIcon, X } from "lucide-react";
+import { BarChart3, TrendingUp, DollarSign, Target, Download, Filter, FileText, X, MapPin, FlaskConical, Users } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
 import { useProducts } from "@/hooks/useProducts";
+import { usePlots } from "@/hooks/usePlots";
+import { useRecipes } from "@/hooks/useRecipes";
+import { useProfile } from "@/hooks/useProfile";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 
 export default function Reports() {
   const { applications, isLoading: appsLoading } = useApplications();
   const { properties, isLoading: propsLoading } = useProperties();
   const { products, isLoading: productsLoading } = useProducts();
+  const { plots, isLoading: plotsLoading } = usePlots();
+  const { recipes, isLoading: recipesLoading } = useRecipes();
+  const { profile } = useProfile();
   
+  // Filtros existentes
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("30");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedProduct, setSelectedProduct] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  
+  // Novos filtros
+  const [selectedPlot, setSelectedPlot] = useState<string>("all");
+  const [selectedRecipe, setSelectedRecipe] = useState<string>("all");
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [showProductsDropdown, setShowProductsDropdown] = useState(false);
+  
+  // Opções de PDF
+  const [pdfIncludeNotes, setPdfIncludeNotes] = useState(true);
+  const [pdfIncludePlotHistory, setPdfIncludePlotHistory] = useState(true);
+  const [pdfIncludeExecutiveSummary, setPdfIncludeExecutiveSummary] = useState(true);
+  const [pdfCustomFooter, setPdfCustomFooter] = useState("");
+  
+  // Comparativo de períodos
+  const [showComparison, setShowComparison] = useState(false);
+  const [comparisonPeriod, setComparisonPeriod] = useState<string>("previous");
 
-  // Gerar lista de meses disponíveis baseado nas aplicações
+  // Gerar lista de meses disponíveis
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
     (applications || []).forEach((app: any) => {
@@ -53,7 +87,13 @@ export default function Reports() {
     return labels[status] || status;
   };
 
-  const isLoading = appsLoading || propsLoading || productsLoading;
+  // Filtrar talhões pela propriedade selecionada
+  const filteredPlots = useMemo(() => {
+    if (selectedProperty === "all") return plots;
+    return plots.filter(p => p.property_id === selectedProperty);
+  }, [plots, selectedProperty]);
+
+  const isLoading = appsLoading || propsLoading || productsLoading || plotsLoading || recipesLoading;
 
   const clearFilters = () => {
     setSelectedProperty("all");
@@ -61,19 +101,21 @@ export default function Reports() {
     setSelectedMonth("all");
     setSelectedStatus("all");
     setSelectedType("all");
-    setSelectedProduct("all");
+    setSelectedPlot("all");
+    setSelectedRecipe("all");
+    setSelectedProducts([]);
     setDateFrom("");
     setDateTo("");
   };
 
   const hasActiveFilters = selectedProperty !== "all" || selectedPeriod !== "30" || 
     selectedMonth !== "all" || selectedStatus !== "all" || selectedType !== "all" || 
-    selectedProduct !== "all" || dateFrom !== "" || dateTo !== "";
+    selectedPlot !== "all" || selectedRecipe !== "all" || selectedProducts.length > 0 ||
+    dateFrom !== "" || dateTo !== "";
 
   const handleMonthChange = (month: string) => {
     setSelectedMonth(month);
     if (month !== "all") {
-      // Limpar período e datas customizadas quando seleciona mês
       setSelectedPeriod("30");
       setDateFrom("");
       setDateTo("");
@@ -82,7 +124,6 @@ export default function Reports() {
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
-    // Limpar mês quando seleciona período
     setSelectedMonth("all");
   };
 
@@ -90,9 +131,47 @@ export default function Reports() {
     setDateFrom(from);
     setDateTo(to);
     if (from || to) {
-      // Limpar mês e período quando usa datas customizadas
       setSelectedMonth("all");
     }
+  };
+
+  const handleProductToggle = (productId: string) => {
+    setSelectedProducts(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  // Função para obter período de datas atual
+  const getCurrentPeriodDates = () => {
+    const now = new Date();
+    let startDate: Date, endDate: Date = now;
+    
+    if (selectedMonth !== "all") {
+      const [year, month] = selectedMonth.split('-').map(Number);
+      startDate = startOfMonth(new Date(year, month - 1));
+      endDate = endOfMonth(new Date(year, month - 1));
+    } else if (dateFrom || dateTo) {
+      startDate = dateFrom ? new Date(dateFrom + 'T00:00:00') : subDays(now, 365);
+      endDate = dateTo ? new Date(dateTo + 'T23:59:59') : now;
+    } else {
+      startDate = subDays(now, Number(selectedPeriod));
+      endDate = now;
+    }
+    
+    return { startDate, endDate };
+  };
+
+  // Função para obter período anterior para comparação
+  const getPreviousPeriodDates = () => {
+    const { startDate, endDate } = getCurrentPeriodDates();
+    const periodLength = endDate.getTime() - startDate.getTime();
+    
+    return {
+      startDate: new Date(startDate.getTime() - periodLength),
+      endDate: new Date(endDate.getTime() - periodLength)
+    };
   };
 
   const filteredApplications = useMemo(() => {
@@ -101,6 +180,11 @@ export default function Reports() {
     // Filtro por propriedade
     if (selectedProperty !== "all") {
       filtered = filtered.filter((app: any) => app.property_id === selectedProperty);
+    }
+
+    // Filtro por talhão
+    if (selectedPlot !== "all") {
+      filtered = filtered.filter((app: any) => app.plot_id === selectedPlot);
     }
 
     // Filtro por status
@@ -113,14 +197,26 @@ export default function Reports() {
       filtered = filtered.filter((app: any) => app.application_type === selectedType);
     }
 
-    // Filtro por produto
-    if (selectedProduct !== "all") {
+    // Filtro por múltiplos produtos
+    if (selectedProducts.length > 0) {
       filtered = filtered.filter((app: any) => 
-        app.application_products?.some((p: any) => p.product_id === selectedProduct)
+        app.application_products?.some((p: any) => selectedProducts.includes(p.product_id))
       );
     }
 
-    // Filtro por mês específico (prioridade)
+    // Filtro por receituário (verificar se todos os produtos do receituário estão na aplicação)
+    if (selectedRecipe !== "all") {
+      const recipe = recipes.find(r => r.id === selectedRecipe);
+      if (recipe && recipe.recipe_products) {
+        const recipeProductIds = recipe.recipe_products.map(rp => rp.product_id);
+        filtered = filtered.filter((app: any) => {
+          const appProductIds = app.application_products?.map((p: any) => p.product_id) || [];
+          return recipeProductIds.every(rpId => appProductIds.includes(rpId));
+        });
+      }
+    }
+
+    // Filtro por período
     if (selectedMonth !== "all") {
       const [year, month] = selectedMonth.split('-').map(Number);
       filtered = filtered.filter((app: any) => {
@@ -128,7 +224,6 @@ export default function Reports() {
         return appDate.getFullYear() === year && appDate.getMonth() + 1 === month;
       });
     } else if (dateFrom || dateTo) {
-      // Filtro por período personalizado
       filtered = filtered.filter((app: any) => {
         const appDate = new Date(app.application_date + 'T00:00:00');
         if (dateFrom && dateTo) {
@@ -141,7 +236,6 @@ export default function Reports() {
         return true;
       });
     } else {
-      // Usar período predefinido
       const now = new Date();
       const daysAgo = new Date(now.getTime() - Number(selectedPeriod) * 24 * 60 * 60 * 1000);
       filtered = filtered.filter((app: any) => {
@@ -151,7 +245,26 @@ export default function Reports() {
     }
 
     return filtered;
-  }, [applications, selectedProperty, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProduct, dateFrom, dateTo]);
+  }, [applications, selectedProperty, selectedPlot, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProducts, selectedRecipe, recipes, dateFrom, dateTo]);
+
+  // Aplicações do período anterior para comparação
+  const previousPeriodApplications = useMemo(() => {
+    if (!showComparison) return [];
+    
+    const { startDate, endDate } = getPreviousPeriodDates();
+    let filtered = applications || [];
+
+    if (selectedProperty !== "all") {
+      filtered = filtered.filter((app: any) => app.property_id === selectedProperty);
+    }
+
+    filtered = filtered.filter((app: any) => {
+      const appDate = new Date(app.application_date + 'T00:00:00');
+      return appDate >= startDate && appDate <= endDate;
+    });
+
+    return filtered;
+  }, [applications, selectedProperty, showComparison, selectedPeriod, selectedMonth, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
     const totalArea = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied), 0);
@@ -161,14 +274,27 @@ export default function Reports() {
     const efficiency = filteredApplications.length > 0 ? (completedApps / filteredApplications.length) * 100 : 0;
     const totalFlightTime = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.flight_time_minutes || 0), 0);
 
-    return { totalArea, totalCost, avgCostPerHa, efficiency, totalFlightTime };
+    return { totalArea, totalCost, avgCostPerHa, efficiency, totalFlightTime, completedApps };
   }, [filteredApplications]);
+
+  // Stats do período anterior
+  const previousStats = useMemo(() => {
+    if (!showComparison) return null;
+    
+    const totalArea = previousPeriodApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied), 0);
+    const totalCost = previousPeriodApplications.reduce((sum: number, app: any) => sum + Number(app.total_cost), 0);
+    const avgCostPerHa = totalArea > 0 ? totalCost / totalArea : 0;
+    const completedApps = previousPeriodApplications.filter((app: any) => app.status === "concluída").length;
+
+    return { totalArea, totalCost, avgCostPerHa, completedApps, appCount: previousPeriodApplications.length };
+  }, [previousPeriodApplications, showComparison]);
 
   const propertyStats = useMemo(() => {
     const grouped = filteredApplications.reduce((acc: any, app: any) => {
       const propId = app.property_id;
       if (!acc[propId]) {
         acc[propId] = {
+          id: propId,
           name: app.properties?.name || "Sem propriedade",
           area: 0,
           apps: 0,
@@ -184,8 +310,52 @@ export default function Reports() {
     return Object.values(grouped);
   }, [filteredApplications]);
 
+  // Estatísticas por talhão
+  const plotStats = useMemo(() => {
+    const grouped = filteredApplications.reduce((acc: any, app: any) => {
+      const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
+      const plotName = app.plot_name || 'Sem talhão';
+      
+      if (!acc[plotKey]) {
+        acc[plotKey] = {
+          id: plotKey,
+          name: plotName,
+          propertyName: app.properties?.name || 'N/A',
+          area: 0,
+          apps: 0,
+          cost: 0,
+          products: new Map(),
+        };
+      }
+      acc[plotKey].area += Number(app.area_applied);
+      acc[plotKey].apps += 1;
+      acc[plotKey].cost += Number(app.total_cost);
+      
+      // Agregar produtos por talhão
+      if (app.application_products) {
+        app.application_products.forEach((ap: any) => {
+          const productName = ap.products?.name || 'Produto';
+          const existing = acc[plotKey].products.get(productName) || { amount: 0, unit: ap.products?.unit || '' };
+          existing.amount += Number(ap.total_amount || 0);
+          acc[plotKey].products.set(productName, existing);
+        });
+      }
+      
+      return acc;
+    }, {});
+
+    return Object.values(grouped).map((p: any) => ({
+      ...p,
+      products: Array.from(p.products.entries()).map(([name, data]: [string, any]) => ({
+        name,
+        amount: data.amount,
+        unit: data.unit
+      }))
+    }));
+  }, [filteredApplications]);
+
   const productStats = useMemo(() => {
-    const productMap: Record<string, { name: string; unit: string; totalAmount: number; totalCost: number; count: number }> = {};
+    const productMap: Record<string, { name: string; unit: string; totalAmount: number; totalCost: number; count: number; avgDose: number; totalArea: number }> = {};
     
     filteredApplications.forEach((app: any) => {
       if (app.application_products && app.application_products.length > 0) {
@@ -200,16 +370,24 @@ export default function Reports() {
               totalAmount: 0,
               totalCost: 0,
               count: 0,
+              avgDose: 0,
+              totalArea: 0,
             };
           }
           productMap[productName].totalAmount += Number(ap.total_amount || 0);
           productMap[productName].totalCost += Number(ap.total_cost || 0);
           productMap[productName].count += 1;
+          productMap[productName].totalArea += Number(app.area_applied || 0);
         });
       }
     });
     
-    return Object.values(productMap).sort((a, b) => b.totalCost - a.totalCost);
+    // Calcular dose média
+    Object.values(productMap).forEach(p => {
+      p.avgDose = p.totalArea > 0 ? p.totalAmount / p.totalArea : 0;
+    });
+    
+    return Object.values(productMap).sort((a, b) => b.totalAmount - a.totalAmount);
   }, [filteredApplications]);
 
   const statusStats = useMemo(() => {
@@ -242,8 +420,20 @@ export default function Reports() {
     return stats;
   }, [filteredApplications]);
 
+  // Dados para gráfico de barras por propriedade
+  const propertyChartData = useMemo(() => {
+    return propertyStats.map((p: any) => ({
+      name: p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name,
+      fullName: p.name,
+      area: Number(p.area.toFixed(1)),
+      apps: p.apps,
+    }));
+  }, [propertyStats]);
+
+  const CHART_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
   const exportToCSV = () => {
-    const headers = ["Propriedade", "Talhão", "Data", "Tipo", "Status", "Área (ha)", "Produtos", "Custo (R$)"];
+    const headers = ["Propriedade", "Talhão", "Data", "Tipo", "Status", "Área (ha)", "Produtos", "Observações", "Custo (R$)"];
     const rows = filteredApplications.map((app: any) => {
       const productsText = app.application_products && app.application_products.length > 0
         ? app.application_products.map((p: any) => 
@@ -259,6 +449,7 @@ export default function Reports() {
         app.status,
         app.area_applied,
         `"${productsText}"`,
+        `"${app.notes || ''}"`,
         Number(app.total_cost).toFixed(2),
       ];
     });
@@ -278,6 +469,7 @@ export default function Reports() {
   const exportToPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     
     // Header
     doc.setFillColor(34, 139, 34);
@@ -299,6 +491,8 @@ export default function Reports() {
     let filterText = "";
     if (dateFrom || dateTo) {
       filterText = `Período: ${dateFrom ? format(new Date(dateFrom + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Início'} - ${dateTo ? format(new Date(dateTo + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Hoje'}`;
+    } else if (selectedMonth !== "all") {
+      filterText = `Período: ${getMonthLabel(selectedMonth)}`;
     } else {
       filterText = `Período: ${selectedPeriod} dias`;
     }
@@ -311,7 +505,45 @@ export default function Reports() {
 
     let yPosition = 45;
 
-    // Resumo Estatístico (sem custos)
+    // RESUMO EXECUTIVO
+    if (pdfIncludeExecutiveSummary) {
+      doc.setFillColor(245, 250, 245);
+      doc.roundedRect(10, yPosition - 5, pageWidth - 20, 50, 3, 3, 'F');
+      
+      doc.setTextColor(34, 139, 34);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Resumo Executivo', 14, yPosition + 3);
+      
+      yPosition += 12;
+      
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      
+      const summaryText = [
+        `No período analisado, foram realizadas ${filteredApplications.length} aplicações`,
+        `cobrindo um total de ${stats.totalArea.toFixed(1)} hectares.`,
+        `Taxa de conclusão: ${stats.efficiency.toFixed(0)}% (${stats.completedApps} concluídas).`,
+        productStats.length > 0 ? `Produto mais utilizado: ${productStats[0].name} (${productStats[0].totalAmount.toFixed(1)} ${productStats[0].unit})` : '',
+      ].filter(Boolean);
+      
+      summaryText.forEach((line, i) => {
+        doc.text(line, 14, yPosition + 6 + (i * 6));
+      });
+      
+      // Comparativo
+      if (showComparison && previousStats) {
+        const areaChange = stats.totalArea - previousStats.totalArea;
+        const areaPercent = previousStats.totalArea > 0 ? ((areaChange / previousStats.totalArea) * 100).toFixed(1) : 'N/A';
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Comparativo: ${areaChange >= 0 ? '+' : ''}${areaChange.toFixed(1)} ha (${areaPercent}%) vs período anterior`, 14, yPosition + 30);
+      }
+      
+      yPosition += 55;
+    }
+
+    // Resumo Estatístico
     doc.setTextColor(34, 139, 34);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -319,7 +551,6 @@ export default function Reports() {
     
     yPosition += 8;
     
-    // Stats cards (sem custos)
     const statsData = [
       ['Área Total', `${stats.totalArea.toFixed(1)} ha`],
       ['Total Aplicações', `${filteredApplications.length}`],
@@ -350,20 +581,21 @@ export default function Reports() {
 
     yPosition += 40;
 
-    // Produtos Aplicados (sem custos)
+    // Consumo Total por Produto
     if (productStats.length > 0) {
       doc.setTextColor(34, 139, 34);
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Produtos Aplicados', 14, yPosition);
+      doc.text('Consumo Total por Produto', 14, yPosition);
       yPosition += 4;
 
       autoTable(doc, {
         startY: yPosition,
-        head: [['Produto', 'Quantidade Total', 'Aplicações']],
+        head: [['Produto', 'Consumo Total', 'Dose Média/ha', 'Aplicações']],
         body: productStats.map(p => [
           p.name,
           `${p.totalAmount.toFixed(2)} ${p.unit}`,
+          `${p.avgDose.toFixed(3)} ${p.unit}/ha`,
           p.count.toString(),
         ]),
         theme: 'striped',
@@ -375,7 +607,7 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Resumo por Propriedade (sem custos)
+    // Resumo por Propriedade
     if (propertyStats.length > 0) {
       if (yPosition > 230) {
         doc.addPage();
@@ -405,7 +637,47 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Detalhes das Aplicações (sem custos)
+    // HISTÓRICO POR TALHÃO
+    if (pdfIncludePlotHistory && plotStats.length > 0) {
+      if (yPosition > 180) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setTextColor(34, 139, 34);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Histórico por Talhão', 14, yPosition);
+      yPosition += 4;
+
+      const plotRows = plotStats.map((p: any) => {
+        const productsText = p.products.map((pr: any) => `${pr.name}: ${pr.amount.toFixed(2)} ${pr.unit}`).join(', ');
+        return [
+          p.name,
+          p.propertyName,
+          `${p.area.toFixed(1)} ha`,
+          p.apps.toString(),
+          productsText || '-'
+        ];
+      });
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Talhão', 'Propriedade', 'Área Total', 'Aplicações', 'Produtos Aplicados']],
+        body: plotRows,
+        theme: 'striped',
+        headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 8, cellPadding: 2 },
+        alternateRowStyles: { fillColor: [245, 250, 245] },
+        columnStyles: {
+          4: { cellWidth: 60 },
+        },
+      });
+
+      yPosition = (doc as any).lastAutoTable.finalY + 12;
+    }
+
+    // Detalhes das Aplicações (com observações)
     if (filteredApplications.length > 0) {
       if (yPosition > 200) {
         doc.addPage();
@@ -425,7 +697,7 @@ export default function Reports() {
             ).join('\n')
           : '-';
         
-        return [
+        const row = [
           format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }),
           `${app.properties?.name || 'N/A'}${app.plot_name ? `\n${app.plot_name}` : ''}`,
           app.application_type,
@@ -433,17 +705,34 @@ export default function Reports() {
           `${app.area_applied} ha`,
           appProducts,
         ];
+        
+        if (pdfIncludeNotes) {
+          row.push(app.notes || '-');
+        }
+        
+        return row;
       });
+
+      const headers = ['Data', 'Propriedade', 'Tipo', 'Status', 'Área', 'Produtos'];
+      if (pdfIncludeNotes) headers.push('Observações');
 
       autoTable(doc, {
         startY: yPosition,
-        head: [['Data', 'Propriedade', 'Tipo', 'Status', 'Área', 'Produtos']],
+        head: [headers],
         body: appRows,
         theme: 'striped',
         headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8, cellPadding: 2 },
         alternateRowStyles: { fillColor: [245, 250, 245] },
-        columnStyles: {
+        columnStyles: pdfIncludeNotes ? {
+          0: { cellWidth: 16 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 22 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 16 },
+          5: { cellWidth: 40 },
+          6: { cellWidth: 35 },
+        } : {
           0: { cellWidth: 18 },
           1: { cellWidth: 38 },
           2: { cellWidth: 28 },
@@ -454,16 +743,18 @@ export default function Reports() {
       });
     }
 
-    // Footer em todas as páginas
+    // Footer personalizado em todas as páginas
     const totalPages = doc.getNumberOfPages();
+    const footerText = pdfCustomFooter || (profile?.company ? `${profile.company} - ${profile.full_name}` : 'AgroDrone PRO');
+    
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
       doc.text(
-        `Página ${i} de ${totalPages} - AgroDrone PRO`,
+        `Página ${i} de ${totalPages} - ${footerText}`,
         pageWidth / 2,
-        doc.internal.pageSize.getHeight() - 10,
+        pageHeight - 10,
         { align: 'center' }
       );
     }
@@ -474,6 +765,7 @@ export default function Reports() {
   const exportCostPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     
     // Header
     doc.setFillColor(139, 69, 19);
@@ -488,7 +780,6 @@ export default function Reports() {
     doc.setFont('helvetica', 'normal');
     doc.text('Relatório de Custos', 14, 28);
     
-    // Período e filtros
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
     
@@ -637,16 +928,18 @@ export default function Reports() {
       });
     }
 
-    // Footer em todas as páginas
+    // Footer personalizado
     const totalPages = doc.getNumberOfPages();
+    const footerText = pdfCustomFooter || (profile?.company ? `${profile.company} - ${profile.full_name}` : 'AgroDrone PRO');
+    
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
       doc.text(
-        `Página ${i} de ${totalPages} - AgroDrone PRO`,
+        `Página ${i} de ${totalPages} - ${footerText}`,
         pageWidth / 2,
-        doc.internal.pageSize.getHeight() - 10,
+        pageHeight - 10,
         { align: 'center' }
       );
     }
@@ -708,26 +1001,55 @@ export default function Reports() {
         </div>
         
         <div className="space-y-3">
-          {/* Linha 1: Propriedade, Status, Tipo */}
-          <div className="grid gap-3 grid-cols-3">
-            <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+          {/* Linha 1: Propriedade, Talhão, Receituário */}
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+            <Select value={selectedProperty} onValueChange={(v) => { setSelectedProperty(v); setSelectedPlot("all"); }}>
               <SelectTrigger className="h-9 text-xs">
                 <SelectValue placeholder="Propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="all">Todas Propriedades</SelectItem>
                 {properties.map((prop: any) => (
                   <SelectItem key={prop.id} value={prop.id}>{prop.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
+            <Select value={selectedPlot} onValueChange={setSelectedPlot}>
+              <SelectTrigger className="h-9 text-xs">
+                <MapPin className="h-3 w-3 mr-1" />
+                <SelectValue placeholder="Talhão" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Todos Talhões</SelectItem>
+                {filteredPlots.map((plot) => (
+                  <SelectItem key={plot.id} value={plot.id}>{plot.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedRecipe} onValueChange={setSelectedRecipe}>
+              <SelectTrigger className="h-9 text-xs">
+                <FlaskConical className="h-3 w-3 mr-1" />
+                <SelectValue placeholder="Receituário" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover">
+                <SelectItem value="all">Todos Receituários</SelectItem>
+                {recipes.map((recipe) => (
+                  <SelectItem key={recipe.id} value={recipe.id}>{recipe.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Linha 2: Status, Tipo, Produtos múltiplos */}
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger className="h-9 text-xs">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">Todos Status</SelectItem>
                 <SelectItem value="planejada">Planejada</SelectItem>
                 <SelectItem value="em_andamento">Em Andamento</SelectItem>
                 <SelectItem value="concluída">Concluída</SelectItem>
@@ -740,20 +1062,56 @@ export default function Reports() {
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">Todos Tipos</SelectItem>
                 <SelectItem value="pulverização">Pulverização</SelectItem>
                 <SelectItem value="adubação">Adubação</SelectItem>
                 <SelectItem value="semeadura">Semeadura</SelectItem>
                 <SelectItem value="outro">Outro</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Seleção múltipla de produtos */}
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                className="h-9 w-full justify-start text-xs font-normal"
+                onClick={() => setShowProductsDropdown(!showProductsDropdown)}
+              >
+                {selectedProducts.length > 0 
+                  ? `${selectedProducts.length} produto(s)` 
+                  : 'Selecionar produtos'}
+              </Button>
+              {showProductsDropdown && (
+                <div className="absolute top-10 left-0 right-0 z-50 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto p-2">
+                  {products.map((product: any) => (
+                    <div key={product.id} className="flex items-center space-x-2 py-1">
+                      <Checkbox
+                        id={`product-${product.id}`}
+                        checked={selectedProducts.includes(product.id)}
+                        onCheckedChange={() => handleProductToggle(product.id)}
+                      />
+                      <Label htmlFor={`product-${product.id}`} className="text-xs cursor-pointer">
+                        {product.name}
+                      </Label>
+                    </div>
+                  ))}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full mt-2 text-xs"
+                    onClick={() => setShowProductsDropdown(false)}
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Linha 2: Período (com opções de dias, mês e datas) */}
+          {/* Linha 3: Período */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs text-muted-foreground">Período:</span>
             
-            {/* Botões rápidos de período */}
             <div className="flex gap-1">
               {[
                 { value: "7", label: "7d" },
@@ -774,7 +1132,6 @@ export default function Reports() {
 
             <span className="text-xs text-muted-foreground mx-1">ou</span>
 
-            {/* Seletor de mês */}
             <Select value={selectedMonth} onValueChange={handleMonthChange}>
               <SelectTrigger className="h-7 w-[140px] text-xs">
                 <SelectValue placeholder="Por mês" />
@@ -791,27 +1148,82 @@ export default function Reports() {
 
             <span className="text-xs text-muted-foreground mx-1">ou</span>
 
-            {/* Datas personalizadas */}
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-1 items-center">
-                <Input 
-                  type="date" 
-                  value={dateFrom} 
-                  onChange={(e) => handleDateChange(e.target.value, dateTo)}
-                  className="h-7 w-[120px] text-xs"
-                  placeholder="De"
-                />
-                <span className="text-xs text-muted-foreground">-</span>
-                <Input 
-                  type="date" 
-                  value={dateTo} 
-                  onChange={(e) => handleDateChange(dateFrom, e.target.value)}
-                  className="h-7 w-[120px] text-xs"
-                  placeholder="Até"
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground">Data inicial e final para período personalizado</p>
+            <div className="flex gap-1 items-center">
+              <Input 
+                type="date" 
+                value={dateFrom} 
+                onChange={(e) => handleDateChange(e.target.value, dateTo)}
+                className="h-7 w-[120px] text-xs"
+              />
+              <span className="text-xs text-muted-foreground">-</span>
+              <Input 
+                type="date" 
+                value={dateTo} 
+                onChange={(e) => handleDateChange(dateFrom, e.target.value)}
+                className="h-7 w-[120px] text-xs"
+              />
             </div>
+          </div>
+
+          {/* Linha 4: Comparativo e opções de PDF */}
+          <div className="flex flex-wrap gap-4 items-center pt-2 border-t">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="comparison"
+                checked={showComparison}
+                onCheckedChange={(checked) => setShowComparison(!!checked)}
+              />
+              <Label htmlFor="comparison" className="text-xs cursor-pointer">
+                Comparar com período anterior
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="pdfNotes"
+                checked={pdfIncludeNotes}
+                onCheckedChange={(checked) => setPdfIncludeNotes(!!checked)}
+              />
+              <Label htmlFor="pdfNotes" className="text-xs cursor-pointer">
+                Incluir observações no PDF
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="pdfPlotHistory"
+                checked={pdfIncludePlotHistory}
+                onCheckedChange={(checked) => setPdfIncludePlotHistory(!!checked)}
+              />
+              <Label htmlFor="pdfPlotHistory" className="text-xs cursor-pointer">
+                Histórico por talhão no PDF
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="pdfExecutive"
+                checked={pdfIncludeExecutiveSummary}
+                onCheckedChange={(checked) => setPdfIncludeExecutiveSummary(!!checked)}
+              />
+              <Label htmlFor="pdfExecutive" className="text-xs cursor-pointer">
+                Resumo executivo no PDF
+              </Label>
+            </div>
+          </div>
+
+          {/* Rodapé personalizado */}
+          <div className="flex items-center gap-2 pt-2">
+            <Label htmlFor="customFooter" className="text-xs whitespace-nowrap">
+              Rodapé PDF:
+            </Label>
+            <Input
+              id="customFooter"
+              value={pdfCustomFooter}
+              onChange={(e) => setPdfCustomFooter(e.target.value)}
+              placeholder={profile?.company || "Nome da empresa, contato..."}
+              className="h-8 text-xs flex-1"
+            />
           </div>
         </div>
       </Card>
@@ -829,6 +1241,11 @@ export default function Reports() {
           <p className="text-xs text-muted-foreground">
             {filteredApplications.length} aplicações
           </p>
+          {showComparison && previousStats && (
+            <p className={`text-xs mt-1 ${stats.totalArea >= previousStats.totalArea ? 'text-green-600' : 'text-red-500'}`}>
+              {stats.totalArea >= previousStats.totalArea ? '↑' : '↓'} {Math.abs(stats.totalArea - previousStats.totalArea).toFixed(1)} ha vs anterior
+            </p>
+          )}
         </Card>
 
         <Card className="p-3 sm:p-4">
@@ -839,6 +1256,11 @@ export default function Reports() {
           <p className="text-lg sm:text-2xl font-bold text-foreground">
             R$ {stats.totalCost.toFixed(2)}
           </p>
+          {showComparison && previousStats && (
+            <p className={`text-xs mt-1 ${stats.totalCost <= previousStats.totalCost ? 'text-green-600' : 'text-red-500'}`}>
+              {stats.totalCost <= previousStats.totalCost ? '↓' : '↑'} R$ {Math.abs(stats.totalCost - previousStats.totalCost).toFixed(2)} vs anterior
+            </p>
+          )}
         </Card>
 
         <Card className="p-3 sm:p-4">
@@ -864,6 +1286,49 @@ export default function Reports() {
           </p>
         </Card>
       </div>
+
+      {/* Gráfico de barras por propriedade */}
+      {propertyChartData.length > 0 && (
+        <Card className="p-4 sm:p-6">
+          <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Área por Propriedade
+          </h2>
+          <div className="h-[250px] sm:h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={propertyChartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 10 }} 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                  className="fill-muted-foreground"
+                />
+                <YAxis 
+                  tick={{ fontSize: 10 }}
+                  className="fill-muted-foreground"
+                  label={{ value: 'Hectares', angle: -90, position: 'insideLeft', fontSize: 10 }}
+                />
+                <Tooltip 
+                  formatter={(value: number, name: string) => [
+                    name === 'area' ? `${value} ha` : value,
+                    name === 'area' ? 'Área' : 'Aplicações'
+                  ]}
+                  labelFormatter={(label) => propertyChartData.find(d => d.name === label)?.fullName || label}
+                  contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))' }}
+                />
+                <Bar dataKey="area" name="area" radius={[4, 4, 0, 0]}>
+                  {propertyChartData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      )}
 
       {/* Status e Tipo breakdown */}
       <div className="grid gap-4 sm:grid-cols-2">
@@ -906,11 +1371,11 @@ export default function Reports() {
         </Card>
       </div>
 
-      {/* Produtos Aplicados */}
+      {/* Consumo Total por Produto */}
       {productStats.length > 0 && (
         <Card className="p-4 sm:p-6">
           <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground">
-            Produtos Aplicados
+            Consumo Total por Produto
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -920,7 +1385,10 @@ export default function Reports() {
                     Produto
                   </th>
                   <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
-                    Quantidade Total
+                    Consumo Total
+                  </th>
+                  <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
+                    Dose Média/ha
                   </th>
                   <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
                     Aplicações
@@ -940,6 +1408,9 @@ export default function Reports() {
                       {row.totalAmount.toFixed(2)} {row.unit}
                     </td>
                     <td className="py-3 text-right text-xs sm:text-sm text-foreground">
+                      {row.avgDose.toFixed(3)} {row.unit}/ha
+                    </td>
+                    <td className="py-3 text-right text-xs sm:text-sm text-foreground">
                       {row.count}
                     </td>
                     <td className="py-3 text-right text-xs sm:text-sm font-medium text-foreground">
@@ -953,7 +1424,7 @@ export default function Reports() {
         </Card>
       )}
 
-      {/* Detailed Table */}
+      {/* Resumo por Propriedade */}
       <Card className="p-4 sm:p-6">
         <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground">
           Resumo por Propriedade
@@ -1040,7 +1511,7 @@ export default function Reports() {
                       app.status === 'cancelada' ? 'bg-red-100 text-red-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {app.status}
+                      {formatStatusLabel(app.status)}
                     </span>
                   </div>
                   <p className="font-semibold text-foreground">
@@ -1061,6 +1532,12 @@ export default function Reports() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {app.notes && (
+                  <div className="mt-2 p-2 bg-muted/20 rounded text-xs text-muted-foreground">
+                    <span className="font-medium">Obs:</span> {app.notes}
                   </div>
                 )}
               </div>
