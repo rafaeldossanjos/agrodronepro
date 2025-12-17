@@ -243,6 +243,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     setSelectedRecipeId(recipeId);
   };
   
+  const [areaInput, setAreaInput] = useState("");
+  
   const [formData, setFormData] = useState<{
     property_id: string;
     plot_id: string | null;
@@ -308,6 +310,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         flight_time_minutes: application.flight_time_minutes || null,
         notes: application.notes || "",
       });
+      setAreaInput(application.area_applied > 0 ? application.area_applied.toString() : "");
     } else {
       // Reset form quando não está editando
       setFormData({
@@ -323,6 +326,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         flight_time_minutes: null,
         notes: "",
       });
+      setAreaInput("");
     }
     setErrors({});
   }, [application, open]);
@@ -392,7 +396,10 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     }
   };
 
-  const handleAreaChange = (area: number, additionalUpdates?: Partial<typeof formData>) => {
+  const handleAreaChange = (area: number, additionalUpdates?: Partial<typeof formData>, updateInput?: boolean) => {
+    if (updateInput) {
+      setAreaInput(area > 0 ? area.toString() : "");
+    }
     setFormData(prev => {
       const newProducts = prev.products.map(p => {
         const total_amount = area > 0 && p.dose_per_ha > 0 ? p.dose_per_ha * area : 0;
@@ -525,7 +532,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           handleAreaChange(selectedPlot.area_hectares, {
                             plot_id: newPlotId,
                             plot_name: newPlotName,
-                          });
+                          }, true);
                         } else {
                           setFormData(prev => ({ 
                             ...prev, 
@@ -533,6 +540,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                             plot_name: newPlotName,
                             area_applied: newArea,
                           }));
+                          if (newArea > 0) {
+                            setAreaInput(newArea.toString());
+                          }
                         }
                       }}
                       disabled={!formData.property_id && availablePlots.length === 0}
@@ -641,15 +651,16 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                     id="area_applied"
                     type="text"
                     inputMode="decimal"
-                    value={formData.area_applied || ""}
+                    value={areaInput}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (isValidDecimalInput(val)) {
+                        setAreaInput(val);
                         handleAreaChange(parseDecimalInput(val));
                       }
                     }}
                     className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.area_applied ? "border-destructive" : ""}`}
-                    placeholder="Ex: 10.5"
+                    placeholder="Ex: 10,5"
                   />
                   {errors.area_applied && (
                     <p className="text-xs text-destructive">{errors.area_applied}</p>
