@@ -132,6 +132,25 @@ All colors MUST be HSL.
     }
   }
 
+  /* Larger fonts for bigger screens */
+  @media (min-width: 1024px) {
+    html {
+      font-size: 18px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    html {
+      font-size: 19px;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    html {
+      font-size: 20px;
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
