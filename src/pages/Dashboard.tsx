@@ -198,28 +198,28 @@ export default function Dashboard() {
   }, [applications]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-xs text-muted-foreground">
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
             Visão geral das operações
           </p>
         </div>
         {pendingCount > 0 && (
           <button
             onClick={() => navigate('/applications')}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-warning/10 text-warning text-xs font-medium hover:bg-warning/20 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-full bg-warning/10 text-warning text-sm font-medium hover:bg-warning/20 transition-colors"
           >
-            <Clock className="h-3 w-3" />
+            <Clock className="h-4 w-4" />
             {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
           </button>
         )}
       </div>
 
       {/* Filtros de Período */}
-      <div className="flex gap-1.5 flex-wrap items-center">
+      <div className="flex gap-2 flex-wrap items-center">
         {[
           { value: 1, label: 'Hoje' },
           { value: 7, label: '7d' },
@@ -231,16 +231,16 @@ export default function Dashboard() {
             variant={periodFilter === value ? "default" : "outline"}
             size="sm"
             onClick={() => handlePeriodChange(value as PeriodFilter)}
-            className="h-7 px-2.5 text-xs"
+            className="h-9 px-4 text-sm"
           >
             {label}
           </Button>
         ))}
         
-        <span className="text-xs text-muted-foreground mx-1">ou</span>
+        <span className="text-sm text-muted-foreground mx-1">ou</span>
         
         <Select value={selectedMonth} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-7 w-[100px] text-xs">
+          <SelectTrigger className="h-9 w-[110px] text-sm">
             <SelectValue placeholder="Mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
@@ -254,129 +254,126 @@ export default function Dashboard() {
         </Select>
       </div>
 
-      {/* Stats Grid - Compacto */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-3">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-3">
+          <Card key={stat.label} className="p-4">
             <div className="flex items-start justify-between">
-              <div className={cn("p-1.5 rounded-md bg-muted", stat.color)}>
-                <stat.icon className="h-3.5 w-3.5" />
+              <div className={cn("p-2 rounded-lg bg-muted", stat.color)}>
+                <stat.icon className="h-5 w-5" />
               </div>
-              <span className="text-[10px] font-medium text-success">
+              <span className="text-sm font-medium text-success">
                 {stat.change}
               </span>
             </div>
-            <div className="mt-2">
-              <p className="text-lg font-bold text-foreground leading-none">{stat.value}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
+            <div className="mt-3">
+              <p className="text-2xl font-bold text-foreground leading-none">{stat.value}</p>
+              <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
             </div>
           </Card>
         ))}
       </div>
 
       {/* Info sobre porcentagem */}
-      <p className="text-[10px] text-muted-foreground text-center">
+      <p className="text-xs text-muted-foreground text-center">
         % compara com o período anterior
       </p>
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        {/* Recent Applications */}
-        <Card className="p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">
-              Aplicações Recentes
-            </h2>
-            <button 
-              onClick={() => navigate('/applications')}
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              Ver todas
-            </button>
-          </div>
-          <div className="space-y-2">
-            {loadingApps ? (
-              <p className="text-xs text-muted-foreground">Carregando...</p>
-            ) : recentApplications.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nenhuma aplicação registrada.</p>
-            ) : (
-              recentApplications.map((app, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between border-b border-border pb-2 last:border-0 last:pb-0"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{app.property}</p>
-                  <p className="text-[10px] text-muted-foreground">{app.plotName} • {app.date}</p>
-                </div>
-                <div className="text-right flex-shrink-0 ml-2">
-                  <p className="text-sm font-semibold text-foreground">{app.area}</p>
-                  <span className={cn(
-                    "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                    app.status === 'concluída' ? "bg-success/10 text-success" :
-                    app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
-                    app.status === 'planejada' ? "bg-warning/10 text-warning" :
-                    "bg-muted text-muted-foreground"
-                  )}>
-                    {app.status === 'concluída' ? 'OK' : 
-                     app.status === 'em_andamento' ? 'Andamento' : 
-                     app.status === 'planejada' ? 'Planejada' : 'Cancelada'}
-                  </span>
-                </div>
-              </div>
-              ))
-            )}
-          </div>
-        </Card>
-
-      </div>
-
-      {/* Quick Actions - Compacto */}
-      <Card className="p-3">
-        <h2 className="mb-2 text-sm font-semibold text-foreground">
-          Ações Rápidas
-        </h2>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+      {/* Recent Applications */}
+      <Card className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">
+            Aplicações Recentes
+          </h2>
           <button 
             onClick={() => navigate('/applications')}
-            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+            className="text-sm font-medium text-primary hover:underline"
           >
-            <Droplet className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">Aplicação</span>
+            Ver todas
+          </button>
+        </div>
+        <div className="space-y-3">
+          {loadingApps ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : recentApplications.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma aplicação registrada.</p>
+          ) : (
+            recentApplications.map((app, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-medium text-foreground truncate">{app.property}</p>
+                <p className="text-sm text-muted-foreground">{app.plotName} • {app.date}</p>
+              </div>
+              <div className="text-right flex-shrink-0 ml-3">
+                <p className="text-base font-semibold text-foreground">{app.area}</p>
+                <span className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                  app.status === 'concluída' ? "bg-success/10 text-success" :
+                  app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
+                  app.status === 'planejada' ? "bg-warning/10 text-warning" :
+                  "bg-muted text-muted-foreground"
+                )}>
+                  {app.status === 'concluída' ? 'OK' : 
+                   app.status === 'em_andamento' ? 'Andamento' : 
+                   app.status === 'planejada' ? 'Planejada' : 'Cancelada'}
+                </span>
+              </div>
+            </div>
+            ))
+          )}
+        </div>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card className="p-4">
+        <h2 className="mb-3 text-lg font-semibold text-foreground">
+          Ações Rápidas
+        </h2>
+        <div className="grid grid-cols-3 gap-3">
+          <button 
+            onClick={() => navigate('/applications')}
+            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+          >
+            <Droplet className="h-7 w-7 text-primary" />
+            <span className="text-sm font-medium text-foreground">Aplicação</span>
           </button>
           <button 
             onClick={() => navigate('/calculator')}
-            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Calculator className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">Calda</span>
+            <Calculator className="h-7 w-7 text-primary" />
+            <span className="text-sm font-medium text-foreground">Calda</span>
           </button>
           <button 
             onClick={() => navigate('/reports')}
-            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
           >
-            <TrendingUp className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">Relatórios</span>
+            <TrendingUp className="h-7 w-7 text-primary" />
+            <span className="text-sm font-medium text-foreground">Relatórios</span>
           </button>
           <button 
             onClick={() => navigate('/properties')}
-            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
           >
-            <MapPin className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">Propriedades</span>
+            <MapPin className="h-7 w-7 text-primary" />
+            <span className="text-sm font-medium text-foreground">Propriedades</span>
           </button>
           <button 
             onClick={() => navigate('/products')}
-            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
           >
-            <DollarSign className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">Produtos</span>
+            <DollarSign className="h-7 w-7 text-primary" />
+            <span className="text-sm font-medium text-foreground">Produtos</span>
           </button>
           <button 
             onClick={() => navigate('/recipes')}
-            className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Droplet className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">Receituários</span>
+            <Droplet className="h-7 w-7 text-primary" />
+            <span className="text-sm font-medium text-foreground">Receituários</span>
           </button>
         </div>
       </Card>
