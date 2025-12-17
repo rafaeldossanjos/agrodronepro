@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Sidebar,
   SidebarContent,
@@ -47,6 +48,12 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { setOpenMobile } = useSidebar();
+  const isMobile = useIsMobile();
+
+  const handleNavigation = (href: string) => {
+    navigate(href);
+    setOpenMobile(false);
+  };
 
   return (
     <Sidebar>
@@ -72,17 +79,13 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.name}>
                     <SidebarMenuButton
-                      asChild
                       isActive={isActive}
-                      onClick={() => {
-                        navigate(item.href);
-                        setOpenMobile(false);
-                      }}
+                      size={isMobile ? "lg" : "default"}
+                      onClick={() => handleNavigation(item.href)}
+                      className={isMobile ? "min-h-[52px] text-base" : ""}
                     >
-                      <Link to={item.href}>
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.name}</span>
-                      </Link>
+                      <item.icon className={isMobile ? "h-6 w-6" : "h-5 w-5"} />
+                      <span>{item.name}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -100,7 +103,7 @@ export function AppSidebar() {
           </div>
           <Button 
             variant="outline" 
-            size="sm" 
+            size={isMobile ? "lg" : "sm"}
             className="w-full" 
             onClick={signOut}
           >

@@ -170,17 +170,19 @@ export default function Applications() {
     <Card key={app.id} className="p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base sm:text-lg font-semibold text-foreground">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground">
+                {app.plot_name || "Talhão não informado"}
+              </h3>
+              <StatusBadge app={app} />
+              <Badge variant="outline">
+                {typeConfig[app.application_type as keyof typeof typeConfig]}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
               {app.properties?.name || "Propriedade não informada"}
-            </h3>
-            {app.plot_name && (
-              <span className="text-sm text-muted-foreground">• {app.plot_name}</span>
-            )}
-            <StatusBadge app={app} />
-            <Badge variant="outline">
-              {typeConfig[app.application_type as keyof typeof typeConfig]}
-            </Badge>
+            </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
