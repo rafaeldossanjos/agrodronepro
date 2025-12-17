@@ -356,9 +356,9 @@ export default function Map() {
   // Fullscreen Map View
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 z-[100] bg-background">
-        {/* Map */}
-        <div className="absolute inset-0">
+      <div className="fixed inset-0 z-[100] bg-background overflow-hidden">
+        {/* Map - Full coverage */}
+        <div className="absolute inset-0 z-[100]">
           <MapContainer
             plots={filteredPlots}
             onPlotClick={handlePlotClick}
@@ -371,32 +371,32 @@ export default function Map() {
           />
         </div>
 
-        {/* Close button - more prominent */}
-        <div className="absolute top-4 left-4 z-[110]">
+        {/* Close button - Fixed position with high z-index */}
+        <div className="fixed top-4 left-4 z-[150]">
           <Button
             variant="default"
             size="lg"
             onClick={() => setIsFullscreen(false)}
-            className="gap-2 shadow-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold"
+            className="gap-2 shadow-2xl bg-red-600 hover:bg-red-700 text-white font-bold border-2 border-white"
           >
-            <X className="h-5 w-5" />
+            <X className="h-6 w-6" />
             Fechar Mapa
           </Button>
         </div>
         
-        {/* Stats badge */}
-        <div className="absolute top-4 right-4 z-[110] bg-background/95 backdrop-blur rounded-lg px-4 py-2 shadow-xl border">
-          <span className="text-sm font-semibold">{totalArea.toFixed(1)} ha total</span>
+        {/* Stats badge - Fixed position */}
+        <div className="fixed top-4 right-4 z-[150] bg-background/95 backdrop-blur rounded-lg px-4 py-2 shadow-2xl border-2">
+          <span className="text-base font-bold">{totalArea.toFixed(1)} ha total</span>
         </div>
 
         {/* Property filter - positioned below stats */}
-        <div className="absolute top-16 right-4 z-[110]">
+        <div className="fixed top-16 right-4 z-[150]">
           <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-            <SelectTrigger className="w-[200px] bg-background/95 backdrop-blur shadow-xl border">
+            <SelectTrigger className="w-[200px] bg-background/95 backdrop-blur shadow-2xl border-2">
               <Layers className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar" />
             </SelectTrigger>
-            <SelectContent className="z-[120]">
+            <SelectContent className="z-[200]">
               <SelectItem value="all">Todas as Propriedades</SelectItem>
               <SelectItem value="none">Sem Propriedade</SelectItem>
               {properties.map(prop => (
@@ -408,9 +408,9 @@ export default function Map() {
           </Select>
         </div>
 
-        {/* Floating action buttons - bottom center */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[110]">
-          <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-3 shadow-xl border">
+        {/* Floating action buttons - bottom center - Fixed position */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[150]">
+          <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-3 shadow-2xl border-2">
             {!isDrawing ? (
               <>
                 <Button
@@ -474,10 +474,10 @@ export default function Map() {
           </div>
         </div>
 
-        {/* Drawing instructions */}
+        {/* Drawing instructions - Fixed position */}
         {isDrawing && (
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[110]">
-            <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2 shadow-xl text-sm">
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[150]">
+            <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2 shadow-2xl text-base font-medium">
               <p className="flex items-center gap-2">
                 <MousePointer className="h-4 w-4" />
                 Toque para adicionar pontos • Duplo toque para finalizar
@@ -486,8 +486,8 @@ export default function Map() {
           </div>
         )}
 
-        {/* Legend */}
-        <div className="absolute bottom-24 left-4 z-[110]">
+        {/* Legend - Fixed position */}
+        <div className="fixed bottom-24 left-4 z-[150]">
           <MapLegend />
         </div>
 
@@ -508,7 +508,7 @@ export default function Map() {
         />
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent className="z-[130]">
+          <AlertDialogContent className="z-[10000]">
             <AlertDialogHeader>
               <AlertDialogTitle>Excluir Talhão</AlertDialogTitle>
               <AlertDialogDescription>
@@ -658,71 +658,75 @@ export default function Map() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-border">
-            {filteredPlots.map(plot => (
-              <div
-                key={plot.id}
-                className="p-4 hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  {isSelectMode && (
-                    <Checkbox
-                      checked={selectedPlotIds.has(plot.id)}
-                      onCheckedChange={() => togglePlotSelection(plot.id)}
-                      className="h-5 w-5"
+            {filteredPlots.map(plot => {
+              const propertyName = properties.find(p => p.id === plot.property_id)?.name;
+              return (
+                <div
+                  key={plot.id}
+                  className="p-4 hover:bg-accent/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {isSelectMode && (
+                      <Checkbox
+                        checked={selectedPlotIds.has(plot.id)}
+                        onCheckedChange={() => togglePlotSelection(plot.id)}
+                        className="h-5 w-5"
+                      />
+                    )}
+                    <div
+                      className="w-4 h-4 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: plot.color }}
                     />
-                  )}
-                  <div
-                    className="w-4 h-4 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: plot.color }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{plot.name}</p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {plot.area_hectares && (
-                        <span className="text-sm font-semibold text-primary">
-                          {Number(plot.area_hectares).toFixed(2)} ha
-                        </span>
+                    <div className="flex-1 min-w-0">
+                      {/* Property name above plot name */}
+                      {propertyName && (
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                          {propertyName}
+                        </p>
                       )}
-                      <Badge variant="secondary" className={`text-xs ${statusColors[plot.displayStatus] || ''}`}>
-                        {statusLabels[plot.displayStatus] || plot.displayStatus}
-                      </Badge>
-                      {plot.property_id && (
-                        <span className="text-xs text-muted-foreground">
-                          {properties.find(p => p.id === plot.property_id)?.name}
-                        </span>
-                      )}
+                      <p className="font-semibold text-lg truncate">{plot.name}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {plot.area_hectares && (
+                          <span className="text-base font-bold text-primary">
+                            {Number(plot.area_hectares).toFixed(2)} ha
+                          </span>
+                        )}
+                        <Badge variant="secondary" className={`text-xs ${statusColors[plot.displayStatus] || ''}`}>
+                          {statusLabels[plot.displayStatus] || plot.displayStatus}
+                        </Badge>
+                      </div>
                     </div>
+                    {!isSelectMode && (
+                      <div className="flex gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-12 w-12"
+                          onClick={() => {
+                            setSelectedPlot(plot);
+                            setNewGeometry(null);
+                            setPlotDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-12 w-12 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            setPlotToDelete(plot);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  {!isSelectMode && (
-                    <div className="flex gap-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-10 w-10"
-                        onClick={() => {
-                          setSelectedPlot(plot);
-                          setNewGeometry(null);
-                          setPlotDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => {
-                          setPlotToDelete(plot);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {filteredPlots.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">
                 <MapIcon className="h-12 w-12 mx-auto mb-3 opacity-20" />
