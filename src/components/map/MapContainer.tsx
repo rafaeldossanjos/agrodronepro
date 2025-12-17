@@ -23,6 +23,11 @@ interface ApplicationProduct {
   total_amount: number;
 }
 
+interface PlotApplicationInfo {
+  products: ApplicationProduct[];
+  totalAreaApplied: number;
+}
+
 interface MapContainerProps {
   plots: PlotWithStatus[];
   onPlotClick?: (plot: Plot) => void;
@@ -31,7 +36,7 @@ interface MapContainerProps {
   selectedPlotId?: string | null;
   center?: [number, number];
   zoom?: number;
-  plotApplicationProducts?: Map<string, ApplicationProduct[]>;
+  plotApplicationInfo?: Map<string, PlotApplicationInfo>;
   onPointsChange?: (count: number) => void;
   undoTrigger?: number;
   editingPlotGeometry?: PlotGeometry;
@@ -66,7 +71,7 @@ export function MapContainer({
   selectedPlotId,
   center = [-15.7801, -47.9292],
   zoom = 5,
-  plotApplicationProducts,
+  plotApplicationInfo,
   onPointsChange,
   undoTrigger,
   editingPlotGeometry,
@@ -620,25 +625,30 @@ export function MapContainer({
       }).addTo(map);
       labelsRef.current.set(plot.id, labelMarker);
 
-      const products = plotApplicationProducts?.get(plot.id) || [];
+      const appInfo = plotApplicationInfo?.get(plot.id);
+      const products = appInfo?.products || [];
+      const totalAreaApplied = appInfo?.totalAreaApplied || 0;
+      const currentFontSize = getFontSizeForZoom(map.getZoom());
+      
       let popupContent = `
-        <div style="min-width: 180px; padding: 8px;">
-          <strong style="font-size: 14px;">${plot.name}</strong><br/>
-          ${plot.area_hectares ? `<span style="color: #666;">Área: ${Number(plot.area_hectares).toFixed(2)} ha</span><br/>` : ''}
+        <div style="min-width: 200px; padding: 8px; font-size: ${currentFontSize}px;">
+          <strong style="font-size: ${currentFontSize + 2}px;">${plot.name}</strong><br/>
+          ${plot.area_hectares ? `<span style="color: #666;">Área do Talhão: <b>${Number(plot.area_hectares).toFixed(2)} ha</b></span><br/>` : ''}
+          ${totalAreaApplied > 0 ? `<span style="color: #22C55E;">Área Aplicada: <b>${Number(totalAreaApplied).toFixed(2)} ha</b></span><br/>` : '<span style="color: #999;">Área Aplicada: 0 ha</span><br/>'}
       `;
       
       if (products.length > 0) {
         popupContent += `
           <hr style="margin: 8px 0; border: 0; border-top: 1px solid #ddd;"/>
           <div style="font-weight: 500; margin-bottom: 4px;">Produtos Aplicados:</div>
-          <ul style="margin: 0; padding-left: 16px; font-size: 12px;">
+          <ul style="margin: 0; padding-left: 16px; font-size: ${currentFontSize - 1}px;">
         `;
         products.forEach(p => {
           popupContent += `<li>${p.product_name}: ${Number(p.dose_per_ha).toFixed(2)} /ha (${Number(p.total_amount).toFixed(2)} total)</li>`;
         });
         popupContent += `</ul>`;
       } else {
-        popupContent += `<span style="font-size: 12px; color: #999;">Nenhum produto aplicado</span>`;
+        popupContent += `<span style="font-size: ${currentFontSize - 1}px; color: #999;">Nenhum produto aplicado</span>`;
       }
       
       popupContent += `</div>`;
@@ -711,7 +721,7 @@ export function MapContainer({
     return () => {
       map.off('click', handleMapClick);
     };
-  }, [plots, selectedPlotId, isDrawing, onPlotClick, plotApplicationProducts]);
+  }, [plots, selectedPlotId, isDrawing, onPlotClick, plotApplicationInfo]);
 
   return (
     <div 
