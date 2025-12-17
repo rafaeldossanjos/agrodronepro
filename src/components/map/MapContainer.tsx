@@ -34,6 +34,7 @@ interface MapContainerProps {
   plotApplicationProducts?: Map<string, ApplicationProduct[]>;
   onPointsChange?: (count: number) => void;
   undoTrigger?: number;
+  editingPlotGeometry?: PlotGeometry;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -68,6 +69,7 @@ export function MapContainer({
   plotApplicationProducts,
   onPointsChange,
   undoTrigger,
+  editingPlotGeometry,
 }: MapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -449,6 +451,46 @@ export function MapContainer({
     if (isDrawing) {
       map.getContainer().style.cursor = 'crosshair';
 
+      // Initialize with existing geometry if editing
+      if (editingPlotGeometry?.coordinates) {
+        const coords = editingPlotGeometry.coordinates[0];
+        coords.slice(0, -1).forEach((coord, index) => {
+          const latlng = L.latLng(coord[1], coord[0]);
+          drawingPointsRef.current.push(latlng);
+          
+          const marker = L.marker(latlng, {
+            icon: createDraggableIcon(index === 0),
+            draggable: true,
+            autoPan: true,
+          }).addTo(map);
+
+          marker.on('mousedown', (e) => {
+            L.DomEvent.stopPropagation(e as any);
+          });
+
+          marker.on('drag', () => {
+            const newPos = marker.getLatLng();
+            drawingPointsRef.current[index] = newPos;
+            updatePolygon();
+          });
+
+          marker.on('dragend', () => {
+            updatePolygon();
+          });
+
+          markersRef.current.push(marker);
+        });
+        
+        onPointsChangeRef.current?.(drawingPointsRef.current.length);
+        updatePolygon();
+        
+        // Fit to editing polygon
+        if (drawingPointsRef.current.length > 0) {
+          const bounds = L.latLngBounds(drawingPointsRef.current);
+          map.fitBounds(bounds, { padding: [80, 80] });
+        }
+      }
+
       const handleClick = (e: L.LeafletMouseEvent) => {
         if ((e.originalEvent.target as HTMLElement)?.closest('.drawing-point-marker')) {
           return;
@@ -518,7 +560,7 @@ export function MapContainer({
       map.getContainer().style.cursor = '';
       clearDrawing();
     }
-  }, [isDrawing]);
+  }, [isDrawing, editingPlotGeometry]);
 
   // Render plots
   useEffect(() => {
