@@ -55,12 +55,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 // Calculate font size based on zoom level
 const getFontSizeForZoom = (zoom: number): number => {
-  if (zoom >= 18) return 18;
-  if (zoom >= 16) return 16;
-  if (zoom >= 14) return 14;
-  if (zoom >= 12) return 12;
-  if (zoom >= 10) return 11;
-  return 10;
+  if (zoom >= 18) return 22;
+  if (zoom >= 16) return 20;
+  if (zoom >= 14) return 18;
+  if (zoom >= 12) return 16;
+  if (zoom >= 10) return 14;
+  return 13;
 };
 
 export function MapContainer({
