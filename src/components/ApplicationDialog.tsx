@@ -274,14 +274,14 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
   // Show all plots when a property is selected - user can link any plot to any property
   const availablePlots = useMemo(() => {
     if (!formData.property_id) return [];
-    // Show plots linked to selected property first, then unlinked plots
-    return plots.sort((a, b) => {
+    // Use spread to avoid mutating original array
+    return [...plots].sort((a, b) => {
       const aLinked = a.property_id === formData.property_id ? 0 : 1;
       const bLinked = b.property_id === formData.property_id ? 0 : 1;
       if (aLinked !== bLinked) return aLinked - bLinked;
       return a.name.localeCompare(b.name);
     });
-  }, [plots, formData.property_id]);
+  }, [plots, formData.property_id, formData.plot_id]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
