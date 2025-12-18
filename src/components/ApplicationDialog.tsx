@@ -216,7 +216,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
   const { properties } = useProperties();
   const { products } = useProducts();
   const { recipes } = useRecipes();
-  const { plots } = usePlots();
+  const { plots, isLoading: plotsLoading } = usePlots();
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>("");
 
   const loadRecipe = (recipeId: string) => {
@@ -271,10 +271,16 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     notes: "",
   });
 
-  // Filter plots by selected property - show plots linked to property OR unlinked plots
+  // Show all plots when a property is selected - user can link any plot to any property
   const availablePlots = useMemo(() => {
     if (!formData.property_id) return [];
-    return plots.filter(p => p.property_id === formData.property_id || p.property_id === null);
+    // Show plots linked to selected property first, then unlinked plots
+    return plots.sort((a, b) => {
+      const aLinked = a.property_id === formData.property_id ? 0 : 1;
+      const bLinked = b.property_id === formData.property_id ? 0 : 1;
+      if (aLinked !== bLinked) return aLinked - bLinked;
+      return a.name.localeCompare(b.name);
+    });
   }, [plots, formData.property_id]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -536,13 +542,19 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       disabled={!formData.property_id}
                     >
                       <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm flex-1">
-                        <SelectValue placeholder={!formData.property_id ? "Selecione a propriedade primeiro" : "Selecione um talhão"} />
+                        <SelectValue placeholder={
+                          !formData.property_id 
+                            ? "Selecione a propriedade primeiro" 
+                            : plotsLoading 
+                              ? "Carregando talhões..." 
+                              : "Selecione um talhão"
+                        } />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 overflow-y-auto">
                         <SelectItem value="none">Nenhum (digitar manualmente)</SelectItem>
                         {availablePlots.map((plot) => (
                           <SelectItem key={plot.id} value={plot.id} className="text-xs sm:text-sm">
-                            {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
+                            {plot.name} {plot.area_hectares ? `(${plot.area_hectares.toFixed(2)} ha)` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -563,9 +575,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       </Button>
                     )}
                   </div>
-                  {availablePlots.length === 0 && formData.property_id && (
+                  {availablePlots.length === 0 && formData.property_id && !plotsLoading && (
                     <p className="text-xs text-muted-foreground">
-                      Nenhum talhão cadastrado para esta propriedade. <button type="button" className="text-primary underline" onClick={() => { onOpenChange(false); navigate('/map'); }}>Criar talhão no mapa</button>
+                      Nenhum talhão cadastrado. <button type="button" className="text-primary underline" onClick={() => { onOpenChange(false); navigate('/map'); }}>Criar talhão no mapa</button>
                     </p>
                   )}
                 </div>
