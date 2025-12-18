@@ -525,25 +525,13 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         const selectedPlot = availablePlots.find(p => p.id === value);
                         const newPlotId = value === "none" ? null : value;
                         const newPlotName = selectedPlot?.name || (value === "none" ? "" : formData.plot_name);
-                        const newArea = selectedPlot?.area_hectares || formData.area_applied;
                         
-                        // Recalculate products with new area and include plot updates
-                        if (selectedPlot?.area_hectares) {
-                          handleAreaChange(selectedPlot.area_hectares, {
-                            plot_id: newPlotId,
-                            plot_name: newPlotName,
-                          }, true);
-                        } else {
-                          setFormData(prev => ({ 
-                            ...prev, 
-                            plot_id: newPlotId,
-                            plot_name: newPlotName,
-                            area_applied: newArea,
-                          }));
-                          if (newArea > 0) {
-                            setAreaInput(newArea.toString());
-                          }
-                        }
+                        // Only update plot_id and plot_name, do NOT auto-fill area
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          plot_id: newPlotId,
+                          plot_name: newPlotName,
+                        }));
                       }}
                       disabled={!formData.property_id}
                     >
