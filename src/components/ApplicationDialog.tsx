@@ -496,12 +496,18 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   <Label htmlFor="property_id" className="text-xs sm:text-sm">Propriedade *</Label>
                   <Select
                     value={formData.property_id}
-                    onValueChange={(value) => setFormData({ 
-                      ...formData, 
-                      property_id: value,
-                      plot_id: null, // Clear plot when property changes
-                      plot_name: "",
-                    })}
+                    onValueChange={(value) =>
+                      setFormData((prev) => {
+                        // Avoid clearing plot on initial controlled value set
+                        if (prev.property_id === value) return prev;
+                        return {
+                          ...prev,
+                          property_id: value,
+                          plot_id: null, // Clear plot when property actually changes
+                          plot_name: "",
+                        };
+                      })
+                    }
                   >
                     <SelectTrigger className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.property_id ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Selecione" />
