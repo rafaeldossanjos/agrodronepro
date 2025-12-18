@@ -271,10 +271,10 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     notes: "",
   });
 
-  // Filter plots by selected property
+  // Filter plots by selected property - show plots linked to property OR unlinked plots
   const availablePlots = useMemo(() => {
     if (!formData.property_id) return [];
-    return plots.filter(p => p.property_id === formData.property_id || !p.property_id);
+    return plots.filter(p => p.property_id === formData.property_id || p.property_id === null);
   }, [plots, formData.property_id]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -545,7 +545,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           }
                         }
                       }}
-                      disabled={!formData.property_id && availablePlots.length === 0}
+                      disabled={!formData.property_id}
                     >
                       <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm flex-1">
                         <SelectValue placeholder={!formData.property_id ? "Selecione a propriedade primeiro" : "Selecione um talhão"} />
