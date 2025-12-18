@@ -57,6 +57,7 @@ export default function Applications() {
       id: app.id, 
       status: newStatus,
       property_id: app.property_id,
+      plot_id: app.plot_id || null,
       plot_name: app.plot_name,
       application_date: app.application_date,
       application_type: app.application_type,
