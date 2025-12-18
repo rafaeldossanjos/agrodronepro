@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const LEGEND_ITEMS = [
   { color: '#22C55E', label: 'Concluída' },
   { color: '#F59E0B', label: 'Em Andamento' },
-  { color: '#3B82F6', label: 'Planejada' },
-  { color: '#6B7280', label: 'Cancelada' },
+  { color: '#6B7280', label: 'Planejada' },
+  { color: '#EF4444', label: 'Cancelada' },
   { color: '#9CA3AF', label: 'Sem Vínculo' },
 ];
 
