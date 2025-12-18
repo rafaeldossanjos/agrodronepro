@@ -39,8 +39,8 @@ interface PlotWithStatus extends Plot {
 const STATUS_COLORS: Record<string, string> = {
   'concluída': '#22C55E',
   'em_andamento': '#F59E0B',
-  'planejada': '#3B82F6',
-  'cancelada': '#6B7280',
+  'planejada': '#6B7280',
+  'cancelada': '#EF4444',
   'sem_vinculo': '#9CA3AF',
 };
 
@@ -464,7 +464,7 @@ export default function Map() {
           />
 
           {/* Floating action buttons - Bottom center */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 max-w-[95vw]">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[500] max-w-[95vw]">
             <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-2 shadow-xl border">
               {!isDrawing && !isEditingShape ? (
                 <>
@@ -532,7 +532,7 @@ export default function Map() {
 
           {/* Drawing instructions */}
           {(isDrawing || isEditingShape) && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500]">
               <div className="bg-primary text-primary-foreground rounded-lg px-3 py-1.5 shadow-lg text-sm font-medium">
                 <p className="flex items-center gap-1">
                   <MousePointer className="h-3 w-3" />
@@ -543,7 +543,7 @@ export default function Map() {
           )}
 
           {/* Legend - Bottom left */}
-          <div className="absolute bottom-20 left-4 z-10">
+          <div className="absolute bottom-20 left-4 z-[500]">
             <MapLegend />
           </div>
         </div>

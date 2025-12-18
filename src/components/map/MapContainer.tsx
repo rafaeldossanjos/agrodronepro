@@ -45,12 +45,12 @@ interface MapContainerProps {
 const STATUS_COLORS: Record<string, string> = {
   'concluída': '#22C55E',
   'em_andamento': '#F59E0B',
-  'planejada': '#3B82F6',
-  'cancelada': '#6B7280',
+  'planejada': '#6B7280',
+  'cancelada': '#EF4444',
   'completed': '#22C55E',
   'in_progress': '#F59E0B',
-  'pending': '#EF4444',
-  'none': '#3B82F6',
+  'pending': '#6B7280',
+  'none': '#6B7280',
 };
 
 // Calculate font size based on zoom level
