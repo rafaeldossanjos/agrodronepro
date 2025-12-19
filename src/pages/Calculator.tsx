@@ -275,16 +275,15 @@ export default function Calculator() {
     });
 
     // Calcular o volume de produtos em LITROS para subtrair da água
-    // Converter mL para L (dividir por 1000), g e kg são sólidos (não subtrair do volume de água)
+    // Converter mL para L (dividir por 1000). Produtos sólidos (kg/g) não subtraem do volume de água.
     const totalProductVolumeInLiters = productPerTank.reduce((sum, p) => {
-      const unit = p.unit.toLowerCase();
-      // Só subtrair do volume de água se for líquido (L ou mL)
-      if (unit.includes('l/ha') || unit === 'l') {
-        return sum + p.quantityPerTank;
-      } else if (unit.includes('ml/ha') || unit === 'ml') {
-        return sum + (p.quantityPerTank / 1000); // Converter mL para L
-      }
-      // Sólidos (kg, g) não ocupam volume de água significativo
+      const normalizedUnit = p.unit.trim().toLowerCase();
+      const baseUnit = normalizedUnit.replace("/ha", "");
+
+      // Importante: "ml/ha" contém "l/ha"; por isso usamos baseUnit exato.
+      if (baseUnit === "ml") return sum + p.quantityPerTank / 1000;
+      if (baseUnit === "l") return sum + p.quantityPerTank;
+
       return sum;
     }, 0);
 
