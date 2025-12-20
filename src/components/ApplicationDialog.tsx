@@ -497,16 +497,10 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   <Select
                     value={formData.property_id}
                     onValueChange={(value) =>
-                      setFormData((prev) => {
-                        // Avoid clearing plot on initial controlled value set
-                        if (prev.property_id === value) return prev;
-                        return {
-                          ...prev,
-                          property_id: value,
-                          plot_id: null, // Clear plot when property actually changes
-                          plot_name: "",
-                        };
-                      })
+                      setFormData((prev) => ({
+                        ...prev,
+                        property_id: value,
+                      }))
                     }
                   >
                     <SelectTrigger className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.property_id ? "border-destructive" : ""}`}>

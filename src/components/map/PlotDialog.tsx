@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plot, PlotGeometry } from '@/hooks/usePlots';
+import { useApplications } from '@/hooks/useApplications';
 import { useProperties } from '@/hooks/useProperties';
 import { normalizeDecimalInput } from '@/lib/utils';
 
@@ -35,7 +36,10 @@ export function PlotDialog({
   onSave 
 }: PlotDialogProps) {
   const { properties } = useProperties();
+  const { applications, updateApplication } = useApplications();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLinkingApplication, setIsLinkingApplication] = useState(false);
+  const [linkApplicationId, setLinkApplicationId] = useState<string>('none');
   const [formData, setFormData] = useState({
     name: '',
     property_id: '',
@@ -60,6 +64,45 @@ export function PlotDialog({
       });
     }
   }, [plot, calculatedArea, open]);
+
+  const linkedApplications = useMemo(() => {
+    if (!plot?.id) return [];
+    return applications
+      .filter(app => app.plot_id === plot.id)
+      .sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime());
+  }, [applications, plot?.id]);
+
+  const linkableApplications = useMemo(() => {
+    if (!plot) return [];
+    return applications
+      .filter(app => (plot.property_id ? app.property_id === plot.property_id : true))
+      .sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime());
+  }, [applications, plot?.property_id]);
+
+  const updateApplicationPlotLink = async (applicationId: string, newPlotId: string | null) => {
+    if (!plot) return;
+    const app = applications.find(a => a.id === applicationId);
+    if (!app) return;
+
+    setIsLinkingApplication(true);
+    try {
+      await updateApplication.mutateAsync({
+        id: app.id,
+        property_id: app.property_id,
+        plot_id: newPlotId,
+        plot_name: newPlotId ? plot.name : '',
+        application_date: app.application_date,
+        application_type: app.application_type,
+        status: app.status,
+        area_applied: app.area_applied,
+        total_cost: app.total_cost,
+        flight_time_minutes: app.flight_time_minutes,
+        notes: app.notes,
+      });
+    } finally {
+      setIsLinkingApplication(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +180,66 @@ export function PlotDialog({
           <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
             <p>O status do talhão é definido automaticamente pelas aplicações vinculadas.</p>
           </div>
+
+          {plot && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label>Vincular aplicação a este talhão</Label>
+                <Select
+                  value={linkApplicationId}
+                  onValueChange={async (value) => {
+                    setLinkApplicationId(value);
+                    if (value === 'none') return;
+                    await updateApplicationPlotLink(value, plot.id);
+                    setLinkApplicationId('none');
+                  }}
+                  disabled={isLinkingApplication}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma aplicação" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[10001]">
+                    <SelectItem value="none">Selecionar...</SelectItem>
+                    {linkableApplications.map((app) => (
+                      <SelectItem key={app.id} value={app.id}>
+                        {new Date(app.application_date).toLocaleDateString('pt-BR')} • {app.application_type} • {app.status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Isso apenas vincula a aplicação ao talhão (não altera área nem produtos).
+                </p>
+              </div>
+
+              {linkedApplications.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Aplicações já vinculadas</Label>
+                  <div className="space-y-2">
+                    {linkedApplications.map((app) => (
+                      <div key={app.id} className="flex items-center justify-between gap-2 rounded-md border p-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {new Date(app.application_date).toLocaleDateString('pt-BR')} • {app.application_type}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Status: {app.status}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={isLinkingApplication}
+                          onClick={() => updateApplicationPlotLink(app.id, null)}
+                        >
+                          Desvincular
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="notes">Observações</Label>
