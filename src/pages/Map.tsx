@@ -18,7 +18,8 @@ import {
   Layers,
   Link,
   CheckSquare,
-  Move
+  Move,
+  Filter
 } from 'lucide-react';
 import { MapContainer } from '@/components/map/MapContainer';
 import { PlotDialog } from '@/components/map/PlotDialog';
@@ -58,6 +59,7 @@ export default function Map() {
   const [newGeometry, setNewGeometry] = useState<PlotGeometry | null>(null);
   const [calculatedArea, setCalculatedArea] = useState<number>(0);
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [drawingPointCount, setDrawingPointCount] = useState(0);
   const [undoTrigger, setUndoTrigger] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -142,12 +144,24 @@ export default function Map() {
     return infoMap;
   }, [applications]);
 
-  // Filter plots by property
+  // Filter plots by property and status
   const filteredPlots = useMemo(() => {
-    if (propertyFilter === 'all') return plotsWithStatus;
-    if (propertyFilter === 'none') return plotsWithStatus.filter(p => !p.property_id);
-    return plotsWithStatus.filter(p => p.property_id === propertyFilter);
-  }, [plotsWithStatus, propertyFilter]);
+    let result = plotsWithStatus;
+    
+    // Property filter
+    if (propertyFilter === 'none') {
+      result = result.filter(p => !p.property_id);
+    } else if (propertyFilter !== 'all') {
+      result = result.filter(p => p.property_id === propertyFilter);
+    }
+    
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(p => p.displayStatus === statusFilter);
+    }
+    
+    return result;
+  }, [plotsWithStatus, propertyFilter, statusFilter]);
 
   const handleDrawComplete = (geometry: PlotGeometry, area: number) => {
     setNewGeometry(geometry);
@@ -414,22 +428,39 @@ export default function Map() {
             )}
           </div>
 
-          {/* Center - Property filter */}
-          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-            <SelectTrigger className="w-[140px] h-9 text-sm">
-              <Layers className="h-4 w-4 mr-1" />
-              <SelectValue placeholder="Filtrar" />
-            </SelectTrigger>
-            <SelectContent className="z-[10000]">
-              <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="none">Sem Propriedade</SelectItem>
-              {properties.map(prop => (
-                <SelectItem key={prop.id} value={prop.id}>
-                  {prop.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Center - Filters */}
+          <div className="flex items-center gap-2">
+            <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+              <SelectTrigger className="w-[130px] h-9 text-sm">
+                <Layers className="h-4 w-4 mr-1" />
+                <SelectValue placeholder="Propriedade" />
+              </SelectTrigger>
+              <SelectContent className="z-[10000]">
+                <SelectItem value="all">Todas Prop.</SelectItem>
+                <SelectItem value="none">Sem Propriedade</SelectItem>
+                {properties.map(prop => (
+                  <SelectItem key={prop.id} value={prop.id}>
+                    {prop.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[130px] h-9 text-sm">
+                <Filter className="h-4 w-4 mr-1" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="z-[10000]">
+                <SelectItem value="all">Todos Status</SelectItem>
+                <SelectItem value="concluída">Concluída</SelectItem>
+                <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                <SelectItem value="planejada">Planejada</SelectItem>
+                <SelectItem value="cancelada">Cancelada</SelectItem>
+                <SelectItem value="sem_vinculo">Sem Vínculo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Right side - Close button */}
           <Button
@@ -687,23 +718,41 @@ export default function Map() {
         </div>
       )}
 
-      {/* Property Filter */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Filtrar por Propriedade</label>
-        <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Todas as propriedades" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as Propriedades</SelectItem>
-            <SelectItem value="none">Sem Propriedade</SelectItem>
-            {properties.map(prop => (
-              <SelectItem key={prop.id} value={prop.id}>
-                {prop.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Filters */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Propriedade</label>
+          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Todas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Propriedades</SelectItem>
+              <SelectItem value="none">Sem Propriedade</SelectItem>
+              {properties.map(prop => (
+                <SelectItem key={prop.id} value={prop.id}>
+                  {prop.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Status</label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="concluída">Concluída</SelectItem>
+              <SelectItem value="em_andamento">Em Andamento</SelectItem>
+              <SelectItem value="planejada">Planejada</SelectItem>
+              <SelectItem value="cancelada">Cancelada</SelectItem>
+              <SelectItem value="sem_vinculo">Sem Vínculo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Plot List */}
