@@ -3,6 +3,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Plot, PlotGeometry } from '@/hooks/usePlots';
 import { calculatePolygonArea } from '@/lib/kmlParser';
+import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 
 // Fix Leaflet default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -170,80 +173,82 @@ export function MapContainer({
     ">${area.toFixed(2)} ha</div>`;
   };
 
-  // Function to locate user - using useCallback for stable reference
-  const locateUser = useCallback(() => {
-    console.log('🎯 locateUser chamado');
+  // Function to locate user (web + Capacitor)
+  const locateUser = useCallback(async () => {
     const map = mapInstanceRef.current;
-    
+
     if (!map) {
       console.warn('❌ Mapa não está pronto ainda');
       return;
     }
-    
-    console.log('✅ Mapa encontrado, iniciando geolocalização...');
+
+    if (isLocating) return;
+
     setIsLocating(true);
 
-    if ('geolocation' in navigator) {
-      console.log('📍 Geolocation disponível, solicitando posição...');
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log('✅ Posição obtida:', position.coords);
-          const { latitude, longitude } = position.coords;
-          const latlng = L.latLng(latitude, longitude);
+    try {
+      const isNative = Capacitor.isNativePlatform();
 
-          const currentMap = mapInstanceRef.current;
-          if (!currentMap) {
-            console.warn('❌ Mapa removido durante geolocalização');
-            setIsLocating(false);
-            return;
-          }
+      const position = isNative
+        ? await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 20000 })
+        : await new Promise<GeolocationPosition>((resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 20000,
+              maximumAge: 30000,
+            })
+          );
 
-          if (userMarkerRef.current) {
-            currentMap.removeLayer(userMarkerRef.current);
-          }
+      const coords = isNative
+        ? (position as any).coords
+        : (position as GeolocationPosition).coords;
 
-          const userIcon = L.divIcon({
-            className: 'user-location-marker',
-            html: `<div style="
-              width: 20px;
-              height: 20px;
-              background: #3B82F6;
-              border: 3px solid white;
-              border-radius: 50%;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            "></div>`,
-            iconSize: [20, 20],
-            iconAnchor: [10, 10],
-          });
+      const { latitude, longitude } = coords;
+      const latlng = L.latLng(latitude, longitude);
 
-          userMarkerRef.current = L.marker(latlng, { icon: userIcon })
-            .addTo(currentMap)
-            .bindPopup('Sua localização');
+      const currentMap = mapInstanceRef.current;
+      if (!currentMap) return;
 
-          if (polygonsRef.current.size === 0) {
-            console.log('🗺️ Voando para localização...');
-            currentMap.flyTo(latlng, 15, { duration: 1.5 });
-          } else {
-            console.log('🗺️ Talhões existentes, mantendo visualização');
-          }
+      if (userMarkerRef.current) {
+        currentMap.removeLayer(userMarkerRef.current);
+      }
 
-          setIsLocating(false);
-        },
-        (error) => {
-          console.error('❌ Erro ao obter localização:', error.code, error.message);
-          setIsLocating(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 20000,
-          maximumAge: 30000,
-        }
-      );
-    } else {
-      console.warn('❌ Geolocalização não suportada pelo navegador');
+      const userIcon = L.divIcon({
+        className: 'user-location-marker',
+        html: `<div style="
+          width: 20px;
+          height: 20px;
+          background: #3B82F6;
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        "></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      });
+
+      userMarkerRef.current = L.marker(latlng, { icon: userIcon }).addTo(currentMap);
+
+      currentMap.flyTo(latlng, Math.max(currentMap.getZoom(), 16), { duration: 1.2 });
+    } catch (error: any) {
+      const code = error?.code;
+      const msg = error?.message || 'Não foi possível obter sua localização';
+
+      console.error('❌ Erro ao obter localização:', code, msg);
+
+      if (code === 1) {
+        toast.error('Permissão de localização negada. Ative nas configurações do navegador/app.');
+      } else if (code === 2) {
+        toast.error('Não foi possível determinar sua localização (sinal fraco).');
+      } else if (code === 3) {
+        toast.error('Tempo esgotado ao obter localização. Tente novamente.');
+      } else {
+        toast.error(msg);
+      }
+    } finally {
       setIsLocating(false);
     }
-  }, []);
+  }, [isLocating]);
 
   // Store locateUser in ref for use in Leaflet control
   const locateUserRef = useRef(locateUser);
@@ -290,11 +295,17 @@ export function MapContainer({
 
     // Custom locate control
     const LocateControl = L.Control.extend({
-      onAdd: function() {
+      onAdd: function () {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         const button = L.DomUtil.create('a', '', container);
+
+        // Prevent map drag/zoom when tapping the control (especially on mobile)
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableScrollPropagation(container);
+
         button.href = '#';
         button.title = 'Minha Localização';
+        button.setAttribute('aria-label', 'Minha Localização');
         button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:6px"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>`;
         button.style.display = 'flex';
         button.style.alignItems = 'center';
@@ -303,12 +314,13 @@ export function MapContainer({
         button.style.height = '30px';
         button.style.backgroundColor = 'white';
         button.style.cursor = 'pointer';
-        
-        L.DomEvent.on(button, 'click', function(e) {
+
+        L.DomEvent.on(button, 'click', function (e) {
           L.DomEvent.preventDefault(e);
+          L.DomEvent.stopPropagation(e);
           locateUserRef.current();
         });
-        
+
         return container;
       },
     });
@@ -317,10 +329,7 @@ export function MapContainer({
 
     mapInstanceRef.current = map;
     
-    // Initial locate after map is ready
-    setTimeout(() => {
-      locateUserRef.current();
-    }, 500);
+    // NOTE: do not auto-trigger geolocation on mount (some browsers block without user gesture)
 
     return () => {
       map.remove();

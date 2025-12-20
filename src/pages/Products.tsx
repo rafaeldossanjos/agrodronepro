@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Package, Edit, Trash2 } from "lucide-react";
+import { Search, Fuel, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useProducts } from "@/hooks/useProducts";
 import { ProductDialog } from "@/components/ProductDialog";
@@ -69,7 +69,7 @@ export default function Products() {
       {products.length === 0 ? (
         <Card className="p-12">
           <div className="text-center">
-            <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <Fuel className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
               Nenhum produto cadastrado
             </h3>
@@ -98,7 +98,7 @@ export default function Products() {
               <div className="mb-4 flex items-start justify-between">
                 <div className="flex gap-3 flex-1">
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-                    <Package className="h-6 w-6 text-primary" />
+                    <Fuel className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-foreground truncate">
