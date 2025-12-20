@@ -673,23 +673,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="flight_time_minutes" className="text-xs sm:text-sm">Tempo de Voo (min)</Label>
-                  <Input
-                    id="flight_time_minutes"
-                    type="text"
-                    inputMode="numeric"
-                    value={formData.flight_time_minutes || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "" || /^\d*$/.test(val)) {
-                        setFormData({ ...formData, flight_time_minutes: val ? parseInt(val) : null });
-                      }
-                    }}
-                    className="h-9 sm:h-10 text-xs sm:text-sm"
-                    placeholder="Ex: 45"
-                  />
-                </div>
               </div>
             </div>
 

@@ -37,7 +37,7 @@ export default function Reports() {
   
   // Filtros existentes
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("30");
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
@@ -51,14 +51,28 @@ export default function Reports() {
   const [showProductsDropdown, setShowProductsDropdown] = useState(false);
   
   // Opções de PDF
-  const [pdfIncludeNotes, setPdfIncludeNotes] = useState(true);
-  const [pdfIncludePlotHistory, setPdfIncludePlotHistory] = useState(true);
-  const [pdfIncludeExecutiveSummary, setPdfIncludeExecutiveSummary] = useState(true);
+  const [pdfIncludeNotes, setPdfIncludeNotes] = useState(false);
+  const [pdfIncludePlotHistory, setPdfIncludePlotHistory] = useState(false);
+  const [pdfIncludeExecutiveSummary, setPdfIncludeExecutiveSummary] = useState(false);
+  const [pdfIncludeProductCosts, setPdfIncludeProductCosts] = useState(false);
   const [pdfCustomFooter, setPdfCustomFooter] = useState("");
   
   // Comparativo de períodos
   const [showComparison, setShowComparison] = useState(false);
   const [comparisonPeriod, setComparisonPeriod] = useState<string>("previous");
+
+  // Configurações de PDF do localStorage
+  const pdfSettingsFromStorage = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('pdfSettings');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar configurações de PDF:', e);
+    }
+    return { headerText: '', footerText: '', logoUrl: '' };
+  }, []);
 
   // Gerar lista de meses disponíveis
   const availableMonths = useMemo(() => {
@@ -97,7 +111,7 @@ export default function Reports() {
 
   const clearFilters = () => {
     setSelectedProperty("all");
-    setSelectedPeriod("30");
+    setSelectedPeriod("all");
     setSelectedMonth("all");
     setSelectedStatus("all");
     setSelectedType("all");
@@ -108,7 +122,7 @@ export default function Reports() {
     setDateTo("");
   };
 
-  const hasActiveFilters = selectedProperty !== "all" || selectedPeriod !== "30" || 
+  const hasActiveFilters = selectedProperty !== "all" || selectedPeriod !== "all" || 
     selectedMonth !== "all" || selectedStatus !== "all" || selectedType !== "all" || 
     selectedPlot !== "all" || selectedRecipe !== "all" || selectedProducts.length > 0 ||
     dateFrom !== "" || dateTo !== "";
@@ -116,7 +130,7 @@ export default function Reports() {
   const handleMonthChange = (month: string) => {
     setSelectedMonth(month);
     if (month !== "all") {
-      setSelectedPeriod("30");
+      setSelectedPeriod("all");
       setDateFrom("");
       setDateTo("");
     }
@@ -235,7 +249,7 @@ export default function Reports() {
         }
         return true;
       });
-    } else {
+    } else if (selectedPeriod !== "all") {
       const now = new Date();
       const daysAgo = new Date(now.getTime() - Number(selectedPeriod) * 24 * 60 * 60 * 1000);
       filtered = filtered.filter((app: any) => {
@@ -243,6 +257,7 @@ export default function Reports() {
         return appDate >= daysAgo && appDate <= now;
       });
     }
+    // Se selectedPeriod === "all", não filtra por data (retorna todos)
 
     return filtered;
   }, [applications, selectedProperty, selectedPlot, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProducts, selectedRecipe, recipes, dateFrom, dateTo]);
@@ -582,7 +597,7 @@ export default function Reports() {
     yPosition += 40;
 
     // Consumo Total por Produto
-    if (productStats.length > 0) {
+    if (pdfIncludeProductCosts && productStats.length > 0) {
       doc.setTextColor(34, 139, 34);
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
@@ -745,7 +760,7 @@ export default function Reports() {
 
     // Footer personalizado em todas as páginas
     const totalPages = doc.getNumberOfPages();
-    const footerText = pdfCustomFooter || (profile?.company ? `${profile.company} - ${profile.full_name}` : 'AgroDrone PRO');
+    const footerText = pdfCustomFooter || pdfSettingsFromStorage.footerText || (profile?.company ? `${profile.company} - ${profile.full_name}` : 'AgroDrone PRO');
     
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
@@ -930,7 +945,7 @@ export default function Reports() {
 
     // Footer personalizado
     const totalPages = doc.getNumberOfPages();
-    const footerText = pdfCustomFooter || (profile?.company ? `${profile.company} - ${profile.full_name}` : 'AgroDrone PRO');
+    const footerText = pdfCustomFooter || pdfSettingsFromStorage.footerText || (profile?.company ? `${profile.company} - ${profile.full_name}` : 'AgroDrone PRO');
     
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
@@ -1113,6 +1128,15 @@ export default function Reports() {
             <span className="text-xs text-muted-foreground">Período:</span>
             
             <div className="flex gap-1">
+              <Button
+                key="all"
+                variant={selectedPeriod === "all" && selectedMonth === "all" && !dateFrom && !dateTo ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePeriodChange("all")}
+                className="h-7 px-2 text-xs"
+              >
+                Todos
+              </Button>
               {[
                 { value: "7", label: "7d" },
                 { value: "15", label: "15d" },
@@ -1208,6 +1232,17 @@ export default function Reports() {
               />
               <Label htmlFor="pdfExecutive" className="text-xs cursor-pointer">
                 Resumo executivo no PDF
+              </Label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="pdfProductCosts"
+                checked={pdfIncludeProductCosts}
+                onCheckedChange={(checked) => setPdfIncludeProductCosts(!!checked)}
+              />
+              <Label htmlFor="pdfProductCosts" className="text-xs cursor-pointer">
+                Custos por produto no PDF
               </Label>
             </div>
           </div>
