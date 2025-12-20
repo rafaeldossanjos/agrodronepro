@@ -129,13 +129,13 @@ All colors MUST be HSL.
   /* Bigger base fonts on mobile/tablet (scroll is OK; readability first) */
   @media (max-width: 640px) {
     html {
-      font-size: 23px; /* ~+30% vs 18px */
+      font-size: 30px; /* +30% vs 23px */
     }
   }
 
   @media (min-width: 641px) and (max-width: 1023px) {
     html {
-      font-size: 22px; /* ~+30% vs 17px */
+      font-size: 29px; /* +30% vs 22px */
     }
   }
 

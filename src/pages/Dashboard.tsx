@@ -8,7 +8,8 @@ import {
   DollarSign,
   Calculator,
   Users,
-  Map
+  Map,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
@@ -388,7 +389,7 @@ export default function Dashboard() {
             onClick={() => navigate('/recipes')}
             className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <Droplet className="h-8 w-8 text-primary" />
+            <FileText className="h-8 w-8 text-primary" />
             <span className="text-base font-medium text-foreground">Receituários</span>
           </button>
         </div>
