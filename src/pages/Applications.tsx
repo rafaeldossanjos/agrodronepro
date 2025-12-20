@@ -186,7 +186,7 @@ export default function Applications() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <p className="text-xs sm:text-sm text-muted-foreground">Data</p>
               <p className="flex items-center gap-1.5 text-sm sm:text-base font-medium text-foreground">
@@ -204,12 +204,6 @@ export default function Applications() {
               <p className="text-xs sm:text-sm text-muted-foreground">Produtos</p>
               <p className="text-sm sm:text-base font-medium text-foreground">
                 {app.application_products?.length || 0} produto(s)
-              </p>
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Custo</p>
-              <p className="text-sm sm:text-base font-medium text-foreground">
-                R$ {app.total_cost.toFixed(2)}
               </p>
             </div>
           </div>
