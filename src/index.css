@@ -121,33 +121,15 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  /* Base font size - mobile first */
   html {
-    font-size: 26px;
-  }
-
-  /* Better mobile scaling */
-  @media (max-width: 640px) {
-    html {
-      font-size: 26px;
-    }
+    font-size: 16px;
   }
 
   /* Larger fonts for bigger screens */
   @media (min-width: 1024px) {
     html {
-      font-size: 28px;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    html {
-      font-size: 30px;
-    }
-  }
-
-  @media (min-width: 1536px) {
-    html {
-      font-size: 30px;
+      font-size: 16px;
     }
   }
 
@@ -156,29 +138,59 @@ All colors MUST be HSL.
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Larger touch targets on mobile */
+  /* Mobile-friendly touch targets and font sizes */
   @media (max-width: 640px) {
+    /* Larger minimum touch targets */
     button, 
     [role="button"],
+    a {
+      min-height: 48px;
+      min-width: 48px;
+    }
+
+    /* Larger inputs */
     input,
     select,
     textarea {
-      min-height: 44px;
+      min-height: 52px;
+      font-size: 16px !important;
+    }
+
+    /* Larger base text */
+    p, span, div {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    /* Larger headings */
+    h1 {
+      font-size: 1.75rem !important;
+    }
+    h2 {
+      font-size: 1.5rem !important;
+    }
+    h3 {
+      font-size: 1.25rem !important;
+    }
+
+    /* Larger labels */
+    label {
+      font-size: 0.95rem !important;
     }
 
     .leaflet-control-zoom a {
-      width: 36px !important;
-      height: 36px !important;
-      line-height: 36px !important;
-      font-size: 18px !important;
+      width: 44px !important;
+      height: 44px !important;
+      line-height: 44px !important;
+      font-size: 20px !important;
     }
   }
 
-  /* Prevent zoom on input focus - all devices */
+  /* Prevent zoom on input focus - iOS Safari */
   input, 
   select, 
   textarea {
-    font-size: 18px !important;
+    font-size: 16px;
   }
 }
 

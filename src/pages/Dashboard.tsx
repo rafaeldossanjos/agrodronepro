@@ -6,7 +6,9 @@ import {
   MapPin, 
   Clock,
   DollarSign,
-  Calculator
+  Calculator,
+  Users,
+  Map
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
@@ -329,51 +331,65 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <Card className="p-4">
-        <h2 className="mb-3 text-lg font-semibold text-foreground">
+        <h2 className="mb-4 text-xl font-semibold text-foreground">
           Ações Rápidas
         </h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <button 
             onClick={() => navigate('/applications')}
-            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <Droplet className="h-7 w-7 text-primary" />
-            <span className="text-sm font-medium text-foreground">Aplicação</span>
+            <Droplet className="h-8 w-8 text-primary" />
+            <span className="text-base font-medium text-foreground">Aplicação</span>
           </button>
           <button 
             onClick={() => navigate('/calculator')}
-            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <Calculator className="h-7 w-7 text-primary" />
-            <span className="text-sm font-medium text-foreground">Calda</span>
+            <Calculator className="h-8 w-8 text-primary" />
+            <span className="text-base font-medium text-foreground">Calda</span>
+          </button>
+          <button 
+            onClick={() => navigate('/map')}
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+          >
+            <Map className="h-8 w-8 text-primary" />
+            <span className="text-base font-medium text-foreground">Mapa</span>
+          </button>
+          <button 
+            onClick={() => navigate('/team')}
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+          >
+            <Users className="h-8 w-8 text-primary" />
+            <span className="text-base font-medium text-foreground">Equipe</span>
           </button>
           <button 
             onClick={() => navigate('/reports')}
-            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <TrendingUp className="h-7 w-7 text-primary" />
-            <span className="text-sm font-medium text-foreground">Relatórios</span>
+            <TrendingUp className="h-8 w-8 text-primary" />
+            <span className="text-base font-medium text-foreground">Relatórios</span>
           </button>
           <button 
             onClick={() => navigate('/properties')}
-            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <MapPin className="h-7 w-7 text-primary" />
-            <span className="text-sm font-medium text-foreground">Propriedades</span>
+            <MapPin className="h-8 w-8 text-primary" />
+            <span className="text-base font-medium text-foreground">Propriedades</span>
           </button>
           <button 
             onClick={() => navigate('/products')}
-            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <DollarSign className="h-7 w-7 text-primary" />
-            <span className="text-sm font-medium text-foreground">Produtos</span>
+            <DollarSign className="h-8 w-8 text-primary" />
+            <span className="text-base font-medium text-foreground">Produtos</span>
           </button>
           <button 
             onClick={() => navigate('/recipes')}
-            className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <Droplet className="h-7 w-7 text-primary" />
-            <span className="text-sm font-medium text-foreground">Receituários</span>
+            <Droplet className="h-8 w-8 text-primary" />
+            <span className="text-base font-medium text-foreground">Receituários</span>
           </button>
         </div>
       </Card>
