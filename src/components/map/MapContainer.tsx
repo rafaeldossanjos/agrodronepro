@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Plot, PlotGeometry } from '@/hooks/usePlots';
@@ -170,21 +170,36 @@ export function MapContainer({
     ">${area.toFixed(2)} ha</div>`;
   };
 
-  // Function to locate user
-  const locateUser = () => {
+  // Function to locate user - using useCallback for stable reference
+  const locateUser = useCallback(() => {
+    console.log('🎯 locateUser chamado');
     const map = mapInstanceRef.current;
-    if (!map) return;
-
+    
+    if (!map) {
+      console.warn('❌ Mapa não está pronto ainda');
+      return;
+    }
+    
+    console.log('✅ Mapa encontrado, iniciando geolocalização...');
     setIsLocating(true);
 
     if ('geolocation' in navigator) {
+      console.log('📍 Geolocation disponível, solicitando posição...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          console.log('✅ Posição obtida:', position.coords);
           const { latitude, longitude } = position.coords;
           const latlng = L.latLng(latitude, longitude);
 
+          const currentMap = mapInstanceRef.current;
+          if (!currentMap) {
+            console.warn('❌ Mapa removido durante geolocalização');
+            setIsLocating(false);
+            return;
+          }
+
           if (userMarkerRef.current) {
-            map.removeLayer(userMarkerRef.current);
+            currentMap.removeLayer(userMarkerRef.current);
           }
 
           const userIcon = L.divIcon({
@@ -202,36 +217,39 @@ export function MapContainer({
           });
 
           userMarkerRef.current = L.marker(latlng, { icon: userIcon })
-            .addTo(map)
+            .addTo(currentMap)
             .bindPopup('Sua localização');
 
           if (polygonsRef.current.size === 0) {
-            map.flyTo(latlng, 15, { duration: 1.5 });
+            console.log('🗺️ Voando para localização...');
+            currentMap.flyTo(latlng, 15, { duration: 1.5 });
+          } else {
+            console.log('🗺️ Talhões existentes, mantendo visualização');
           }
 
           setIsLocating(false);
         },
         (error) => {
-          console.warn('Erro ao obter localização:', error.message);
+          console.error('❌ Erro ao obter localização:', error.code, error.message);
           setIsLocating(false);
         },
         {
           enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 60000,
+          timeout: 20000,
+          maximumAge: 30000,
         }
       );
     } else {
-      console.warn('Geolocalização não suportada pelo navegador');
+      console.warn('❌ Geolocalização não suportada pelo navegador');
       setIsLocating(false);
     }
-  };
+  }, []);
 
-  // Store locateUser in ref for use in control
+  // Store locateUser in ref for use in Leaflet control
   const locateUserRef = useRef(locateUser);
   useEffect(() => {
     locateUserRef.current = locateUser;
-  });
+  }, [locateUser]);
 
   // Initialize map
   useEffect(() => {
