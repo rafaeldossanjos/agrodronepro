@@ -73,24 +73,35 @@ type SavedParams = {
   tankVolume: string;
 };
 
-// Helper para formatar quantidade com unidade adequada
+// Helper para formatar quantidade com conversão automática de unidades
 const formatQuantity = (value: number, unit: string): string => {
-  const baseUnit = unit.replace('/ha', '');
+  const baseUnit = unit.replace('/ha', '').trim().toLowerCase();
   
-  // Converter L para mL se for menor que 1L
-  if (baseUnit === 'L' && value < 1 && value > 0) {
-    return `${Math.round(value * 1000)} mL`;
+  // Converter g para kg se >= 1000g
+  if (baseUnit === 'g' && value >= 1000) {
+    const kg = value / 1000;
+    return kg < 10 ? `${kg.toFixed(2)} kg` : `${kg.toFixed(1)} kg`;
   }
-  // Converter kg para g se for menor que 1kg
+  // Converter kg para g se < 1kg
   if (baseUnit === 'kg' && value < 1 && value > 0) {
     return `${Math.round(value * 1000)} g`;
   }
-  
-  // Arredondar valores pequenos para 2 casas decimais
-  if (value < 10) {
-    return `${value.toFixed(2)} ${baseUnit}`;
+  // Converter mL para L se >= 1000mL
+  if (baseUnit === 'ml' && value >= 1000) {
+    const liters = value / 1000;
+    return liters < 10 ? `${liters.toFixed(2)} L` : `${liters.toFixed(1)} L`;
   }
-  return `${value.toFixed(1)} ${baseUnit}`;
+  // Converter L para mL se < 1L
+  if (baseUnit === 'l' && value < 1 && value > 0) {
+    return `${Math.round(value * 1000)} mL`;
+  }
+  
+  // Formatação padrão com unidade original (capitalizada)
+  const displayUnit = baseUnit === 'ml' ? 'mL' : baseUnit === 'l' ? 'L' : baseUnit;
+  if (value < 10) {
+    return `${value.toFixed(2)} ${displayUnit}`;
+  }
+  return `${value.toFixed(1)} ${displayUnit}`;
 };
 
 export default function Calculator() {
@@ -275,14 +286,18 @@ export default function Calculator() {
     });
 
     // Calcular o volume de produtos em LITROS para subtrair da água
-    // Converter mL para L (dividir por 1000). Produtos sólidos (kg/g) não subtraem do volume de água.
+    // Considera densidade 1:1 para sólidos (1kg = 1L, 1g = 1mL)
     const totalProductVolumeInLiters = productPerTank.reduce((sum, p) => {
       const normalizedUnit = p.unit.trim().toLowerCase();
       const baseUnit = normalizedUnit.replace("/ha", "");
 
-      // Importante: "ml/ha" contém "l/ha"; por isso usamos baseUnit exato.
+      // Líquidos
       if (baseUnit === "ml") return sum + p.quantityPerTank / 1000;
       if (baseUnit === "l") return sum + p.quantityPerTank;
+      
+      // Sólidos com densidade 1:1 (1kg = 1L, 1g = 1mL = 0.001L)
+      if (baseUnit === "g") return sum + p.quantityPerTank / 1000;
+      if (baseUnit === "kg") return sum + p.quantityPerTank;
 
       return sum;
     }, 0);
