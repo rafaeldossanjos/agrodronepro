@@ -170,6 +170,69 @@ export function MapContainer({
     ">${area.toFixed(2)} ha</div>`;
   };
 
+  // Function to locate user
+  const locateUser = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    setIsLocating(true);
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const latlng = L.latLng(latitude, longitude);
+
+          if (userMarkerRef.current) {
+            map.removeLayer(userMarkerRef.current);
+          }
+
+          const userIcon = L.divIcon({
+            className: 'user-location-marker',
+            html: `<div style="
+              width: 20px;
+              height: 20px;
+              background: #3B82F6;
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            "></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10],
+          });
+
+          userMarkerRef.current = L.marker(latlng, { icon: userIcon })
+            .addTo(map)
+            .bindPopup('Sua localização');
+
+          if (polygonsRef.current.size === 0) {
+            map.flyTo(latlng, 15, { duration: 1.5 });
+          }
+
+          setIsLocating(false);
+        },
+        (error) => {
+          console.warn('Erro ao obter localização:', error.message);
+          setIsLocating(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 60000,
+        }
+      );
+    } else {
+      console.warn('Geolocalização não suportada pelo navegador');
+      setIsLocating(false);
+    }
+  };
+
+  // Store locateUser in ref for use in control
+  const locateUserRef = useRef(locateUser);
+  useEffect(() => {
+    locateUserRef.current = locateUser;
+  });
+
   // Initialize map
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -225,7 +288,7 @@ export function MapContainer({
         
         L.DomEvent.on(button, 'click', function(e) {
           L.DomEvent.preventDefault(e);
-          locateUser();
+          locateUserRef.current();
         });
         
         return container;
@@ -235,68 +298,17 @@ export function MapContainer({
     new LocateControl({ position: 'topright' }).addTo(map);
 
     mapInstanceRef.current = map;
-    locateUser();
+    
+    // Initial locate after map is ready
+    setTimeout(() => {
+      locateUserRef.current();
+    }, 500);
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
     };
   }, []);
-
-  const locateUser = () => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    setIsLocating(true);
-
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const latlng = L.latLng(latitude, longitude);
-
-          if (userMarkerRef.current) {
-            map.removeLayer(userMarkerRef.current);
-          }
-
-          const userIcon = L.divIcon({
-            className: 'user-location-marker',
-            html: `<div style="
-              width: 20px;
-              height: 20px;
-              background: #3B82F6;
-              border: 3px solid white;
-              border-radius: 50%;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            "></div>`,
-            iconSize: [20, 20],
-            iconAnchor: [10, 10],
-          });
-
-          userMarkerRef.current = L.marker(latlng, { icon: userIcon })
-            .addTo(map)
-            .bindPopup('Sua localização');
-
-          if (polygonsRef.current.size === 0) {
-            map.flyTo(latlng, 15, { duration: 1.5 });
-          }
-
-          setIsLocating(false);
-        },
-        (error) => {
-          console.warn('Erro ao obter localização:', error.message);
-          setIsLocating(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000,
-        }
-      );
-    } else {
-      setIsLocating(false);
-    }
-  };
 
   // Handle undo trigger
   useEffect(() => {
