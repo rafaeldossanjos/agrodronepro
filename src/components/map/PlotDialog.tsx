@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Plot, PlotGeometry } from '@/hooks/usePlots';
 import { useApplications } from '@/hooks/useApplications';
 import { useProperties } from '@/hooks/useProperties';
 import { normalizeDecimalInput } from '@/lib/utils';
+import { Plus, Link2, Unlink } from 'lucide-react';
 
 interface PlotDialogProps {
   open: boolean;
@@ -72,12 +74,15 @@ export function PlotDialog({
       .sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime());
   }, [applications, plot?.id]);
 
+  // Applications NOT already linked to this plot (available to link)
   const linkableApplications = useMemo(() => {
     if (!plot) return [];
+    const linkedIds = new Set(linkedApplications.map(a => a.id));
     return applications
+      .filter(app => !linkedIds.has(app.id)) // exclude already linked
       .filter(app => (plot.property_id ? app.property_id === plot.property_id : true))
       .sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime());
-  }, [applications, plot?.property_id]);
+  }, [applications, plot?.property_id, linkedApplications]);
 
   const updateApplicationPlotLink = async (applicationId: string, newPlotId: string | null) => {
     if (!plot) return;
@@ -182,9 +187,22 @@ export function PlotDialog({
           </div>
 
           {plot && (
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label>Vincular aplicação a este talhão</Label>
+            <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4" />
+                  Aplicações vinculadas
+                  {linkedApplications.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">{linkedApplications.length}</Badge>
+                  )}
+                </Label>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Você pode vincular <strong>várias aplicações</strong> ao mesmo talhão (ex: dividir em etapas).
+              </p>
+
+              <div className="flex gap-2">
                 <Select
                   value={linkApplicationId}
                   onValueChange={async (value) => {
@@ -193,10 +211,10 @@ export function PlotDialog({
                     await updateApplicationPlotLink(value, plot.id);
                     setLinkApplicationId('none');
                   }}
-                  disabled={isLinkingApplication}
+                  disabled={isLinkingApplication || linkableApplications.length === 0}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma aplicação" />
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder={linkableApplications.length === 0 ? "Nenhuma aplicação disponível" : "Selecione uma aplicação"} />
                   </SelectTrigger>
                   <SelectContent className="z-[10001]">
                     <SelectItem value="none">Selecionar...</SelectItem>
@@ -207,36 +225,54 @@ export function PlotDialog({
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
-                  Isso apenas vincula a aplicação ao talhão (não altera área nem produtos).
-                </p>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  disabled={linkApplicationId === 'none' || isLinkingApplication}
+                  onClick={async () => {
+                    if (linkApplicationId !== 'none') {
+                      await updateApplicationPlotLink(linkApplicationId, plot.id);
+                      setLinkApplicationId('none');
+                    }
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
 
               {linkedApplications.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Aplicações já vinculadas</Label>
-                  <div className="space-y-2">
-                    {linkedApplications.map((app) => (
-                      <div key={app.id} className="flex items-center justify-between gap-2 rounded-md border p-2">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {new Date(app.application_date).toLocaleDateString('pt-BR')} • {app.application_type}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Status: {app.status}</p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={isLinkingApplication}
-                          onClick={() => updateApplicationPlotLink(app.id, null)}
-                        >
-                          Desvincular
-                        </Button>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {linkedApplications.map((app) => (
+                    <div key={app.id} className="flex items-center justify-between gap-2 rounded-md border bg-background p-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">
+                          {new Date(app.application_date).toLocaleDateString('pt-BR')} • {app.application_type}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {app.area_applied?.toFixed(2)} ha • {app.status}
+                        </p>
                       </div>
-                    ))}
-                  </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive shrink-0"
+                        disabled={isLinkingApplication}
+                        onClick={() => updateApplicationPlotLink(app.id, null)}
+                        title="Desvincular"
+                      >
+                        <Unlink className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
+              )}
+
+              {linkedApplications.length === 0 && (
+                <p className="text-xs text-muted-foreground italic text-center py-2">
+                  Nenhuma aplicação vinculada a este talhão.
+                </p>
               )}
             </div>
           )}
