@@ -227,22 +227,6 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="stock_quantity">Estoque Inicial</Label>
-            <Input
-              id="stock_quantity"
-              type="text"
-              inputMode="decimal"
-              value={formData.stock_quantity || ''}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (isValidDecimalInput(val)) {
-                  setFormData({ ...formData, stock_quantity: parseDecimalInput(val) });
-                }
-              }}
-              placeholder="0"
-            />
-          </div>
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
               Cancelar
