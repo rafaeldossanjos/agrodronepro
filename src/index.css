@@ -144,38 +144,48 @@ All colors MUST be HSL.
     button, 
     [role="button"],
     a {
-      min-height: 48px;
-      min-width: 48px;
+      min-height: 44px;
     }
 
     /* Larger inputs */
     input,
     select,
     textarea {
-      min-height: 52px;
-      font-size: 16px !important;
+      min-height: 48px;
+      font-size: 17px !important;
     }
 
     /* Larger base text */
     p, span, div {
-      font-size: 1rem;
-      line-height: 1.5;
+      font-size: 1.1rem;
+      line-height: 1.6;
     }
 
     /* Larger headings */
     h1 {
-      font-size: 1.75rem !important;
+      font-size: 2rem !important;
     }
     h2 {
-      font-size: 1.5rem !important;
+      font-size: 1.75rem !important;
     }
     h3 {
-      font-size: 1.25rem !important;
+      font-size: 1.4rem !important;
     }
 
     /* Larger labels */
     label {
-      font-size: 0.95rem !important;
+      font-size: 1.05rem !important;
+    }
+
+    /* Larger badges and small text */
+    .text-xs {
+      font-size: 0.9rem !important;
+    }
+    .text-sm {
+      font-size: 1rem !important;
+    }
+    .text-base {
+      font-size: 1.1rem !important;
     }
 
     .leaflet-control-zoom a {
