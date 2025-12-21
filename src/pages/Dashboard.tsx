@@ -206,7 +206,7 @@ export default function Dashboard() {
         <span className="text-sm text-muted-foreground mx-1">ou</span>
         
         <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-9 w-[160px] text-sm">
+          <SelectTrigger className="h-9 w-[180px] text-sm">
             <SelectValue placeholder="Selecionar mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
