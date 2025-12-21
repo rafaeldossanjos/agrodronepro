@@ -283,66 +283,66 @@ export default function Dashboard() {
       </Card>
 
       {/* Quick Actions */}
-      <Card className="p-4">
-        <h2 className="mb-4 text-xl font-semibold text-foreground">
+      <Card className="p-3">
+        <h2 className="mb-2 text-lg font-semibold text-foreground">
           Ações Rápidas
         </h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-2">
           <button 
             onClick={() => navigate('/applications')}
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Droplet className="h-8 w-8 text-primary" />
-            <span className="text-base font-medium text-foreground">Aplicação</span>
+            <Droplet className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Aplicação</span>
           </button>
           <button 
             onClick={() => navigate('/calculator')}
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Calculator className="h-8 w-8 text-primary" />
-            <span className="text-base font-medium text-foreground">Calda</span>
+            <Calculator className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Calda</span>
           </button>
           <button 
             onClick={() => navigate('/map')}
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Map className="h-8 w-8 text-primary" />
-            <span className="text-base font-medium text-foreground">Mapa</span>
+            <Map className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Mapa</span>
           </button>
           <button 
             onClick={() => navigate('/team')}
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Users className="h-8 w-8 text-primary" />
-            <span className="text-base font-medium text-foreground">Equipe</span>
+            <Users className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Equipe</span>
           </button>
           <button 
             onClick={() => navigate('/reports')}
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <TrendingUp className="h-8 w-8 text-primary" />
-            <span className="text-base font-medium text-foreground">Relatórios</span>
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Relatórios</span>
           </button>
           <button 
             onClick={() => navigate('/properties')}
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <MapPin className="h-8 w-8 text-primary" />
-            <span className="text-base font-medium text-foreground">Propriedades</span>
+            <MapPin className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Propriedades</span>
           </button>
           <button 
             onClick={() => navigate('/products')}
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Cylinder className="h-8 w-8 text-primary" />
-            <span className="text-base font-medium text-foreground">Produtos</span>
+            <Cylinder className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Produtos</span>
           </button>
           <button 
             onClick={() => navigate('/recipes')}
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
-            <FileText className="h-8 w-8 text-primary" />
-            <span className="text-base font-medium text-foreground">Receituários</span>
+            <FileText className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium text-foreground">Receituários</span>
           </button>
         </div>
       </Card>
