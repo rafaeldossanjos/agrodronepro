@@ -250,7 +250,7 @@ export function PlotDialog({
                           {new Date(app.application_date).toLocaleDateString('pt-BR')} • {app.application_type}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {app.area_applied?.toFixed(2)} ha • {app.status}
+                          {app.area_applied} ha • {app.status}
                         </p>
                       </div>
                       <Button

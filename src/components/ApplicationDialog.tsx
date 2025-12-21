@@ -554,7 +554,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         <SelectItem value="none">Nenhum (digitar manualmente)</SelectItem>
                         {availablePlots.map((plot) => (
                           <SelectItem key={plot.id} value={plot.id} className="text-xs sm:text-sm">
-                            {plot.name} {plot.area_hectares ? `(${plot.area_hectares.toFixed(2)} ha)` : ''}
+                            {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>

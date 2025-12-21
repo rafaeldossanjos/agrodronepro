@@ -20,11 +20,11 @@ import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type PeriodFilter = 1 | 7 | 15 | 30 | 'month';
+type PeriodFilter = 1 | 7 | 15 | 30 | 'month' | 'all';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(30);
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const { applications, isLoading: loadingApps } = useApplications();
   const { properties } = useProperties();
@@ -64,23 +64,18 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     const now = new Date();
     let periodApps: typeof applications = [];
-    let previousPeriodApps: typeof applications = [];
     let periodLabel = '';
 
-    if (periodFilter === 'month' && selectedMonth !== 'all') {
+    if (periodFilter === 'all') {
+      // Filtro "Todos" - todas as aplicações concluídas
+      periodApps = applications.filter(app => app.status === 'concluída');
+      periodLabel = 'Todos';
+    } else if (periodFilter === 'month' && selectedMonth !== 'all') {
       // Filtro por mês específico
       const [year, month] = selectedMonth.split('-').map(Number);
       periodApps = applications.filter(app => {
         const appDate = new Date(app.application_date + 'T00:00:00');
         return appDate.getFullYear() === year && appDate.getMonth() + 1 === month && app.status === 'concluída';
-      });
-      
-      // Mês anterior para comparação
-      const prevMonth = month === 1 ? 12 : month - 1;
-      const prevYear = month === 1 ? year - 1 : year;
-      previousPeriodApps = applications.filter(app => {
-        const appDate = new Date(app.application_date + 'T00:00:00');
-        return appDate.getFullYear() === prevYear && appDate.getMonth() + 1 === prevMonth && app.status === 'concluída';
       });
       periodLabel = getMonthLabel(selectedMonth);
     } else {
@@ -92,44 +87,11 @@ export default function Dashboard() {
         const appDate = new Date(app.application_date + 'T00:00:00');
         return appDate >= periodStart && appDate <= now && app.status === 'concluída';
       });
-
-      // Período anterior para comparação (apenas concluídas)
-      const previousPeriodStart = subDays(periodStart, days);
-      previousPeriodApps = applications.filter(app => {
-        const appDate = new Date(app.application_date + 'T00:00:00');
-        return appDate >= previousPeriodStart && appDate < periodStart && app.status === 'concluída';
-      });
       periodLabel = `${days}d`;
     }
 
     // Área aplicada no período
     const totalAreaPeriod = periodApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
-    const totalAreaPrevious = previousPeriodApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
-    const areaChange = totalAreaPrevious > 0 
-      ? ((totalAreaPeriod - totalAreaPrevious) / totalAreaPrevious * 100).toFixed(0)
-      : "0";
-
-    // Aplicações realizadas
-    const appsChange = periodApps.length - previousPeriodApps.length;
-
-    // Horas de voo
-    const totalFlightTimePeriod = periodApps.reduce((sum, app) => 
-      sum + (app.flight_time_minutes || 0), 0
-    );
-    const totalFlightTimePrevious = previousPeriodApps.reduce((sum, app) => 
-      sum + (app.flight_time_minutes || 0), 0
-    );
-    const flightTimeDiff = totalFlightTimePeriod - totalFlightTimePrevious;
-
-    // Custo médio por hectare
-    const totalCost = periodApps.reduce((sum, app) => sum + Number(app.total_cost), 0);
-    const avgCostPerHa = totalAreaPeriod > 0 ? totalCost / totalAreaPeriod : 0;
-    
-    const previousTotalCost = previousPeriodApps.reduce((sum, app) => sum + Number(app.total_cost), 0);
-    const previousAvgCost = totalAreaPrevious > 0 ? previousTotalCost / totalAreaPrevious : 0;
-    const costChange = previousAvgCost > 0
-      ? ((avgCostPerHa - previousAvgCost) / previousAvgCost * 100).toFixed(0)
-      : "0";
 
     // Área em andamento
     const areaEmAndamento = applications
@@ -146,29 +108,29 @@ export default function Dashboard() {
       items: [
         {
           label: `Área (${periodLabel})`,
-          value: `${totalAreaPeriod.toFixed(1)} ha`,
-          change: `${Number(areaChange) > 0 ? '+' : ''}${areaChange}%`,
+          value: `${totalAreaPeriod} ha`,
+          description: "Total aplicado no período",
           icon: MapPin,
           color: "text-primary",
         },
         {
           label: "Aplicações",
           value: periodApps.length.toString(),
-          change: `${appsChange > 0 ? '+' : ''}${appsChange}`,
+          description: "Aplicações concluídas",
           icon: Droplet,
           color: "text-success",
         },
         {
           label: "Em Andamento",
-          value: `${areaEmAndamento.toFixed(1)} ha`,
-          change: "",
+          value: `${areaEmAndamento} ha`,
+          description: "Área em aplicação",
           icon: Clock,
           color: "text-blue-500",
         },
         {
           label: "Planejadas",
-          value: `${areaPlanejada.toFixed(1)} ha`,
-          change: "",
+          value: `${areaPlanejada} ha`,
+          description: "Área programada",
           icon: TrendingUp,
           color: "text-warning",
         },
@@ -186,7 +148,7 @@ export default function Dashboard() {
         return {
           property: property?.name || 'Propriedade',
           plotName: app.plot_name || '-',
-          area: `${Number(app.area_applied).toFixed(1)} ha`,
+          area: `${Number(app.area_applied)} ha`,
           date: format(new Date(app.application_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR }),
           status: app.status,
         };
@@ -223,6 +185,14 @@ export default function Dashboard() {
 
       {/* Filtros de Período */}
       <div className="flex gap-2 flex-wrap items-center">
+        <Button
+          variant={periodFilter === 'all' ? "default" : "outline"}
+          size="sm"
+          onClick={() => handlePeriodChange('all' as PeriodFilter)}
+          className="h-9 px-4 text-sm"
+        >
+          Todos
+        </Button>
         {[
           { value: 1, label: 'Hoje' },
           { value: 7, label: '7d' },
@@ -243,7 +213,7 @@ export default function Dashboard() {
         <span className="text-sm text-muted-foreground mx-1">ou</span>
         
         <Select value={selectedMonth} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-9 w-[110px] text-sm">
+          <SelectTrigger className="h-9 w-[140px] text-sm">
             <SelectValue placeholder="Mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
@@ -261,26 +231,19 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-3">
         {stats.items.map((stat) => (
           <Card key={stat.label} className="p-4">
-            <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2">
               <div className={cn("p-2 rounded-lg bg-muted", stat.color)}>
                 <stat.icon className="h-5 w-5" />
               </div>
-              <span className="text-sm font-medium text-success">
-                {stat.change}
-              </span>
             </div>
-            <div className="mt-3">
+            <div className="mt-3 text-center">
               <p className="text-2xl font-bold text-foreground leading-none">{stat.value}</p>
-              <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+              <p className="text-sm font-medium text-foreground mt-1">{stat.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stat.description}</p>
             </div>
           </Card>
         ))}
       </div>
-
-      {/* Info sobre porcentagem */}
-      <p className="text-xs text-muted-foreground text-center">
-        % compara com o período anterior
-      </p>
 
       {/* Recent Applications */}
       <Card className="p-4">
