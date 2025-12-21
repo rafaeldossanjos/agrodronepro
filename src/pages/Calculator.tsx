@@ -136,6 +136,12 @@ export default function Calculator() {
   const [saveDate, setSaveDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [saveStatus, setSaveStatus] = useState<string>("planejada");
 
+  // Dialog para salvar como receituário
+  const [saveRecipeDialogOpen, setSaveRecipeDialogOpen] = useState(false);
+  const [recipeName, setRecipeName] = useState<string>("");
+  const [recipeDescription, setRecipeDescription] = useState<string>("");
+  const { createRecipe } = useRecipes();
+
   useEffect(() => {
     if (products.length === 0) {
       addProduct();
@@ -370,6 +376,38 @@ export default function Calculator() {
       setSaveDate(new Date().toISOString().split('T')[0]);
       setSaveStatus("planejada");
       toast.success("Aplicação salva com sucesso!");
+    } catch (error) {
+      // Error already handled in hook
+    }
+  };
+
+  const handleSaveAsRecipe = async () => {
+    if (!recipeName.trim()) {
+      toast.error("Nome do receituário é obrigatório");
+      return;
+    }
+
+    if (!results) return;
+
+    const productsWithId = results.productPerTank.filter(p => p.productId);
+    if (productsWithId.length !== results.productPerTank.length) {
+      toast.error("Todos os produtos precisam estar cadastrados no sistema para salvar como receituário");
+      return;
+    }
+
+    try {
+      await createRecipe({
+        name: recipeName.trim(),
+        description: recipeDescription.trim() || undefined,
+        products: productsWithId.map(p => ({
+          product_id: p.productId!,
+          dose_per_ha: p.dose,
+          dose_unit: p.unit,
+        })),
+      });
+      setSaveRecipeDialogOpen(false);
+      setRecipeName("");
+      setRecipeDescription("");
     } catch (error) {
       // Error already handled in hook
     }
@@ -724,15 +762,25 @@ export default function Calculator() {
                     </div>
                   </div>
 
-                  {/* Salvar como Aplicação */}
-                  <Button 
-                    onClick={() => setSaveDialogOpen(true)} 
-                    variant="outline" 
-                    className="w-full h-8 gap-2 text-xs"
-                  >
-                    <Save className="h-3 w-3" />
-                    Salvar como Aplicação
-                  </Button>
+                  {/* Botões de Salvar */}
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => setSaveDialogOpen(true)} 
+                      variant="outline" 
+                      className="flex-1 h-8 gap-2 text-xs"
+                    >
+                      <Save className="h-3 w-3" />
+                      Aplicação
+                    </Button>
+                    <Button 
+                      onClick={() => setSaveRecipeDialogOpen(true)} 
+                      variant="outline" 
+                      className="flex-1 h-8 gap-2 text-xs"
+                    >
+                      <FileText className="h-3 w-3" />
+                      Receituário
+                    </Button>
+                  </div>
                 </div>
               )
             )}
@@ -799,6 +847,52 @@ export default function Calculator() {
               Cancelar
             </Button>
             <Button onClick={handleSaveAsApplication} size="sm" className="text-xs">
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para salvar como receituário */}
+      <Dialog open={saveRecipeDialogOpen} onOpenChange={setSaveRecipeDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Salvar como Receituário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Nome do Receituário *</Label>
+              <Input
+                value={recipeName}
+                onChange={(e) => setRecipeName(e.target.value)}
+                placeholder="Ex: Controle de daninhas"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Descrição</Label>
+              <Input
+                value={recipeDescription}
+                onChange={(e) => setRecipeDescription(e.target.value)}
+                placeholder="Descrição opcional"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="rounded-lg bg-muted p-2 space-y-1">
+              <p className="text-[10px] font-medium text-muted-foreground">Produtos incluídos:</p>
+              {results?.productPerTank.map((p) => (
+                <div key={p.id} className="flex justify-between text-xs">
+                  <span className="text-muted-foreground truncate max-w-[60%]">{p.name}</span>
+                  <span className="font-medium text-foreground">{p.dose} {p.unit}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setSaveRecipeDialogOpen(false)} size="sm" className="text-xs">
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveAsRecipe} size="sm" className="text-xs">
               Salvar
             </Button>
           </DialogFooter>
