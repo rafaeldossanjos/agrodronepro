@@ -11,7 +11,7 @@ import {
 } from './offlineDb';
 import { toast } from 'sonner';
 
-type TableName = 'properties' | 'products' | 'applications' | 'application_products' | 'recipes' | 'recipe_products' | 'equipment' | 'flight_planning';
+type TableName = 'properties' | 'products' | 'applications' | 'application_products' | 'recipes' | 'recipe_products' | 'equipment' | 'flight_planning' | 'plots';
 
 const SYNC_TABLES_WITH_USER: TableName[] = [
   'properties',
@@ -19,7 +19,8 @@ const SYNC_TABLES_WITH_USER: TableName[] = [
   'applications',
   'recipes',
   'equipment',
-  'flight_planning'
+  'flight_planning',
+  'plots'
 ];
 
 const SYNC_TABLES_JUNCTION: TableName[] = [
