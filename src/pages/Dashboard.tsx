@@ -190,7 +190,6 @@ export default function Dashboard() {
           Todos
         </Button>
         {[
-          { value: 1, label: 'Hoje' },
           { value: 7, label: '7d' },
           { value: 15, label: '15d' },
           { value: 30, label: '30d' },
@@ -213,7 +212,6 @@ export default function Dashboard() {
             <SelectValue placeholder="Mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
-            <SelectItem value="all">Todos</SelectItem>
             {availableMonths.map((month) => (
               <SelectItem key={month} value={month} className="capitalize">
                 {getMonthLabel(month)}
