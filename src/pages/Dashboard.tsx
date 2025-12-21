@@ -107,30 +107,26 @@ export default function Dashboard() {
       periodLabel,
       items: [
         {
-          label: `Área (${periodLabel})`,
-          value: `${totalAreaPeriod} ha`,
-          description: "Total aplicado no período",
+          label: "Área total aplicada",
+          value: `${totalAreaPeriod.toFixed(2)} ha`,
           icon: MapPin,
           color: "text-primary",
         },
         {
-          label: "Aplicações",
+          label: "Aplicações realizadas",
           value: periodApps.length.toString(),
-          description: "Aplicações concluídas",
           icon: Droplet,
           color: "text-success",
         },
         {
-          label: "Em Andamento",
-          value: `${areaEmAndamento} ha`,
-          description: "Área em aplicação",
+          label: "Aplicação em andamento",
+          value: `${areaEmAndamento.toFixed(2)} ha`,
           icon: Clock,
           color: "text-blue-500",
         },
         {
-          label: "Planejadas",
-          value: `${areaPlanejada} ha`,
-          description: "Área programada",
+          label: "Áreas programadas",
+          value: `${areaPlanejada.toFixed(2)} ha`,
           icon: TrendingUp,
           color: "text-warning",
         },
@@ -230,16 +226,13 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-4">
-            <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg bg-muted", stat.color)}>
-                <stat.icon className="h-5 w-5" />
-              </div>
+          <Card key={stat.label} className="p-4 flex flex-col items-center">
+            <div className={cn("p-2 rounded-lg bg-muted", stat.color)}>
+              <stat.icon className="h-5 w-5" />
             </div>
             <div className="mt-3 text-center">
               <p className="text-2xl font-bold text-foreground leading-none">{stat.value}</p>
-              <p className="text-sm font-medium text-foreground mt-1">{stat.label}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{stat.description}</p>
+              <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
             </div>
           </Card>
         ))}
