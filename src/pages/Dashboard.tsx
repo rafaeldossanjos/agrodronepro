@@ -5,7 +5,7 @@ import {
   Droplet, 
   MapPin, 
   Clock,
-  FlaskConical,
+  Cylinder,
   Calculator,
   Users,
   Map,
@@ -334,7 +334,7 @@ export default function Dashboard() {
             onClick={() => navigate('/products')}
             className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <FlaskConical className="h-8 w-8 text-primary" />
+            <Cylinder className="h-8 w-8 text-primary" />
             <span className="text-base font-medium text-foreground">Produtos</span>
           </button>
           <button 
