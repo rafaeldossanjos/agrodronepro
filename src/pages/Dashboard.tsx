@@ -209,7 +209,7 @@ export default function Dashboard() {
         
         <Select value={selectedMonth} onValueChange={handleMonthChange}>
           <SelectTrigger className="h-9 w-[160px] text-sm">
-            <SelectValue placeholder="Mês" />
+            <SelectValue placeholder="Selecione o mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
             {availableMonths.map((month) => (
