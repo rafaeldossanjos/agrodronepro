@@ -260,7 +260,7 @@ export default function Dashboard() {
             >
               <div className="flex-1 min-w-0">
                 <p className="text-base font-medium text-foreground truncate">{app.property}</p>
-                <p className="text-sm text-muted-foreground">{app.plotName} • {app.date}</p>
+                <p className="text-sm text-muted-foreground">{app.plotName}</p>
               </div>
               <div className="text-right flex-shrink-0 ml-3">
                 <p className="text-base font-semibold text-foreground">{app.area}</p>
