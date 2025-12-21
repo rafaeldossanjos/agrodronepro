@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Cylinder, Edit, Trash2 } from "lucide-react";
+import { Search, FlaskConical, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useProducts } from "@/hooks/useProducts";
 import { ProductDialog } from "@/components/ProductDialog";
@@ -69,7 +69,7 @@ export default function Products() {
       {products.length === 0 ? (
         <Card className="p-12">
           <div className="text-center">
-            <Cylinder className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
               Nenhum produto cadastrado
             </h3>
@@ -98,7 +98,7 @@ export default function Products() {
               <div className="mb-4">
                 <div className="flex gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-                    <Cylinder className="h-6 w-6 text-primary" />
+                    <FlaskConical className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-foreground line-clamp-2">

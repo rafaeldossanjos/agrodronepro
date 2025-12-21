@@ -4,14 +4,15 @@ import {
   Calculator, 
   MapPin, 
   ClipboardList, 
-  Cylinder, 
+  FlaskConical, 
   Plane, 
   BarChart3, 
   Settings,
   LogOut,
   User,
   FileText,
-  Users
+  Users,
+  Landmark
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -33,9 +34,9 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Calculadora", href: "/calculator", icon: Calculator },
   { name: "Mapa", href: "/map", icon: MapPin },
-  { name: "Propriedades", href: "/properties", icon: Plane },
+  { name: "Propriedades", href: "/properties", icon: Landmark },
   { name: "Aplicações", href: "/applications", icon: ClipboardList },
-  { name: "Produtos", href: "/products", icon: Cylinder },
+  { name: "Produtos", href: "/products", icon: FlaskConical },
   { name: "Receituários", href: "/recipes", icon: FileText },
   { name: "Relatórios", href: "/reports", icon: BarChart3 },
   { name: "Equipe", href: "/team", icon: Users },
