@@ -40,7 +40,7 @@ export const initOfflineDb = (): Promise<IDBDatabase> => {
 
       const stores = [
         'properties', 'products', 'applications', 'application_products',
-        'recipes', 'recipe_products', 'equipment', 'flight_planning'
+        'recipes', 'recipe_products', 'equipment', 'flight_planning', 'plots'
       ];
 
       stores.forEach(storeName => {
