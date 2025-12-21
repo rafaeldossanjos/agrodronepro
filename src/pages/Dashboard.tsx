@@ -287,7 +287,7 @@ export default function Dashboard() {
         <h2 className="mb-2 text-lg font-semibold text-foreground">
           Ações Rápidas
         </h2>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button 
             onClick={() => navigate('/applications')}
             className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
