@@ -763,23 +763,28 @@ export default function Calculator() {
                   </div>
 
                   {/* Botões de Salvar */}
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => setSaveDialogOpen(true)} 
-                      variant="outline" 
-                      className="flex-1 h-8 gap-2 text-xs"
-                    >
-                      <Save className="h-3 w-3" />
-                      Aplicação
-                    </Button>
-                    <Button 
-                      onClick={() => setSaveRecipeDialogOpen(true)} 
-                      variant="outline" 
-                      className="flex-1 h-8 gap-2 text-xs"
-                    >
-                      <FileText className="h-3 w-3" />
-                      Receituário
-                    </Button>
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-semibold text-foreground border-l-2 border-primary pl-2">
+                      Salvar Como
+                    </h3>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => setSaveDialogOpen(true)} 
+                        variant="outline" 
+                        className="flex-1 h-8 gap-2 text-xs"
+                      >
+                        <Save className="h-3 w-3" />
+                        Aplicação
+                      </Button>
+                      <Button 
+                        onClick={() => setSaveRecipeDialogOpen(true)} 
+                        variant="outline" 
+                        className="flex-1 h-8 gap-2 text-xs"
+                      >
+                        <FileText className="h-3 w-3" />
+                        Receituário
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )
