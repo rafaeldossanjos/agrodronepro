@@ -5,7 +5,7 @@ import {
   Droplet, 
   MapPin, 
   Clock,
-  Fuel,
+  FlaskConical,
   Calculator,
   Users,
   Map,
@@ -25,7 +25,7 @@ type PeriodFilter = 1 | 7 | 15 | 30 | 'month' | 'all';
 export default function Dashboard() {
   const navigate = useNavigate();
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
-  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
   const { applications, isLoading: loadingApps } = useApplications();
   const { properties } = useProperties();
 
@@ -48,15 +48,13 @@ export default function Dashboard() {
 
   const handleMonthChange = (month: string) => {
     setSelectedMonth(month);
-    if (month !== "all") {
-      setPeriodFilter('month');
-    }
+    setPeriodFilter('month');
   };
 
   const handlePeriodChange = (period: PeriodFilter) => {
     setPeriodFilter(period);
     if (period !== 'month') {
-      setSelectedMonth("all");
+      setSelectedMonth("");
     }
   };
 
@@ -70,7 +68,7 @@ export default function Dashboard() {
       // Filtro "Todos" - todas as aplicações concluídas
       periodApps = applications.filter(app => app.status === 'concluída');
       periodLabel = 'Todos';
-    } else if (periodFilter === 'month' && selectedMonth !== 'all') {
+    } else if (periodFilter === 'month' && selectedMonth !== '') {
       // Filtro por mês específico
       const [year, month] = selectedMonth.split('-').map(Number);
       periodApps = applications.filter(app => {
@@ -207,9 +205,9 @@ export default function Dashboard() {
         
         <span className="text-sm text-muted-foreground mx-1">ou</span>
         
-        <Select value={selectedMonth} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-9 w-[160px] text-sm">
-            <SelectValue placeholder="Selecionar mês" />
+        <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
+          <SelectTrigger className="h-9 w-[130px] text-sm">
+            <SelectValue placeholder={<span className="text-xs leading-tight">Selecionar<br/>mês</span>} />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
             {availableMonths.map((month) => (
@@ -336,7 +334,7 @@ export default function Dashboard() {
             onClick={() => navigate('/products')}
             className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted min-h-[100px]"
           >
-            <Fuel className="h-8 w-8 text-primary" />
+            <FlaskConical className="h-8 w-8 text-primary" />
             <span className="text-base font-medium text-foreground">Produtos</span>
           </button>
           <button 
