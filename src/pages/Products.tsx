@@ -95,13 +95,13 @@ export default function Products() {
         <div className="grid gap-6 md:grid-cols-2">
           {filteredProducts.map((product) => (
             <Card key={product.id} className="p-6">
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex gap-3 flex-1">
+              <div className="mb-4">
+                <div className="flex gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
                     <Fuel className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground truncate">
+                    <h3 className="font-semibold text-foreground line-clamp-2">
                       {product.name}
                     </h3>
                     {product.manufacturer && (
@@ -111,12 +111,14 @@ export default function Products() {
                     )}
                   </div>
                 </div>
-                <Badge
-                  className={categoryColors[product.category] || categoryColors.Outro}
-                  variant="outline"
-                >
-                  {product.category}
-                </Badge>
+                <div className="mt-2">
+                  <Badge
+                    className={categoryColors[product.category] || categoryColors.Outro}
+                    variant="outline"
+                  >
+                    {product.category}
+                  </Badge>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
