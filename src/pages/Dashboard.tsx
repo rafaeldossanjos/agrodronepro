@@ -206,8 +206,8 @@ export default function Dashboard() {
         <span className="text-sm text-muted-foreground mx-1">ou</span>
         
         <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-9 w-[130px] text-sm">
-            <SelectValue placeholder={<span className="text-xs leading-tight">Selecionar<br/>mês</span>} />
+          <SelectTrigger className="h-9 w-[160px] text-sm">
+            <SelectValue placeholder="Selecionar mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
             {availableMonths.map((month) => (
