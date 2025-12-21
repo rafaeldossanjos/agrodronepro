@@ -300,7 +300,7 @@ export default function Dashboard() {
             className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted"
           >
             <Calculator className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium text-foreground">Calda</span>
+            <span className="text-xs font-medium text-foreground">Calculadora</span>
           </button>
           <button 
             onClick={() => navigate('/map')}
