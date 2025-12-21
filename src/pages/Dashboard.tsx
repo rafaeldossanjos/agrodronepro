@@ -290,58 +290,58 @@ export default function Dashboard() {
         <div className="grid grid-cols-3 gap-2">
           <button 
             onClick={() => navigate('/applications')}
-            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Droplet className="h-6 w-6 text-primary" />
+            <Droplet className="h-8 w-8 text-primary" />
             <span className="text-xs font-medium text-foreground">Aplicação</span>
           </button>
           <button 
             onClick={() => navigate('/calculator')}
-            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Calculator className="h-6 w-6 text-primary" />
+            <Calculator className="h-8 w-8 text-primary" />
             <span className="text-xs font-medium text-foreground">Calculadora</span>
           </button>
           <button 
             onClick={() => navigate('/map')}
-            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Map className="h-6 w-6 text-primary" />
+            <Map className="h-8 w-8 text-primary" />
             <span className="text-xs font-medium text-foreground">Mapa</span>
           </button>
           <button 
             onClick={() => navigate('/team')}
-            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Users className="h-6 w-6 text-primary" />
+            <Users className="h-8 w-8 text-primary" />
             <span className="text-xs font-medium text-foreground">Equipe</span>
           </button>
           <button 
             onClick={() => navigate('/reports')}
-            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted"
           >
-            <TrendingUp className="h-6 w-6 text-primary" />
+            <TrendingUp className="h-8 w-8 text-primary" />
             <span className="text-xs font-medium text-foreground">Relatórios</span>
           </button>
           <button 
             onClick={() => navigate('/properties')}
-            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted"
           >
-            <MapPin className="h-6 w-6 text-primary" />
+            <MapPin className="h-8 w-8 text-primary" />
             <span className="text-xs font-medium text-foreground">Propriedades</span>
           </button>
           <button 
             onClick={() => navigate('/products')}
-            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted"
           >
-            <Cylinder className="h-6 w-6 text-primary" />
+            <Cylinder className="h-8 w-8 text-primary" />
             <span className="text-xs font-medium text-foreground">Produtos</span>
           </button>
           <button 
             onClick={() => navigate('/recipes')}
-            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-4 transition-colors hover:border-primary hover:bg-muted"
+            className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-5 transition-colors hover:border-primary hover:bg-muted"
           >
-            <FileText className="h-6 w-6 text-primary" />
+            <FileText className="h-8 w-8 text-primary" />
             <span className="text-xs font-medium text-foreground">Receituários</span>
           </button>
         </div>
