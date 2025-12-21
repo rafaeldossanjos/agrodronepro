@@ -66,6 +66,16 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
   const updateProduct = (index: number, field: keyof RecipeProductItem, value: string) => {
     const updated = [...recipeProducts];
     updated[index] = { ...updated[index], [field]: value };
+    
+    // Se mudou o produto, preencher com a dose recomendada
+    if (field === 'product_id' && value) {
+      const selectedProduct = products.find(p => p.id === value);
+      if (selectedProduct?.recommended_dose && selectedProduct?.recommended_dose_unit) {
+        updated[index].dose_per_ha = String(selectedProduct.recommended_dose);
+        updated[index].dose_unit = selectedProduct.recommended_dose_unit;
+      }
+    }
+    
     setRecipeProducts(updated);
   };
 

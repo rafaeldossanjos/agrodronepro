@@ -152,7 +152,7 @@ export function MapContainer({
       transform: translate(-50%, -50%);
     ">
       <div>${name}</div>
-      ${areaHectares ? `<div style="font-size:${Math.max(fontSize - 2, 10)}px;opacity:0.95">${Number(areaHectares).toFixed(2)} ha</div>` : ''}
+      ${areaHectares ? `<div style="font-size:${Math.max(fontSize - 2, 10)}px;opacity:0.95">${Number(areaHectares)} ha</div>` : ''}
     </div>`;
   };
 
@@ -170,7 +170,7 @@ export function MapContainer({
         2px 2px 3px rgba(0,0,0,0.9),
         0px 0px 6px rgba(0,0,0,0.8);
       transform: translate(-50%, -50%);
-    ">${area.toFixed(2)} ha</div>`;
+    ">${area} ha</div>`;
   };
 
   // Function to locate user (web + Capacitor)
@@ -672,8 +672,8 @@ export function MapContainer({
       let popupContent = `
         <div style="min-width: 200px; padding: 8px; font-size: ${currentFontSize}px;">
           <strong style="font-size: ${currentFontSize + 2}px;">${plot.name}</strong><br/>
-          ${plot.area_hectares ? `<span style="color: #666;">Área do Talhão: <b>${Number(plot.area_hectares).toFixed(2)} ha</b></span><br/>` : ''}
-          ${totalAreaApplied > 0 ? `<span style="color: #22C55E;">Área Aplicada: <b>${Number(totalAreaApplied).toFixed(2)} ha</b></span><br/>` : '<span style="color: #999;">Área Aplicada: 0 ha</span><br/>'}
+          ${plot.area_hectares ? `<span style="color: #666;">Área do Talhão: <b>${Number(plot.area_hectares)} ha</b></span><br/>` : ''}
+          ${totalAreaApplied > 0 ? `<span style="color: #22C55E;">Área Aplicada: <b>${Number(totalAreaApplied)} ha</b></span><br/>` : '<span style="color: #999;">Área Aplicada: 0 ha</span><br/>'}
       `;
       
       if (products.length > 0) {
