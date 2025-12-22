@@ -28,7 +28,7 @@ const applicationSchema = z.object({
   property_id: z.string().uuid("Selecione uma propriedade"),
   plot_id: z.string().uuid().nullable().optional(),
   plot_name: z.string().optional(),
-  name: z.string().optional(),
+  name: z.string().min(1, "Nome da aplicação é obrigatório"),
   application_date: z.string().min(1, "Data é obrigatória"),
   application_type: z.enum(['pulverização', 'adubação', 'semeadura', 'outro']),
   status: z.enum(['planejada', 'em_andamento', 'concluída', 'cancelada']),
@@ -588,15 +588,19 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-xs sm:text-sm">Nome da Aplicação</Label>
+                  <Label htmlFor="name" className="text-xs sm:text-sm">Nome da Aplicação *</Label>
                   <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="h-9 sm:h-10 text-xs sm:text-sm"
+                    className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.name ? "border-destructive" : ""}`}
                     placeholder="Ex: Aplicação de herbicida - Safra 2024"
+                    required
                   />
+                  {errors.name && (
+                    <p className="text-xs text-destructive">{errors.name}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
