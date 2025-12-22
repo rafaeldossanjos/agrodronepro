@@ -216,21 +216,27 @@ export const useApplications = () => {
       const now = new Date().toISOString();
 
       if (isOnline) {
+        const updatePayload: any = {
+          property_id: application.property_id,
+          plot_id: (application as any).plot_id || null,
+          plot_name: application.plot_name || null,
+          application_date: application.application_date,
+          application_type: application.application_type,
+          status: application.status,
+          area_applied: application.area_applied,
+          total_cost: application.total_cost,
+          flight_time_minutes: application.flight_time_minutes,
+          notes: application.notes,
+        };
+
+        // Only update name if it was provided, so we don't accidentally wipe it.
+        if (Object.prototype.hasOwnProperty.call(application, 'name')) {
+          updatePayload.name = (application as any).name ?? null;
+        }
+
         const { data: appData, error: appError } = await supabase
           .from('applications')
-          .update({
-            property_id: application.property_id,
-            plot_id: (application as any).plot_id || null,
-            plot_name: application.plot_name || null,
-            name: (application as any).name || null,
-            application_date: application.application_date,
-            application_type: application.application_type,
-            status: application.status,
-            area_applied: application.area_applied,
-            total_cost: application.total_cost,
-            flight_time_minutes: application.flight_time_minutes,
-            notes: application.notes,
-          })
+          .update(updatePayload)
           .eq('id', id)
           .select()
           .single();
