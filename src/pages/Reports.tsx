@@ -331,18 +331,23 @@ export default function Reports() {
       const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
       const plotName = app.plot_name || 'Sem talhão';
       
+      // Buscar área do talhão na tabela de plots
+      const plotData = plots.find(p => p.id === app.plot_id);
+      const plotAreaHectares = plotData?.area_hectares || null;
+      
       if (!acc[plotKey]) {
         acc[plotKey] = {
           id: plotKey,
           name: plotName,
           propertyName: app.properties?.name || 'N/A',
-          area: 0,
+          plotAreaHectares: plotAreaHectares, // Área do talhão cadastrado
+          areaApplied: 0, // Área total aplicada
           apps: 0,
           cost: 0,
           products: new Map(),
         };
       }
-      acc[plotKey].area += Number(app.area_applied);
+      acc[plotKey].areaApplied += Number(app.area_applied);
       acc[plotKey].apps += 1;
       acc[plotKey].cost += Number(app.total_cost);
       
@@ -350,8 +355,9 @@ export default function Reports() {
       if (app.application_products) {
         app.application_products.forEach((ap: any) => {
           const productName = ap.products?.name || 'Produto';
-          const existing = acc[plotKey].products.get(productName) || { amount: 0, unit: ap.products?.unit || '' };
+          const existing = acc[plotKey].products.get(productName) || { amount: 0, unit: ap.products?.unit || '', cost: 0 };
           existing.amount += Number(ap.total_amount || 0);
+          existing.cost += Number(ap.total_cost || 0);
           acc[plotKey].products.set(productName, existing);
         });
       }
@@ -364,10 +370,11 @@ export default function Reports() {
       products: Array.from(p.products.entries()).map(([name, data]: [string, any]) => ({
         name,
         amount: data.amount,
-        unit: data.unit
+        unit: data.unit,
+        cost: data.cost
       }))
-    }));
-  }, [filteredApplications]);
+    })).sort((a: any, b: any) => a.name.localeCompare(b.name));
+  }, [filteredApplications, plots]);
 
   const productStats = useMemo(() => {
     const productMap: Record<string, { name: string; unit: string; totalAmount: number; totalCost: number; count: number; avgDose: number; totalArea: number }> = {};
@@ -1517,6 +1524,76 @@ export default function Reports() {
           </table>
         </div>
       </Card>
+
+      {/* Resumo por Talhão */}
+      {plotStats.length > 0 && (
+        <Card className="p-4 sm:p-6">
+          <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Resumo por Talhão
+          </h2>
+          <div className="space-y-4">
+            {plotStats.map((plot: any) => (
+              <div key={plot.id} className="border border-border rounded-lg p-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
+                  <div>
+                    <p className="font-medium text-foreground text-base">
+                      {plot.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {plot.propertyName}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-foreground">
+                    R$ {Number(plot.cost).toFixed(2)}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                  <div className="bg-muted/30 rounded p-2">
+                    <p className="text-xs text-muted-foreground">Área do Talhão</p>
+                    <p className="font-medium text-foreground">
+                      {plot.plotAreaHectares ? `${Number(plot.plotAreaHectares).toFixed(2)} ha` : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 rounded p-2">
+                    <p className="text-xs text-muted-foreground">Área Aplicada</p>
+                    <p className="font-medium text-foreground">
+                      {plot.areaApplied.toFixed(2)} ha
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 rounded p-2">
+                    <p className="text-xs text-muted-foreground">Aplicações</p>
+                    <p className="font-medium text-foreground">{plot.apps}</p>
+                  </div>
+                  <div className="bg-muted/30 rounded p-2">
+                    <p className="text-xs text-muted-foreground">Custo/ha</p>
+                    <p className="font-medium text-foreground">
+                      R$ {plot.areaApplied > 0 ? (plot.cost / plot.areaApplied).toFixed(2) : '0.00'}
+                    </p>
+                  </div>
+                </div>
+                
+                {plot.products.length > 0 && (
+                  <div className="bg-muted/30 rounded p-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Produtos Consumidos (Total):</p>
+                    <div className="space-y-1">
+                      {plot.products.map((p: any, idx: number) => (
+                        <div key={idx} className="flex justify-between text-sm">
+                          <span className="text-foreground">{p.name}</span>
+                          <span className="text-muted-foreground">
+                            {Number(p.amount).toFixed(2)} {p.unit} - R$ {Number(p.cost).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Lista de Aplicações Detalhada */}
       <Card className="p-4 sm:p-6">
