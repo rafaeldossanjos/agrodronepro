@@ -184,7 +184,6 @@ export default function Applications() {
             </div>
             <p className="text-sm text-muted-foreground">
               {app.properties?.name || "Propriedade não informada"}
-              {app.plot_name ? ` • Talhão: ${app.plot_name}` : ""}
             </p>
           </div>
 
