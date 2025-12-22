@@ -219,11 +219,14 @@ export function PlotDialog({
                   </SelectTrigger>
                   <SelectContent className="z-[10001]">
                     <SelectItem value="none">Selecionar...</SelectItem>
-                    {linkableApplications.map((app) => (
-                      <SelectItem key={app.id} value={app.id}>
-                        {app.plot_name || 'Sem nome'}
-                      </SelectItem>
-                    ))}
+                    {linkableApplications.map((app) => {
+                      const propertyName = properties.find(p => p.id === app.property_id)?.name || 'Sem propriedade';
+                      return (
+                        <SelectItem key={app.id} value={app.id}>
+                          {propertyName} - {app.application_type}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <Button
@@ -244,13 +247,15 @@ export function PlotDialog({
 
               {linkedApplications.length > 0 && (
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {linkedApplications.map((app) => (
-                    <div key={app.id} className="flex items-center justify-between gap-2 rounded-md border bg-background p-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
-                          {app.plot_name || 'Sem nome'}
-                        </p>
-                      </div>
+                  {linkedApplications.map((app) => {
+                    const propertyName = properties.find(p => p.id === app.property_id)?.name || 'Sem propriedade';
+                    return (
+                      <div key={app.id} className="flex items-center justify-between gap-2 rounded-md border bg-background p-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">
+                            {propertyName} - {app.application_type}
+                          </p>
+                        </div>
                       <Button
                         type="button"
                         variant="ghost"
@@ -263,7 +268,8 @@ export function PlotDialog({
                         <Unlink className="h-4 w-4" />
                       </Button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
