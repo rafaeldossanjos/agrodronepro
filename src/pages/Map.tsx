@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
 import { 
   Plus, 
   Upload, 
@@ -19,7 +20,8 @@ import {
   Link,
   CheckSquare,
   Move,
-  Filter
+  Filter,
+  Search
 } from 'lucide-react';
 import { MapContainer } from '@/components/map/MapContainer';
 import { PlotDialog } from '@/components/map/PlotDialog';
@@ -60,6 +62,7 @@ export default function Map() {
   const [calculatedArea, setCalculatedArea] = useState<number>(0);
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [drawingPointCount, setDrawingPointCount] = useState(0);
   const [undoTrigger, setUndoTrigger] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -144,9 +147,15 @@ export default function Map() {
     return infoMap;
   }, [applications]);
 
-  // Filter plots by property and status
+  // Filter plots by property, status and search query
   const filteredPlots = useMemo(() => {
     let result = plotsWithStatus;
+    
+    // Search filter by name
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(p => p.name.toLowerCase().includes(query));
+    }
     
     // Property filter
     if (propertyFilter === 'none') {
@@ -161,7 +170,7 @@ export default function Map() {
     }
     
     return result;
-  }, [plotsWithStatus, propertyFilter, statusFilter]);
+  }, [plotsWithStatus, propertyFilter, statusFilter, searchQuery]);
 
   const handleDrawComplete = (geometry: PlotGeometry, area: number) => {
     setNewGeometry(geometry);
@@ -717,6 +726,17 @@ export default function Map() {
           )}
         </div>
       )}
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar talhão pelo nome..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       {/* Filters */}
       <div className="grid grid-cols-2 gap-3">
