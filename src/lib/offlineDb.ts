@@ -12,7 +12,8 @@ export interface SyncQueueItem {
 }
 
 const DB_NAME = 'agrodrone_offline';
-const DB_VERSION = 1;
+// Incrementar a versão sempre que adicionar/alterar object stores
+const DB_VERSION = 2;
 
 let db: IDBDatabase | null = null;
 

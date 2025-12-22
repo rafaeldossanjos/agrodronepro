@@ -56,10 +56,14 @@ export const usePlots = () => {
             : plot.geometry
         })) as Plot[];
         
-        // Sync to local storage
-        await bulkPut(STORE_NAME, parsedPlots);
         setPlots(parsedPlots);
-      } else {
+        
+        // Sync to local storage (não bloquear UI se o IndexedDB ainda não foi atualizado)
+        try {
+          await bulkPut(STORE_NAME, parsedPlots);
+        } catch (e) {
+          console.warn('Falha ao sincronizar talhões no armazenamento local:', e);
+        }
         // Load from local storage when offline
         const localPlots = await getAll(STORE_NAME);
         const userPlots = localPlots
