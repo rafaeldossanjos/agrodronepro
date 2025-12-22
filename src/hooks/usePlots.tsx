@@ -18,8 +18,8 @@ export interface Plot {
   name: string;
   area_hectares: number | null;
   geometry: PlotGeometry;
-  color: string;
-  status: string;
+  color: string | null;
+  status: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
