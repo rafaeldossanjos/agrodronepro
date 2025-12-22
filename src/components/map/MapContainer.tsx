@@ -677,13 +677,24 @@ export function MapContainer({
       `;
       
       if (products.length > 0) {
+        // Aggregate products by name - sum total_amount for same products
+        const aggregatedProducts = products.reduce((acc, p) => {
+          const existing = acc.find(item => item.product_name === p.product_name);
+          if (existing) {
+            existing.total_amount += p.total_amount;
+          } else {
+            acc.push({ ...p });
+          }
+          return acc;
+        }, [] as ApplicationProduct[]);
+        
         popupContent += `
           <hr style="margin: 8px 0; border: 0; border-top: 1px solid #ddd;"/>
           <div style="font-weight: 500; margin-bottom: 4px;">Produtos Aplicados:</div>
           <ul style="margin: 0; padding-left: 16px; font-size: ${currentFontSize - 1}px;">
         `;
-        products.forEach(p => {
-          popupContent += `<li>${p.product_name}: ${Number(p.dose_per_ha).toFixed(2)} /ha (${Number(p.total_amount).toFixed(2)} total)</li>`;
+        aggregatedProducts.forEach(p => {
+          popupContent += `<li>${p.product_name}: ${Number(p.total_amount).toFixed(2)} total</li>`;
         });
         popupContent += `</ul>`;
       } else {
