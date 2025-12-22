@@ -248,10 +248,7 @@ export function PlotDialog({
                     <div key={app.id} className="flex items-center justify-between gap-2 rounded-md border bg-background p-2">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">
-                          {new Date(app.application_date).toLocaleDateString('pt-BR')} • {app.application_type}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {app.area_applied} ha • {app.status}
+                          {app.plot_name || 'Sem nome'}
                         </p>
                       </div>
                       <Button
