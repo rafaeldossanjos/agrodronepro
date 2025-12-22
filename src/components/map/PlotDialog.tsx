@@ -220,7 +220,7 @@ export function PlotDialog({
                     <SelectItem value="none">Selecionar...</SelectItem>
                     {linkableApplications.map((app) => (
                       <SelectItem key={app.id} value={app.id}>
-                        {app.plot_name || 'Sem nome'} • {new Date(app.application_date).toLocaleDateString('pt-BR')} • {app.application_type}
+                        {app.plot_name || 'Sem nome'}
                       </SelectItem>
                     ))}
                   </SelectContent>
