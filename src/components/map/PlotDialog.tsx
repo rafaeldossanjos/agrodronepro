@@ -95,6 +95,8 @@ export function PlotDialog({
         id: app.id,
         property_id: app.property_id,
         plot_id: newPlotId,
+        // Preserve the application name; only update the plot link fields
+        name: app.name,
         plot_name: newPlotId ? plot.name : '',
         application_date: app.application_date,
         application_type: app.application_type,

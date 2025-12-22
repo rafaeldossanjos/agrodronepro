@@ -28,7 +28,7 @@ const applicationSchema = z.object({
   property_id: z.string().uuid("Selecione uma propriedade"),
   plot_id: z.string().uuid().nullable().optional(),
   plot_name: z.string().optional(),
-  name: z.string().min(1, "Nome da aplicação é obrigatório"),
+  name: z.string().trim().min(1, "Nome da aplicação é obrigatório").max(120, "Máximo 120 caracteres"),
   application_date: z.string().min(1, "Data é obrigatória"),
   application_type: z.enum(['pulverização', 'adubação', 'semeadura', 'outro']),
   status: z.enum(['planejada', 'em_andamento', 'concluída', 'cancelada']),

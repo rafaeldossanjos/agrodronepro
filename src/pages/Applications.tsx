@@ -56,6 +56,7 @@ export default function Applications() {
     const updateData: any = { 
       id: app.id, 
       status: newStatus,
+      name: app.name,
       property_id: app.property_id,
       plot_id: app.plot_id || null,
       plot_name: app.plot_name,
@@ -174,7 +175,7 @@ export default function Applications() {
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-lg sm:text-xl font-bold text-foreground">
-                {app.plot_name || "Talhão não informado"}
+                {app.name || "Sem nome"}
               </h3>
               <StatusBadge app={app} />
               <Badge variant="outline">
@@ -183,6 +184,7 @@ export default function Applications() {
             </div>
             <p className="text-sm text-muted-foreground">
               {app.properties?.name || "Propriedade não informada"}
+              {app.plot_name ? ` • Talhão: ${app.plot_name}` : ""}
             </p>
           </div>
 
