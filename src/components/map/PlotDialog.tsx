@@ -134,7 +134,7 @@ export function PlotDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md z-[10000] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md z-[10000] max-h-[90vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-xl">{plot ? 'Editar Talhão' : 'Novo Talhão'}</DialogTitle>
         </DialogHeader>
@@ -147,6 +147,7 @@ export function PlotDialog({
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Ex: Talhão Norte, Pivô 1"
+              autoFocus={false}
               required
             />
           </div>
