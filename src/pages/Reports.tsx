@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, DollarSign, Target, Download, Filter, FileText, X, MapPin, FlaskConical, Users } from "lucide-react";
+import { BarChart3, Target, Download, Filter, FileText, X, MapPin, FlaskConical, Users } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
 import { useProducts } from "@/hooks/useProducts";
@@ -1000,10 +1000,6 @@ export default function Reports() {
             <FileText className="h-4 w-4" />
             PDF
           </Button>
-          <Button onClick={exportCostPDF} variant="secondary" className="gap-2 w-full sm:w-auto" disabled={filteredApplications.length === 0}>
-            <DollarSign className="h-4 w-4" />
-            PDF Custos
-          </Button>
         </div>
       </div>
 
@@ -1292,31 +1288,6 @@ export default function Reports() {
 
         <Card className="p-3 sm:p-4">
           <div className="mb-1 sm:mb-2 flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-green-600" />
-            <p className="text-xs text-muted-foreground">Custo Total</p>
-          </div>
-          <p className="text-lg sm:text-2xl font-bold text-foreground">
-            R$ {stats.totalCost.toFixed(2)}
-          </p>
-          {showComparison && previousStats && (
-            <p className={`text-xs mt-1 ${stats.totalCost <= previousStats.totalCost ? 'text-green-600' : 'text-red-500'}`}>
-              {stats.totalCost <= previousStats.totalCost ? '↓' : '↑'} R$ {Math.abs(stats.totalCost - previousStats.totalCost).toFixed(2)} vs anterior
-            </p>
-          )}
-        </Card>
-
-        <Card className="p-3 sm:p-4">
-          <div className="mb-1 sm:mb-2 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-orange-500" />
-            <p className="text-xs text-muted-foreground">Custo/ha</p>
-          </div>
-          <p className="text-lg sm:text-2xl font-bold text-foreground">
-            R$ {stats.avgCostPerHa.toFixed(2)}
-          </p>
-        </Card>
-
-        <Card className="p-3 sm:p-4">
-          <div className="mb-1 sm:mb-2 flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-blue-500" />
             <p className="text-xs text-muted-foreground">Eficiência</p>
           </div>
@@ -1327,6 +1298,7 @@ export default function Reports() {
             {statusStats.concluída} concluídas
           </p>
         </Card>
+
       </div>
 
       {/* Gráfico de barras por propriedade */}
@@ -1435,9 +1407,6 @@ export default function Reports() {
                   <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
                     Aplicações
                   </th>
-                  <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
-                    Custo Total
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -1454,9 +1423,6 @@ export default function Reports() {
                     </td>
                     <td className="py-3 text-right text-xs sm:text-sm text-foreground">
                       {row.count}
-                    </td>
-                    <td className="py-3 text-right text-xs sm:text-sm font-medium text-foreground">
-                      R$ {row.totalCost.toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -1484,18 +1450,12 @@ export default function Reports() {
                 <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
                   Aplicações
                 </th>
-                <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
-                  Custo Total
-                </th>
-                <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
-                  Custo/ha
-                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {propertyStats.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={3} className="py-8 text-center text-sm text-muted-foreground">
                     Nenhum dado disponível para os filtros selecionados
                   </td>
                 </tr>
@@ -1510,12 +1470,6 @@ export default function Reports() {
                     </td>
                     <td className="py-3 text-right text-xs sm:text-sm text-foreground">
                       {row.apps}
-                    </td>
-                    <td className="py-3 text-right text-xs sm:text-sm text-foreground">
-                      R$ {row.cost.toFixed(2)}
-                    </td>
-                    <td className="py-3 text-right text-xs sm:text-sm font-medium text-foreground">
-                      R$ {(row.cost / row.area).toFixed(2)}
                     </td>
                   </tr>
                 ))
@@ -1544,9 +1498,6 @@ export default function Reports() {
                       {plot.propertyName}
                     </p>
                   </div>
-                  <p className="font-semibold text-foreground">
-                    R$ {Number(plot.cost).toFixed(2)}
-                  </p>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
@@ -1566,12 +1517,6 @@ export default function Reports() {
                     <p className="text-xs text-muted-foreground">Aplicações</p>
                     <p className="font-medium text-foreground">{plot.apps}</p>
                   </div>
-                  <div className="bg-muted/30 rounded p-2">
-                    <p className="text-xs text-muted-foreground">Custo/ha</p>
-                    <p className="font-medium text-foreground">
-                      R$ {plot.areaApplied > 0 ? (plot.cost / plot.areaApplied).toFixed(2) : '0.00'}
-                    </p>
-                  </div>
                 </div>
                 
                 {plot.products.length > 0 && (
@@ -1582,7 +1527,7 @@ export default function Reports() {
                         <div key={idx} className="flex justify-between text-sm">
                           <span className="text-foreground">{p.name}</span>
                           <span className="text-muted-foreground">
-                            {Number(p.amount).toFixed(2)} {p.unit} - R$ {Number(p.cost).toFixed(2)}
+                            {Number(p.amount).toFixed(2)} {p.unit}
                           </span>
                         </div>
                       ))}
@@ -1626,9 +1571,6 @@ export default function Reports() {
                       {formatStatusLabel(app.status)}
                     </span>
                   </div>
-                  <p className="font-semibold text-foreground">
-                    R$ {Number(app.total_cost).toFixed(2)}
-                  </p>
                 </div>
                 
                 {app.application_products && app.application_products.length > 0 && (
@@ -1639,7 +1581,7 @@ export default function Reports() {
                         <div key={idx} className="flex justify-between text-sm">
                           <span className="text-foreground">{p.products?.name || 'Produto'}</span>
                           <span className="text-muted-foreground">
-                            {Number(p.total_amount).toFixed(2)} {p.products?.unit || ''} - R$ {Number(p.total_cost).toFixed(2)}
+                            {Number(p.total_amount).toFixed(2)} {p.products?.unit || ''}
                           </span>
                         </div>
                       ))}
