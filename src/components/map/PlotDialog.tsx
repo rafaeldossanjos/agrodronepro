@@ -221,7 +221,7 @@ export function PlotDialog({
                     <SelectItem value="none">Selecionar...</SelectItem>
                     {linkableApplications.map((app) => (
                       <SelectItem key={app.id} value={app.id}>
-                        {app.plot_name || 'Sem nome'}
+                        {app.name || app.plot_name || 'Sem nome'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -248,7 +248,7 @@ export function PlotDialog({
                     <div key={app.id} className="flex items-center justify-between gap-2 rounded-md border bg-background p-2">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">
-                          {app.plot_name || 'Sem nome'}
+                          {app.name || app.plot_name || 'Sem nome'}
                         </p>
                       </div>
                       <Button

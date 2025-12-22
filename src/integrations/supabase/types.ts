@@ -70,6 +70,7 @@ export type Database = {
           created_at: string
           flight_time_minutes: number | null
           id: string
+          name: string | null
           notes: string | null
           plot_id: string | null
           plot_name: string | null
@@ -87,6 +88,7 @@ export type Database = {
           created_at?: string
           flight_time_minutes?: number | null
           id?: string
+          name?: string | null
           notes?: string | null
           plot_id?: string | null
           plot_name?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           created_at?: string
           flight_time_minutes?: number | null
           id?: string
+          name?: string | null
           notes?: string | null
           plot_id?: string | null
           plot_name?: string | null

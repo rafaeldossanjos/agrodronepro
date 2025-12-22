@@ -28,6 +28,7 @@ const applicationSchema = z.object({
   property_id: z.string().uuid("Selecione uma propriedade"),
   plot_id: z.string().uuid().nullable().optional(),
   plot_name: z.string().optional(),
+  name: z.string().optional(),
   application_date: z.string().min(1, "Data é obrigatória"),
   application_type: z.enum(['pulverização', 'adubação', 'semeadura', 'outro']),
   status: z.enum(['planejada', 'em_andamento', 'concluída', 'cancelada']),
@@ -249,6 +250,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     property_id: string;
     plot_id: string | null;
     plot_name: string;
+    name: string;
     application_date: string;
     application_type: 'pulverização' | 'adubação' | 'semeadura' | 'outro';
     status: 'planejada' | 'em_andamento' | 'concluída' | 'cancelada';
@@ -261,6 +263,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     property_id: "",
     plot_id: null,
     plot_name: "",
+    name: "",
     application_date: "",
     application_type: "pulverização",
     status: "planejada",
@@ -307,6 +310,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         property_id: application.property_id,
         plot_id: application.plot_id || null,
         plot_name: application.plot_name || "",
+        name: (application as any).name || "",
         application_date: application.application_date,
         application_type: application.application_type,
         status: application.status,
@@ -323,6 +327,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         property_id: "",
         plot_id: null,
         plot_name: "",
+        name: "",
         application_date: "",
         application_type: "pulverização",
         status: "planejada",
@@ -583,15 +588,14 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="plot_name" className="text-xs sm:text-sm">Nome do Talhão (manual)</Label>
+                  <Label htmlFor="name" className="text-xs sm:text-sm">Nome da Aplicação</Label>
                   <Input
-                    id="plot_name"
+                    id="name"
                     type="text"
-                    value={formData.plot_name}
-                    onChange={(e) => setFormData({ ...formData, plot_name: e.target.value })}
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="h-9 sm:h-10 text-xs sm:text-sm"
-                    placeholder="Ex: Talhão A1"
-                    disabled={!!formData.plot_id}
+                    placeholder="Ex: Aplicação de herbicida - Safra 2024"
                   />
                 </div>
 

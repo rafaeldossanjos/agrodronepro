@@ -12,6 +12,7 @@ export interface Application {
   property_id: string;
   plot_id?: string | null;
   plot_name?: string | null;
+  name?: string | null;
   application_date: string;
   application_type: 'pulverização' | 'adubação' | 'semeadura' | 'outro';
   status: 'planejada' | 'em_andamento' | 'concluída' | 'cancelada';
@@ -133,6 +134,7 @@ export const useApplications = () => {
       property_id: application.property_id,
       plot_id: application.plot_id || null,
       plot_name: application.plot_name || null,
+      name: application.name || null,
       application_date: application.application_date,
       application_type: application.application_type,
       status: application.status,
@@ -220,6 +222,7 @@ export const useApplications = () => {
             property_id: application.property_id,
             plot_id: (application as any).plot_id || null,
             plot_name: application.plot_name || null,
+            name: (application as any).name || null,
             application_date: application.application_date,
             application_type: application.application_type,
             status: application.status,
