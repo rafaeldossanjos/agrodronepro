@@ -35,7 +35,6 @@ const applicationSchema = z.object({
   area_applied: z.number().min(0.1, "Área deve ser maior que 0"),
   products: z.array(productItemSchema).min(1, "Adicione pelo menos um produto"),
   total_cost: z.number().min(0),
-  flight_time_minutes: z.number().int().min(0).nullable(),
   notes: z.string().nullable(),
 });
 
@@ -257,7 +256,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     area_applied: number;
     products: ProductItem[];
     total_cost: number;
-    flight_time_minutes: number | null;
     notes: string;
   }>({
     property_id: "",
@@ -270,7 +268,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     area_applied: 0,
     products: [{ product_id: "", dose_per_ha: 0, dose_input: "", dose_unit: "L", total_amount: 0, unit_cost: 0, total_cost: 0 }],
     total_cost: 0,
-    flight_time_minutes: null,
     notes: "",
   });
 
@@ -317,7 +314,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         area_applied: application.area_applied,
         products: loadedProducts,
         total_cost: application.total_cost,
-        flight_time_minutes: application.flight_time_minutes || null,
         notes: application.notes || "",
       });
       setAreaInput(application.area_applied > 0 ? application.area_applied.toString() : "");
@@ -334,7 +330,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         area_applied: 0,
         products: [{ product_id: "", dose_per_ha: 0, dose_input: "", dose_unit: "L", total_amount: 0, unit_cost: 0, total_cost: 0 }],
         total_cost: 0,
-        flight_time_minutes: null,
         notes: "",
       });
       setAreaInput("");
@@ -439,7 +434,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
           total_cost: Number(p.total_cost),
         })),
         total_cost: Number(formData.total_cost),
-        flight_time_minutes: formData.flight_time_minutes ? Number(formData.flight_time_minutes) : null,
         notes: formData.notes || null,
       });
 

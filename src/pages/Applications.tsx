@@ -64,7 +64,6 @@ export default function Applications() {
       application_type: app.application_type,
       area_applied: app.area_applied,
       total_cost: app.total_cost,
-      flight_time_minutes: app.flight_time_minutes,
       notes: app.notes,
       products: app.application_products?.map((p: any) => ({
         product_id: p.product_id,
