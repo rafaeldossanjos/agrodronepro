@@ -138,16 +138,14 @@ export default function Dashboard() {
       .sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime())
       .slice(0, 3)
       .map(app => {
-        const property = properties.find(p => p.id === app.property_id);
         return {
-          property: property?.name || 'Propriedade',
+          name: app.name || 'Aplicação',
           plotName: app.plot_name || '-',
           area: `${Number(app.area_applied)} ha`,
-          date: format(new Date(app.application_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR }),
           status: app.status,
         };
       });
-  }, [applications, properties]);
+  }, [applications]);
 
   // Contar aplicações pendentes
   const pendingCount = useMemo(() => {
@@ -259,7 +257,7 @@ export default function Dashboard() {
               className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-base font-medium text-foreground truncate">{app.property}</p>
+                <p className="text-base font-medium text-foreground truncate">{app.name}</p>
                 <p className="text-sm text-muted-foreground">{app.plotName}</p>
               </div>
               <div className="text-right flex-shrink-0 ml-3">
