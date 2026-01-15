@@ -754,42 +754,78 @@ export default function Calculator() {
                       Receita por Tanque
                     </h3>
                     
-                    {results.tankBreakdown.map((tank) => (
-                      <div 
-                        key={tank.tankNumber} 
-                        className={`rounded-lg border-2 p-4 ${
-                          tank.isComplement 
-                            ? 'border-warning bg-warning/5' 
-                            : 'border-border'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <span className={`text-base font-bold ${tank.isComplement ? 'text-warning' : 'text-foreground'}`}>
-                            {tank.isComplement ? '⚠️ Complemento' : `Tanque ${tank.tankNumber}`}
-                          </span>
-                          <span className={`text-lg font-bold ${tank.isComplement ? 'text-warning' : 'text-primary'}`}>
-                            {Math.round(tank.volume)} L
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-base">
-                            <span className="text-muted-foreground">💧 Água</span>
-                            <span className="font-bold text-foreground">
-                              {Math.round(tank.water)} L
-                            </span>
-                          </div>
-                          {tank.products.map((p) => (
-                            <div key={p.id} className="flex justify-between text-base">
-                              <span className="text-muted-foreground truncate max-w-[55%]">🧪 {p.name}</span>
-                              <span className="font-bold text-foreground">
-                                {formatQuantity(p.quantity, p.unit)}
-                              </span>
+                    {(() => {
+                      const fullTanks = results.tankBreakdown.filter(t => !t.isComplement);
+                      const complementTank = results.tankBreakdown.find(t => t.isComplement);
+                      const fullTankCount = fullTanks.length;
+                      const sampleFullTank = fullTanks[0];
+                      
+                      return (
+                        <>
+                          {/* Tanques cheios agrupados */}
+                          {sampleFullTank && (
+                            <div className="rounded-lg border-2 border-border p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-base font-bold text-foreground">
+                                  {fullTankCount === 1 ? 'Tanque Cheio' : `${fullTankCount}x Tanque Cheio`}
+                                </span>
+                                <span className="text-lg font-bold text-primary">
+                                  {Math.round(sampleFullTank.volume)} L
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-base">
+                                  <span className="text-muted-foreground">💧 Água</span>
+                                  <span className="font-bold text-foreground">
+                                    {Math.round(sampleFullTank.water)} L
+                                  </span>
+                                </div>
+                                {sampleFullTank.products.map((p) => (
+                                  <div key={p.id} className="flex justify-between text-base">
+                                    <span className="text-muted-foreground truncate max-w-[55%]">🧪 {p.name}</span>
+                                    <span className="font-bold text-foreground">
+                                      {formatQuantity(p.quantity, p.unit)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                          )}
+                          
+                          {/* Tanque complemento */}
+                          {complementTank && (
+                            <div className="rounded-lg border-2 border-warning bg-warning/5 p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-base font-bold text-warning">
+                                  ⚠️ Complemento
+                                </span>
+                                <span className="text-lg font-bold text-warning">
+                                  {Math.round(complementTank.volume)} L
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-base">
+                                  <span className="text-muted-foreground">💧 Água</span>
+                                  <span className="font-bold text-foreground">
+                                    {Math.round(complementTank.water)} L
+                                  </span>
+                                </div>
+                                {complementTank.products.map((p) => (
+                                  <div key={p.id} className="flex justify-between text-base">
+                                    <span className="text-muted-foreground truncate max-w-[55%]">🧪 {p.name}</span>
+                                    <span className="font-bold text-foreground">
+                                      {formatQuantity(p.quantity, p.unit)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
 
                   {/* Total Geral */}
