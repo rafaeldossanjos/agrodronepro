@@ -9,7 +9,8 @@ import {
   Calculator,
   Users,
   Map,
-  FileText
+  FileText,
+  Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
@@ -341,6 +342,13 @@ export default function Dashboard() {
           >
             <FileText className="h-16 w-16 text-primary" />
             <span className="text-xl font-medium text-foreground">Receituários</span>
+          </button>
+          <button 
+            onClick={() => navigate('/stock')}
+            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
+          >
+            <Package className="h-16 w-16 text-primary" />
+            <span className="text-xl font-medium text-foreground">Estoque</span>
           </button>
         </div>
       </Card>

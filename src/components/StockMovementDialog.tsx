@@ -14,27 +14,16 @@ interface StockMovementDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   trigger?: React.ReactNode;
-  defaultType?: 'entrada' | 'saida' | 'ajuste';
   defaultPropertyId?: string;
   defaultProductId?: string;
 }
 
 const reasons = {
-  entrada: [
-    { value: 'compra', label: 'Compra' },
-    { value: 'devolucao', label: 'Devolução' },
-    { value: 'transferencia', label: 'Transferência' },
-    { value: 'outro', label: 'Outro' },
-  ],
   saida: [
     { value: 'aplicacao', label: 'Aplicação' },
     { value: 'perda', label: 'Perda/Vencimento' },
     { value: 'transferencia', label: 'Transferência' },
     { value: 'outro', label: 'Outro' },
-  ],
-  ajuste: [
-    { value: 'ajuste_inventario', label: 'Ajuste de Inventário' },
-    { value: 'correcao', label: 'Correção' },
   ],
 };
 
@@ -42,7 +31,6 @@ export function StockMovementDialog({
   open, 
   onOpenChange, 
   trigger,
-  defaultType = 'entrada',
   defaultPropertyId,
   defaultProductId,
 }: StockMovementDialogProps) {
@@ -56,10 +44,10 @@ export function StockMovementDialog({
   const setDialogOpen = onOpenChange || setIsOpen;
 
   const [formData, setFormData] = useState({
-    movement_type: defaultType as 'entrada' | 'saida' | 'ajuste',
+    movement_type: 'saida' as const,
     product_id: defaultProductId || '',
     property_id: defaultPropertyId || '',
-    quantity_units: '', // Quantidade em embalagens
+    quantity_units: '',
     unit: '',
     reason: '',
     notes: '',
@@ -74,7 +62,7 @@ export function StockMovementDialog({
   useEffect(() => {
     if (dialogOpen) {
       setFormData({
-        movement_type: defaultType,
+        movement_type: 'saida',
         product_id: defaultProductId || '',
         property_id: defaultPropertyId || '',
         quantity_units: '',
@@ -84,7 +72,7 @@ export function StockMovementDialog({
         movement_date: new Date().toISOString().split('T')[0],
       });
     }
-  }, [dialogOpen, defaultType, defaultProductId, defaultPropertyId]);
+  }, [dialogOpen, defaultProductId, defaultPropertyId]);
 
   useEffect(() => {
     if (formData.product_id) {
@@ -121,74 +109,37 @@ export function StockMovementDialog({
     }
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'entrada': return <ArrowDownCircle className="h-4 w-4 text-green-500" />;
-      case 'saida': return <ArrowUpCircle className="h-4 w-4 text-red-500" />;
-      case 'ajuste': return <RefreshCw className="h-4 w-4 text-blue-500" />;
-    }
+  const getTypeIcon = () => {
+    return <ArrowUpCircle className="h-5 w-5 text-red-500" />;
   };
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nova Movimentação
+          <Button className="gap-2 h-12 text-lg">
+            <Plus className="h-5 w-5" />
+            Registrar Saída
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {getTypeIcon(formData.movement_type)}
-            Registrar Movimentação
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            {getTypeIcon()}
+            Registrar Saída de Estoque
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Tipo de Movimentação</Label>
-            <Select
-              value={formData.movement_type}
-              onValueChange={(value: 'entrada' | 'saida' | 'ajuste') => 
-                setFormData({ ...formData, movement_type: value, reason: '' })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                <SelectItem value="entrada">
-                  <span className="flex items-center gap-2">
-                    <ArrowDownCircle className="h-4 w-4 text-green-500" />
-                    Entrada
-                  </span>
-                </SelectItem>
-                <SelectItem value="saida">
-                  <span className="flex items-center gap-2">
-                    <ArrowUpCircle className="h-4 w-4 text-red-500" />
-                    Saída
-                  </span>
-                </SelectItem>
-                <SelectItem value="ajuste">
-                  <span className="flex items-center gap-2">
-                    <RefreshCw className="h-4 w-4 text-blue-500" />
-                    Ajuste
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
 
-          <div className="space-y-2">
-            <Label>Propriedade *</Label>
+          <div className="space-y-1">
+            <Label className="text-base">Propriedade *</Label>
             <Select
               value={formData.property_id}
               onValueChange={(value) => setFormData({ ...formData, property_id: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11 text-base">
                 <SelectValue placeholder="Selecione a propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
@@ -201,13 +152,13 @@ export function StockMovementDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Produto *</Label>
+          <div className="space-y-1">
+            <Label className="text-base">Produto *</Label>
             <Select
               value={formData.product_id}
               onValueChange={(value) => setFormData({ ...formData, product_id: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11 text-base">
                 <SelectValue placeholder="Selecione o produto" />
               </SelectTrigger>
               <SelectContent className="bg-popover max-h-60">
@@ -220,61 +171,58 @@ export function StockMovementDialog({
             </Select>
           </div>
 
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Qtd. Embalagens *</Label>
-                <Input
-                  type="number"
-                  step="1"
-                  min="1"
-                  value={formData.quantity_units}
-                  onChange={(e) => setFormData({ ...formData, quantity_units: e.target.value })}
-                  placeholder="Ex: 3"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Tamanho cada</Label>
-                <Input
-                  value={selectedProduct?.package_size ? `${selectedProduct.package_size} ${formData.unit}` : formData.unit}
-                  readOnly
-                  className="bg-muted"
-                />
-              </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-base">Qtd. Embalagens *</Label>
+              <Input
+                type="number"
+                step="1"
+                min="1"
+                value={formData.quantity_units}
+                onChange={(e) => setFormData({ ...formData, quantity_units: e.target.value })}
+                placeholder="Ex: 3"
+                required
+                className="h-11 text-base"
+              />
             </div>
-            {formData.quantity_units && Number(formData.quantity_units) > 0 && (
-              <div className="rounded-lg bg-muted/50 p-3">
-                <p className="text-sm font-medium">
-                  Total: <span className="text-primary">{totalQuantity.toFixed(2)} {formData.unit}</span>
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formData.quantity_units} embalagem(ns) × {packageSize} {formData.unit}
-                </p>
-              </div>
-            )}
+            <div className="space-y-1">
+              <Label className="text-base">Tamanho cada</Label>
+              <Input
+                value={selectedProduct?.package_size ? `${selectedProduct.package_size} ${formData.unit}` : formData.unit}
+                readOnly
+                className="bg-muted h-11 text-base"
+              />
+            </div>
           </div>
+          {formData.quantity_units && Number(formData.quantity_units) > 0 && (
+            <div className="rounded-lg bg-muted/50 p-2">
+              <p className="text-base font-medium">
+                Total: <span className="text-primary">{totalQuantity.toFixed(2)} {formData.unit}</span>
+              </p>
+            </div>
+          )}
 
-          <div className="space-y-2">
-            <Label>Data</Label>
+          <div className="space-y-1">
+            <Label className="text-base">Data</Label>
             <Input
               type="date"
               value={formData.movement_date}
               onChange={(e) => setFormData({ ...formData, movement_date: e.target.value })}
+              className="h-11 text-base"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Motivo</Label>
+          <div className="space-y-1">
+            <Label className="text-base">Motivo</Label>
             <Select
               value={formData.reason}
               onValueChange={(value) => setFormData({ ...formData, reason: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11 text-base">
                 <SelectValue placeholder="Selecione o motivo" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                {reasons[formData.movement_type].map((reason) => (
+                {reasons.saida.map((reason) => (
                   <SelectItem key={reason.value} value={reason.value}>
                     {reason.label}
                   </SelectItem>
@@ -283,21 +231,22 @@ export function StockMovementDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Observações</Label>
+          <div className="space-y-1">
+            <Label className="text-base">Observações</Label>
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Informações adicionais..."
               rows={2}
+              className="text-base"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+          <div className="flex gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1 h-11">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !formData.product_id || !formData.property_id || !formData.quantity_units || Number(formData.quantity_units) <= 0}>
+            <Button type="submit" disabled={isSubmitting || !formData.product_id || !formData.property_id || !formData.quantity_units || Number(formData.quantity_units) <= 0} className="flex-1 h-11 text-base">
               {isSubmitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
