@@ -221,8 +221,15 @@ export default function Calculator() {
   };
 
   const updateProduct = (id: string, field: keyof Product, value: any) => {
-    setProducts(
-      products.map((p) => (p.id === id ? { ...p, [field]: value } : p))
+    setProducts(prev =>
+      prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
+    );
+    setCalculated(false);
+  };
+
+  const updateProductFields = (id: string, fields: Partial<Product>) => {
+    setProducts(prev =>
+      prev.map((p) => (p.id === id ? { ...p, ...fields } : p))
     );
     setCalculated(false);
   };
@@ -627,8 +634,7 @@ export default function Calculator() {
                       value={product.name}
                       onSelect={(p) => selectRegisteredProduct(product.id, p)}
                       onManualInput={(name) => {
-                        updateProduct(product.id, "name", name);
-                        updateProduct(product.id, "productId", undefined);
+                        updateProductFields(product.id, { name, productId: undefined });
                       }}
                       placeholder="Buscar produto..."
                     />
