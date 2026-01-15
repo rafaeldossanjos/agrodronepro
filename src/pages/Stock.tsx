@@ -299,7 +299,7 @@ export default function Stock() {
                       <TableRow>
                         <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Produto</TableHead>
                         <TableHead className="text-right text-base sm:text-lg md:text-xl font-semibold">Quantidade</TableHead>
-                        <TableHead className="text-right text-base sm:text-lg md:text-xl font-semibold">Baldes/Unidades</TableHead>
+                        <TableHead className="text-right text-base sm:text-lg md:text-xl font-semibold">Volume</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -309,10 +309,10 @@ export default function Stock() {
                           <TableRow key={key}>
                             <TableCell className="font-medium text-base sm:text-lg md:text-xl">{data.name}</TableCell>
                             <TableCell className="text-right font-bold text-base sm:text-lg md:text-xl">
-                              {data.saidas.toFixed(2)} {data.unit}
-                            </TableCell>
-                            <TableCell className="text-right text-base sm:text-lg md:text-xl text-muted-foreground">
                               {packageQty || '-'}
+                            </TableCell>
+                            <TableCell className="text-right text-base sm:text-lg md:text-xl">
+                              {data.saidas.toFixed(2)} {data.unit}
                             </TableCell>
                           </TableRow>
                         );
