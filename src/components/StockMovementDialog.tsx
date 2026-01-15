@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, ArrowDownCircle, ArrowUpCircle, RefreshCw } from "lucide-react";
+import { Plus, ArrowUpCircle, Trash2, BookOpen } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { useProperties } from "@/hooks/useProperties";
-import { useStockMovements, StockMovement } from "@/hooks/useStockMovements";
+import { useRecipes } from "@/hooks/useRecipes";
+import { useStockMovements } from "@/hooks/useStockMovements";
 
 interface StockMovementDialogProps {
   open?: boolean;
@@ -16,6 +17,14 @@ interface StockMovementDialogProps {
   trigger?: React.ReactNode;
   defaultPropertyId?: string;
   defaultProductId?: string;
+}
+
+interface ProductItem {
+  product_id: string;
+  product_name: string;
+  quantity_units: string;
+  unit: string;
+  package_size: number;
 }
 
 const reasons = {
@@ -38,69 +47,131 @@ export function StockMovementDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { products } = useProducts();
   const { properties } = useProperties();
+  const { recipes } = useRecipes();
   const { createMovement } = useStockMovements();
 
   const dialogOpen = open !== undefined ? open : isOpen;
   const setDialogOpen = onOpenChange || setIsOpen;
 
   const [formData, setFormData] = useState({
-    movement_type: 'saida' as const,
-    product_id: defaultProductId || '',
     property_id: defaultPropertyId || '',
-    quantity_units: '',
-    unit: '',
+    recipe_id: '',
     reason: '',
     notes: '',
     movement_date: new Date().toISOString().split('T')[0],
   });
 
-  // Get selected product info
-  const selectedProduct = products.find(p => p.id === formData.product_id);
-  const packageSize = selectedProduct?.package_size || 1;
-  const totalQuantity = Number(formData.quantity_units || 0) * packageSize;
+  const [productItems, setProductItems] = useState<ProductItem[]>([]);
 
   useEffect(() => {
     if (dialogOpen) {
       setFormData({
-        movement_type: 'saida',
-        product_id: defaultProductId || '',
         property_id: defaultPropertyId || '',
-        quantity_units: '',
-        unit: '',
+        recipe_id: '',
         reason: '',
         notes: '',
         movement_date: new Date().toISOString().split('T')[0],
       });
-    }
-  }, [dialogOpen, defaultProductId, defaultPropertyId]);
-
-  useEffect(() => {
-    if (formData.product_id) {
-      const product = products.find(p => p.id === formData.product_id);
-      if (product) {
-        setFormData(prev => ({ ...prev, unit: product.unit }));
+      
+      // Se tiver um produto padrão, adiciona ele
+      if (defaultProductId) {
+        const product = products.find(p => p.id === defaultProductId);
+        if (product) {
+          setProductItems([{
+            product_id: product.id,
+            product_name: product.name,
+            quantity_units: '',
+            unit: product.unit,
+            package_size: product.package_size || 1,
+          }]);
+        }
+      } else {
+        setProductItems([]);
       }
     }
-  }, [formData.product_id, products]);
+  }, [dialogOpen, defaultProductId, defaultPropertyId, products]);
+
+  // Quando seleciona um receituário, preenche os produtos automaticamente
+  const handleRecipeChange = (recipeId: string) => {
+    setFormData(prev => ({ ...prev, recipe_id: recipeId }));
+    
+    if (recipeId) {
+      const recipe = recipes.find(r => r.id === recipeId);
+      if (recipe && recipe.recipe_products) {
+        const items: ProductItem[] = recipe.recipe_products.map(rp => {
+          const product = products.find(p => p.id === rp.product_id);
+          return {
+            product_id: rp.product_id,
+            product_name: product?.name || rp.products?.name || 'Produto',
+            quantity_units: '',
+            unit: product?.unit || 'L',
+            package_size: product?.package_size || 1,
+          };
+        });
+        setProductItems(items);
+      }
+    }
+  };
+
+  const updateProductQuantity = (index: number, quantity: string) => {
+    setProductItems(prev => prev.map((item, i) => 
+      i === index ? { ...item, quantity_units: quantity } : item
+    ));
+  };
+
+  const removeProduct = (index: number) => {
+    setProductItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const addProduct = () => {
+    setProductItems(prev => [...prev, {
+      product_id: '',
+      product_name: '',
+      quantity_units: '',
+      unit: '',
+      package_size: 1,
+    }]);
+  };
+
+  const updateProductSelection = (index: number, productId: string) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setProductItems(prev => prev.map((item, i) => 
+        i === index ? {
+          ...item,
+          product_id: productId,
+          product_name: product.name,
+          unit: product.unit,
+          package_size: product.package_size || 1,
+        } : item
+      ));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Registrar a quantidade total (embalagens × tamanho)
-      await createMovement({
-        product_id: formData.product_id,
-        property_id: formData.property_id,
-        movement_type: formData.movement_type,
-        quantity: totalQuantity, // Total em unidade base (L, kg, etc)
-        unit: formData.unit,
-        reason: formData.reason || null,
-        notes: formData.notes 
-          ? `${formData.notes} (${formData.quantity_units} embalagem(ns) de ${packageSize}${formData.unit})`
-          : `${formData.quantity_units} embalagem(ns) de ${packageSize}${formData.unit}`,
-        movement_date: new Date(formData.movement_date).toISOString(),
-      });
+      // Registrar cada produto como uma movimentação separada
+      for (const item of productItems) {
+        if (item.product_id && item.quantity_units && Number(item.quantity_units) > 0) {
+          const totalQuantity = Number(item.quantity_units) * item.package_size;
+          
+          await createMovement({
+            product_id: item.product_id,
+            property_id: formData.property_id,
+            movement_type: 'saida',
+            quantity: totalQuantity,
+            unit: item.unit,
+            reason: formData.reason || null,
+            notes: formData.notes 
+              ? `${formData.notes} (${item.quantity_units} embalagem(ns) de ${item.package_size}${item.unit})`
+              : `${item.quantity_units} embalagem(ns) de ${item.package_size}${item.unit}`,
+            movement_date: new Date(formData.movement_date).toISOString(),
+          });
+        }
+      }
       setDialogOpen(false);
     } catch (error) {
       console.error('Erro ao criar movimentação:', error);
@@ -109,9 +180,9 @@ export function StockMovementDialog({
     }
   };
 
-  const getTypeIcon = () => {
-    return <ArrowUpCircle className="h-5 w-5 text-red-500" />;
-  };
+  const hasValidProducts = productItems.some(
+    item => item.product_id && item.quantity_units && Number(item.quantity_units) > 0
+  );
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -123,10 +194,10 @@ export function StockMovementDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            {getTypeIcon()}
+            <ArrowUpCircle className="h-5 w-5 text-red-500" />
             Registrar Saída de Estoque
           </DialogTitle>
         </DialogHeader>
@@ -153,54 +224,115 @@ export function StockMovementDialog({
           </div>
 
           <div className="space-y-1">
-            <Label className="text-base">Produto *</Label>
+            <Label className="text-base flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Carregar do Receituário
+            </Label>
             <Select
-              value={formData.product_id}
-              onValueChange={(value) => setFormData({ ...formData, product_id: value })}
+              value={formData.recipe_id}
+              onValueChange={handleRecipeChange}
             >
               <SelectTrigger className="h-11 text-base">
-                <SelectValue placeholder="Selecione o produto" />
+                <SelectValue placeholder="Selecione um receituário (opcional)" />
               </SelectTrigger>
               <SelectContent className="bg-popover max-h-60">
-                {products.filter(p => p.active).map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.name} ({product.unit})
+                {recipes.map((recipe) => (
+                  <SelectItem key={recipe.id} value={recipe.id}>
+                    {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-base">Qtd. Embalagens *</Label>
-              <Input
-                type="number"
-                step="1"
-                min="1"
-                value={formData.quantity_units}
-                onChange={(e) => setFormData({ ...formData, quantity_units: e.target.value })}
-                placeholder="Ex: 3"
-                required
-                className="h-11 text-base"
-              />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">Produtos</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addProduct} className="h-8">
+                <Plus className="h-4 w-4 mr-1" />
+                Adicionar
+              </Button>
             </div>
-            <div className="space-y-1">
-              <Label className="text-base">Tamanho cada</Label>
-              <Input
-                value={selectedProduct?.package_size ? `${selectedProduct.package_size} ${formData.unit}` : formData.unit}
-                readOnly
-                className="bg-muted h-11 text-base"
-              />
-            </div>
-          </div>
-          {formData.quantity_units && Number(formData.quantity_units) > 0 && (
-            <div className="rounded-lg bg-muted/50 p-2">
-              <p className="text-base font-medium">
-                Total: <span className="text-primary">{totalQuantity.toFixed(2)} {formData.unit}</span>
+            
+            {productItems.length === 0 ? (
+              <p className="text-muted-foreground text-sm py-2">
+                Selecione um receituário ou adicione produtos manualmente
               </p>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-2">
+                {productItems.map((item, index) => (
+                  <div key={index} className="border rounded-lg p-2 space-y-2">
+                    {!item.product_id ? (
+                      <Select
+                        value={item.product_id}
+                        onValueChange={(value) => updateProductSelection(index, value)}
+                      >
+                        <SelectTrigger className="h-10 text-sm">
+                          <SelectValue placeholder="Selecione o produto" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover max-h-60">
+                          {products.filter(p => p.active).map((product) => (
+                            <SelectItem key={product.id} value={product.id}>
+                              {product.name} ({product.unit})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{item.product_name}</span>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => removeProduct(index)}
+                          className="h-7 w-7 p-0 text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {item.product_id && (
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <Label className="text-xs">Embalagens</Label>
+                          <Input
+                            type="number"
+                            step="1"
+                            min="1"
+                            value={item.quantity_units}
+                            onChange={(e) => updateProductQuantity(index, e.target.value)}
+                            placeholder="Qtd"
+                            className="h-9 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Tamanho</Label>
+                          <Input
+                            value={`${item.package_size} ${item.unit}`}
+                            readOnly
+                            className="bg-muted h-9 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Total</Label>
+                          <Input
+                            value={item.quantity_units ? 
+                              `${(Number(item.quantity_units) * item.package_size).toFixed(1)} ${item.unit}` : 
+                              '-'
+                            }
+                            readOnly
+                            className="bg-muted h-9 text-sm font-medium text-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="space-y-1">
             <Label className="text-base">Data</Label>
@@ -246,7 +378,11 @@ export function StockMovementDialog({
             <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1 h-11">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !formData.product_id || !formData.property_id || !formData.quantity_units || Number(formData.quantity_units) <= 0} className="flex-1 h-11 text-base">
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !formData.property_id || !hasValidProducts} 
+              className="flex-1 h-11 text-base"
+            >
               {isSubmitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>
