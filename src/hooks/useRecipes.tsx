@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useOnlineStatus } from './useOnlineStatus';
 import { supabase } from '@/integrations/supabase/client';
-import { getByIndex, put, remove, getAll, initOfflineDb } from '@/lib/offlineDb';
+import { put, remove, getAll, initOfflineDb } from '@/lib/offlineDb';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -24,6 +24,7 @@ export interface RecipeProduct {
 export interface Recipe {
   id: string;
   user_id: string;
+  team_id?: string | null;
   name: string;
   description?: string;
   created_at: string;
@@ -37,6 +38,24 @@ export const useRecipes = () => {
   const isOnline = useOnlineStatus();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userTeamId, setUserTeamId] = useState<string | null>(null);
+
+  // Buscar team_id do usuário
+  useEffect(() => {
+    const fetchUserTeam = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      setUserTeamId(data?.team_id || null);
+    };
+    
+    fetchUserTeam();
+  }, [user?.id]);
 
   const loadRecipes = useCallback(async () => {
     if (!user?.id) return;
@@ -46,6 +65,7 @@ export const useRecipes = () => {
       await initOfflineDb();
 
       if (isOnline) {
+        // Buscar receituários do usuário OU do time (RLS cuida do filtro)
         const { data: serverData, error } = await supabase
           .from('recipes')
           .select(`
@@ -55,7 +75,6 @@ export const useRecipes = () => {
               products (id, name, unit, unit_price)
             )
           `)
-          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -72,17 +91,23 @@ export const useRecipes = () => {
           }
         }
       } else {
-        const localRecipes = await getByIndex('recipes', 'user_id', user.id);
+        // Offline: carregar dados locais (do usuário e do time)
+        const localRecipes = await getAll('recipes');
         const localRecipeProducts = await getAll('recipe_products');
         const localProducts = await getAll('products');
 
-        const enrichedRecipes = localRecipes.map(recipe => ({
+        // Filtrar por usuário ou time
+        const filteredRecipes = localRecipes.filter((r: Recipe) => 
+          r.user_id === user.id || (userTeamId && r.team_id === userTeamId)
+        );
+
+        const enrichedRecipes = filteredRecipes.map((recipe: Recipe) => ({
           ...recipe,
           recipe_products: localRecipeProducts
-            .filter(rp => rp.recipe_id === recipe.id)
-            .map(rp => ({
+            .filter((rp: RecipeProduct) => rp.recipe_id === recipe.id)
+            .map((rp: RecipeProduct) => ({
               ...rp,
-              products: localProducts.find(p => p.id === rp.product_id),
+              products: localProducts.find((p: any) => p.id === rp.product_id),
             })),
         }));
 
@@ -91,15 +116,18 @@ export const useRecipes = () => {
     } catch (error) {
       console.error('Erro ao carregar receituários:', error);
       try {
-        const localRecipes = await getByIndex('recipes', 'user_id', user.id);
-        setRecipes(localRecipes);
+        const localRecipes = await getAll('recipes');
+        const filteredRecipes = localRecipes.filter((r: Recipe) => 
+          r.user_id === user.id || (userTeamId && r.team_id === userTeamId)
+        );
+        setRecipes(filteredRecipes);
       } catch (localError) {
         console.error('Erro ao carregar dados locais:', localError);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, isOnline]);
+  }, [user?.id, isOnline, userTeamId]);
 
   useEffect(() => {
     loadRecipes();
@@ -119,7 +147,12 @@ export const useRecipes = () => {
       if (isOnline) {
         const { data: recipe, error: recipeError } = await supabase
           .from('recipes')
-          .insert([{ name: data.name, description: data.description, user_id: user.id }])
+          .insert([{ 
+            name: data.name, 
+            description: data.description, 
+            user_id: user.id,
+            team_id: userTeamId // Adiciona o team_id automaticamente
+          }])
           .select()
           .single();
 
@@ -143,6 +176,7 @@ export const useRecipes = () => {
           name: data.name,
           description: data.description,
           user_id: user.id,
+          team_id: userTeamId, // Adiciona o team_id automaticamente
           created_at: now,
           updated_at: now,
           synced: false,
@@ -213,7 +247,7 @@ export const useRecipes = () => {
 
         // Remove old recipe products
         const localRecipeProducts = await getAll('recipe_products');
-        for (const rp of localRecipeProducts.filter(rp => rp.recipe_id === data.id)) {
+        for (const rp of localRecipeProducts.filter((rp: RecipeProduct) => rp.recipe_id === data.id)) {
           await remove('recipe_products', rp.id);
         }
 
@@ -250,7 +284,7 @@ export const useRecipes = () => {
 
       // Remove from local DB
       const localRecipeProducts = await getAll('recipe_products');
-      for (const rp of localRecipeProducts.filter(rp => rp.recipe_id === id)) {
+      for (const rp of localRecipeProducts.filter((rp: RecipeProduct) => rp.recipe_id === id)) {
         await remove('recipe_products', rp.id);
       }
       await remove('recipes', id);
