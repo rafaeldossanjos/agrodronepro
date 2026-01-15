@@ -15,6 +15,7 @@ export interface Product {
   unit_price: number;
   unit: string;
   stock_quantity: number;
+  package_size?: number | null;
   active: boolean;
   recommended_dose?: number;
   recommended_dose_unit?: string;

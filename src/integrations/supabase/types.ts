@@ -313,6 +313,7 @@ export type Database = {
           id: string
           manufacturer: string | null
           name: string
+          package_size: number | null
           recommended_dose: number | null
           recommended_dose_unit: string | null
           stock_quantity: number
@@ -329,6 +330,7 @@ export type Database = {
           id?: string
           manufacturer?: string | null
           name: string
+          package_size?: number | null
           recommended_dose?: number | null
           recommended_dose_unit?: string | null
           stock_quantity?: number
@@ -345,6 +347,7 @@ export type Database = {
           id?: string
           manufacturer?: string | null
           name?: string
+          package_size?: number | null
           recommended_dose?: number | null
           recommended_dose_unit?: string | null
           stock_quantity?: number
