@@ -471,10 +471,10 @@ export default function Calculator() {
     <div className="space-y-4">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           Calculadora de Calda
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           Calcule a quantidade de produtos e volume necessários
         </p>
       </div>
@@ -484,7 +484,7 @@ export default function Calculator() {
         <div className="space-y-3">
           <Card className="p-3 sm:p-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-foreground">
+              <h2 className="text-base font-semibold text-foreground">
                 Parâmetros
               </h2>
               {hasSavedParams && (
@@ -501,7 +501,7 @@ export default function Calculator() {
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label htmlFor="area" className="text-xs">Área (ha) *</Label>
+                <Label htmlFor="area" className="text-sm">Área (ha) *</Label>
                 <Input
                   id="area"
                   type="text"
@@ -520,7 +520,7 @@ export default function Calculator() {
                 />
               </div>
               <div>
-                <Label htmlFor="flowRate" className="text-xs">Vazão (L/ha) *</Label>
+                <Label htmlFor="flowRate" className="text-sm">Vazão (L/ha) *</Label>
                 <Input
                   id="flowRate"
                   type="text"
@@ -539,7 +539,7 @@ export default function Calculator() {
                 />
               </div>
               <div>
-                <Label htmlFor="tankVolume" className="text-xs">Tanque (L) *</Label>
+                <Label htmlFor="tankVolume" className="text-sm">Tanque (L) *</Label>
                 <Input
                   id="tankVolume"
                   type="text"
@@ -562,7 +562,7 @@ export default function Calculator() {
 
           <Card className="p-3 sm:p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-foreground">
+              <h2 className="text-base font-semibold text-foreground">
                 Produtos
               </h2>
               <div className="flex gap-1">
@@ -597,7 +597,7 @@ export default function Calculator() {
                 <div key={product.id}>
                   <div className="rounded-lg border border-border p-2.5 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground">
+                      <span className="text-sm font-medium text-muted-foreground">
                         Produto {index + 1}
                       </span>
                       <Button
@@ -623,7 +623,7 @@ export default function Calculator() {
                     
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-[10px]">Dose</Label>
+                        <Label className="text-sm">Dose</Label>
                         <Input
                           type="text"
                           inputMode="decimal"
@@ -635,25 +635,25 @@ export default function Calculator() {
                             }
                           }}
                           placeholder="0.5"
-                          className="h-7 text-xs"
+                          className="h-9"
                         />
                       </div>
                       <div>
-                        <Label className="text-[10px]">Unidade</Label>
+                        <Label className="text-sm">Unidade</Label>
                         <Select
                           value={product.unit}
                           onValueChange={(value) =>
                             updateProduct(product.id, "unit", value)
                           }
                         >
-                          <SelectTrigger className="h-7 text-xs">
+                          <SelectTrigger className="h-9">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-popover">
-                            <SelectItem value="L/ha" className="text-xs">L/ha</SelectItem>
-                            <SelectItem value="mL/ha" className="text-xs">mL/ha</SelectItem>
-                            <SelectItem value="kg/ha" className="text-xs">kg/ha</SelectItem>
-                            <SelectItem value="g/ha" className="text-xs">g/ha</SelectItem>
+                            <SelectItem value="L/ha">L/ha</SelectItem>
+                            <SelectItem value="mL/ha">mL/ha</SelectItem>
+                            <SelectItem value="kg/ha">kg/ha</SelectItem>
+                            <SelectItem value="g/ha">g/ha</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
