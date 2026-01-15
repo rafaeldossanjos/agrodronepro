@@ -398,9 +398,14 @@ export default function Calculator() {
     if (!results) return;
 
     const productsWithId = results.productPerTank.filter(p => p.productId);
-    if (productsWithId.length !== results.productPerTank.length) {
-      toast.error("Todos os produtos precisam estar cadastrados no sistema para salvar como aplicação");
-      return;
+    const productsWithoutId = results.productPerTank.filter(p => !p.productId);
+    
+    // Aviso se houver produtos não cadastrados, mas continua salvando os cadastrados
+    let notesExtra = "";
+    if (productsWithoutId.length > 0) {
+      const manualNames = productsWithoutId.map(p => p.name).join(", ");
+      notesExtra = ` Produtos manuais não salvos: ${manualNames}.`;
+      toast.info(`${productsWithoutId.length} produto(s) manual(is) não serão vinculados à aplicação`);
     }
 
     const applicationData = {
@@ -412,7 +417,7 @@ export default function Calculator() {
       area_applied: parseDecimalInput(area),
       total_cost: 0,
       flight_time_minutes: null,
-      notes: `Gerado pela calculadora de calda. Volume total: ${results.totalVolume.toFixed(0)}L, ${results.tanks} tanque(s).`,
+      notes: `Gerado pela calculadora de calda. Volume total: ${results.totalVolume.toFixed(0)}L, ${results.tanks} tanque(s).${notesExtra}`,
       products: productsWithId.map(p => ({
         product_id: p.productId!,
         dose_per_ha: p.dose,
@@ -444,9 +449,16 @@ export default function Calculator() {
     if (!results) return;
 
     const productsWithId = results.productPerTank.filter(p => p.productId);
-    if (productsWithId.length !== results.productPerTank.length) {
-      toast.error("Todos os produtos precisam estar cadastrados no sistema para salvar como receituário");
+    const productsWithoutId = results.productPerTank.filter(p => !p.productId);
+    
+    if (productsWithId.length === 0) {
+      toast.error("É necessário ao menos um produto cadastrado para criar um receituário");
       return;
+    }
+    
+    // Aviso se houver produtos não cadastrados
+    if (productsWithoutId.length > 0) {
+      toast.info(`${productsWithoutId.length} produto(s) manual(is) não serão incluídos no receituário`);
     }
 
     try {
