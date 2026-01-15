@@ -45,7 +45,7 @@ export default function Products() {
           <h1 className="text-3xl font-bold text-foreground">
             Banco de Produtos
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Gerencie defensivos, fertilizantes e adjuvantes
           </p>
         </div>
@@ -55,12 +55,12 @@ export default function Products() {
       {/* Search */}
       <Card className="p-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar produtos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-11 h-12 text-lg"
           />
         </div>
       </Card>
@@ -69,11 +69,11 @@ export default function Products() {
       {products.length === 0 ? (
         <Card className="p-12">
           <div className="text-center">
-            <Cylinder className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+            <Cylinder className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               Nenhum produto cadastrado
             </h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-lg text-muted-foreground mb-4">
               Comece criando seu primeiro produto
             </p>
             <ProductDialog />
@@ -82,11 +82,11 @@ export default function Products() {
       ) : filteredProducts.length === 0 ? (
         <Card className="p-12">
           <div className="text-center">
-            <Search className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+            <Search className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               Nenhum produto encontrado
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-lg text-muted-foreground">
               Tente buscar por outro termo
             </p>
           </div>
@@ -97,15 +97,15 @@ export default function Products() {
             <Card key={product.id} className="p-6">
               <div className="mb-4">
                 <div className="flex gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-                    <Cylinder className="h-6 w-6 text-primary" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+                    <Cylinder className="h-8 w-8 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground line-clamp-2">
+                    <h3 className="font-semibold text-lg text-foreground line-clamp-2">
                       {product.name}
                     </h3>
                     {product.manufacturer && (
-                      <p className="text-sm text-muted-foreground truncate">
+                      <p className="text-base text-muted-foreground truncate">
                         {product.manufacturer}
                       </p>
                     )}
@@ -123,14 +123,14 @@ export default function Products() {
 
               <div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Preço</p>
-                  <p className="font-semibold text-foreground">
+                  <p className="text-base text-muted-foreground">Preço</p>
+                  <p className="font-semibold text-lg text-foreground">
                     R$ {product.unit_price.toFixed(2)}/{product.unit}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Estoque</p>
-                  <p className="font-semibold text-foreground">
+                  <p className="text-base text-muted-foreground">Estoque</p>
+                  <p className="font-semibold text-lg text-foreground">
                     {product.stock_quantity} {product.unit}
                   </p>
                 </div>
@@ -140,16 +140,16 @@ export default function Products() {
                 <ProductDialog
                   product={product}
                   trigger={
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Edit className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="default" className="flex-1 h-11">
+                      <Edit className="h-5 w-5 mr-2" />
                       Editar
                     </Button>
                   }
                 />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Trash2 className="h-4 w-4 mr-2" />
+                    <Button variant="outline" size="default" className="flex-1 h-11">
+                      <Trash2 className="h-5 w-5 mr-2" />
                       Excluir
                     </Button>
                   </AlertDialogTrigger>

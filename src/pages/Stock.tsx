@@ -120,8 +120,8 @@ export default function Stock() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Controle de Estoque</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Controle de Estoque</h1>
+          <p className="text-base text-muted-foreground">
             Gerencie entradas, saídas e saldos por propriedade
           </p>
         </div>
@@ -131,16 +131,16 @@ export default function Stock() {
       {/* Low Stock Alerts */}
       {lowStockItems.length > 0 && (
         <Card className="border-orange-500/50 bg-orange-500/10">
-          <CardContent className="py-3">
+          <CardContent className="py-4">
             <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="font-medium">
+              <AlertTriangle className="h-6 w-6" />
+              <span className="font-medium text-lg">
                 {lowStockItems.length} produto(s) com estoque baixo
               </span>
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
               {lowStockItems.slice(0, 5).map((item) => (
-                <Badge key={item.id} variant="outline" className="text-orange-600 border-orange-500">
+                <Badge key={item.id} variant="outline" className="text-orange-600 border-orange-500 text-base py-1">
                   {item.product?.name} ({item.property?.name})
                 </Badge>
               ))}
@@ -154,16 +154,16 @@ export default function Stock() {
         <CardContent className="py-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Buscar produto..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
+                className="pl-11 h-12 text-lg"
               />
             </div>
             <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-              <SelectTrigger className="w-full sm:w-48">
+              <SelectTrigger className="w-full sm:w-48 h-12 text-base">
                 <SelectValue placeholder="Propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
@@ -189,9 +189,9 @@ export default function Stock() {
           {filteredBalances.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Nenhum saldo de estoque encontrado</p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg text-muted-foreground">Nenhum saldo de estoque encontrado</p>
+                <p className="text-base text-muted-foreground mt-1">
                   Registre movimentações para começar a controlar o estoque
                 </p>
               </CardContent>
@@ -201,25 +201,25 @@ export default function Stock() {
               {filteredBalances.map((balance) => (
                 <Card key={balance.id}>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center justify-between">
                       <span className="truncate">{balance.product?.name}</span>
                       {balance.min_quantity > 0 && balance.current_quantity <= balance.min_quantity && (
-                        <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        <AlertTriangle className="h-5 w-5 text-orange-500" />
                       )}
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-base text-muted-foreground">
                       {balance.property?.name}
                     </p>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold">
+                      <span className="text-3xl font-bold">
                         {Number(balance.current_quantity).toFixed(2)}
                       </span>
-                      <span className="text-muted-foreground">{balance.unit}</span>
+                      <span className="text-lg text-muted-foreground">{balance.unit}</span>
                     </div>
                     {balance.min_quantity > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Mínimo: {balance.min_quantity} {balance.unit}
                       </p>
                     )}
@@ -229,8 +229,8 @@ export default function Stock() {
                         defaultPropertyId={balance.property_id}
                         defaultProductId={balance.product_id}
                         trigger={
-                          <Button size="sm" variant="outline" className="flex-1 gap-1">
-                            <ArrowDownCircle className="h-3 w-3 text-green-500" />
+                          <Button size="default" variant="outline" className="flex-1 gap-1 h-11">
+                            <ArrowDownCircle className="h-4 w-4 text-green-500" />
                             Entrada
                           </Button>
                         }
@@ -240,8 +240,8 @@ export default function Stock() {
                         defaultPropertyId={balance.property_id}
                         defaultProductId={balance.product_id}
                         trigger={
-                          <Button size="sm" variant="outline" className="flex-1 gap-1">
-                            <ArrowUpCircle className="h-3 w-3 text-red-500" />
+                          <Button size="default" variant="outline" className="flex-1 gap-1 h-11">
+                            <ArrowUpCircle className="h-4 w-4 text-red-500" />
                             Saída
                           </Button>
                         }
@@ -260,7 +260,7 @@ export default function Stock() {
             <CardContent className="py-4">
               <div className="flex flex-col sm:flex-row gap-3">
                 <Select value={movementTypeFilter} onValueChange={setMovementTypeFilter}>
-                  <SelectTrigger className="w-full sm:w-40">
+                  <SelectTrigger className="w-full sm:w-40 h-11 text-base">
                     <SelectValue placeholder="Tipo" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
@@ -274,14 +274,14 @@ export default function Stock() {
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full sm:w-40"
+                  className="w-full sm:w-40 h-11"
                   placeholder="Data inicial"
                 />
                 <Input
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full sm:w-40"
+                  className="w-full sm:w-40 h-11"
                   placeholder="Data final"
                 />
               </div>
@@ -291,8 +291,8 @@ export default function Stock() {
           {filteredMovements.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <RefreshCw className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Nenhuma movimentação encontrada</p>
+                <RefreshCw className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg text-muted-foreground">Nenhuma movimentação encontrada</p>
               </CardContent>
             </Card>
           ) : (
