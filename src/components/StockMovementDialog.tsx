@@ -59,12 +59,17 @@ export function StockMovementDialog({
     movement_type: defaultType as 'entrada' | 'saida' | 'ajuste',
     product_id: defaultProductId || '',
     property_id: defaultPropertyId || '',
-    quantity: '',
+    quantity_units: '', // Quantidade em embalagens
     unit: '',
     reason: '',
     notes: '',
     movement_date: new Date().toISOString().split('T')[0],
   });
+
+  // Get selected product info
+  const selectedProduct = products.find(p => p.id === formData.product_id);
+  const packageSize = selectedProduct?.package_size || 1;
+  const totalQuantity = Number(formData.quantity_units || 0) * packageSize;
 
   useEffect(() => {
     if (dialogOpen) {
@@ -72,7 +77,7 @@ export function StockMovementDialog({
         movement_type: defaultType,
         product_id: defaultProductId || '',
         property_id: defaultPropertyId || '',
-        quantity: '',
+        quantity_units: '',
         unit: '',
         reason: '',
         notes: '',
@@ -95,14 +100,17 @@ export function StockMovementDialog({
     setIsSubmitting(true);
 
     try {
+      // Registrar a quantidade total (embalagens × tamanho)
       await createMovement({
         product_id: formData.product_id,
         property_id: formData.property_id,
         movement_type: formData.movement_type,
-        quantity: Number(formData.quantity),
+        quantity: totalQuantity, // Total em unidade base (L, kg, etc)
         unit: formData.unit,
         reason: formData.reason || null,
-        notes: formData.notes || null,
+        notes: formData.notes 
+          ? `${formData.notes} (${formData.quantity_units} embalagem(ns) de ${packageSize}${formData.unit})`
+          : `${formData.quantity_units} embalagem(ns) de ${packageSize}${formData.unit}`,
         movement_date: new Date(formData.movement_date).toISOString(),
       });
       setDialogOpen(false);
@@ -212,26 +220,39 @@ export function StockMovementDialog({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Quantidade *</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                placeholder="0.00"
-                required
-              />
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Qtd. Embalagens *</Label>
+                <Input
+                  type="number"
+                  step="1"
+                  min="1"
+                  value={formData.quantity_units}
+                  onChange={(e) => setFormData({ ...formData, quantity_units: e.target.value })}
+                  placeholder="Ex: 3"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Tamanho cada</Label>
+                <Input
+                  value={selectedProduct?.package_size ? `${selectedProduct.package_size} ${formData.unit}` : formData.unit}
+                  readOnly
+                  className="bg-muted"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Unidade</Label>
-              <Input
-                value={formData.unit}
-                readOnly
-                className="bg-muted"
-              />
-            </div>
+            {formData.quantity_units && Number(formData.quantity_units) > 0 && (
+              <div className="rounded-lg bg-muted/50 p-3">
+                <p className="text-sm font-medium">
+                  Total: <span className="text-primary">{totalQuantity.toFixed(2)} {formData.unit}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formData.quantity_units} embalagem(ns) × {packageSize} {formData.unit}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -276,7 +297,7 @@ export function StockMovementDialog({
             <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || !formData.product_id || !formData.property_id || !formData.quantity}>
+            <Button type="submit" disabled={isSubmitting || !formData.product_id || !formData.property_id || !formData.quantity_units || Number(formData.quantity_units) <= 0}>
               {isSubmitting ? 'Salvando...' : 'Salvar'}
             </Button>
           </div>

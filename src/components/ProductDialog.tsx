@@ -16,6 +16,7 @@ const productSchema = z.object({
   category: z.string().min(1, 'Categoria é obrigatória'),
   unit_price: z.number().min(0, 'Preço não pode ser negativo').optional(),
   unit: z.string().min(1, 'Unidade é obrigatória'),
+  package_size: z.number().min(0.01, 'Tamanho da embalagem deve ser maior que 0').optional(),
   recommended_dose: z.number().min(0, 'Dose não pode ser negativa').optional(),
   recommended_dose_unit: z.string().optional(),
   active: z.boolean(),
@@ -37,6 +38,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
     category: product?.category || 'Herbicida',
     unit_price: product?.unit_price || 0,
     unit: product?.unit || 'L',
+    package_size: product?.package_size?.toString() || '',
     recommended_dose: product?.recommended_dose?.toString() || '',
     recommended_dose_unit: product?.recommended_dose_unit || 'L/ha',
     active: product?.active ?? true,
@@ -49,6 +51,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
     try {
       const dataToValidate = {
         ...formData,
+        package_size: formData.package_size ? parseDecimalInput(formData.package_size) : undefined,
         recommended_dose: formData.recommended_dose ? parseDecimalInput(formData.recommended_dose) : undefined,
       };
       
@@ -64,6 +67,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
           unit_price: validated.unit_price,
           unit: validated.unit,
           stock_quantity: 0,
+          package_size: validated.package_size,
           recommended_dose: validated.recommended_dose,
           recommended_dose_unit: validated.recommended_dose_unit,
           active: validated.active,
@@ -77,6 +81,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
         category: 'Herbicida', 
         unit_price: 0, 
         unit: 'L', 
+        package_size: '',
         recommended_dose: '',
         recommended_dose_unit: 'L/ha',
         active: true 
@@ -147,22 +152,6 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="unit_price">Preço Unitário (R$)</Label>
-              <Input
-                id="unit_price"
-                type="text"
-                inputMode="decimal"
-                value={formData.unit_price || ''}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (isValidDecimalInput(val)) {
-                    setFormData({ ...formData, unit_price: parseDecimalInput(val) });
-                  }
-                }}
-                placeholder="0.00"
-              />
-            </div>
-            <div>
               <Label htmlFor="unit">Unidade *</Label>
               <Select
                 value={formData.unit}
@@ -179,6 +168,44 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label htmlFor="package_size">Tamanho da Embalagem</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="package_size"
+                  type="text"
+                  inputMode="decimal"
+                  value={formData.package_size}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (isValidDecimalInput(val)) {
+                      setFormData({ ...formData, package_size: val });
+                    }
+                  }}
+                  placeholder="Ex: 20"
+                />
+                <span className="text-sm text-muted-foreground whitespace-nowrap">{formData.unit}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Capacidade de cada embalagem
+              </p>
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="unit_price">Preço por Embalagem (R$)</Label>
+            <Input
+              id="unit_price"
+              type="text"
+              inputMode="decimal"
+              value={formData.unit_price || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (isValidDecimalInput(val)) {
+                  setFormData({ ...formData, unit_price: parseDecimalInput(val) });
+                }
+              }}
+              placeholder="0.00"
+            />
           </div>
           
           {/* Dose Recomendada */}
