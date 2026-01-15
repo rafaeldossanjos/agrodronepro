@@ -521,6 +521,147 @@ export type Database = {
           },
         ]
       }
+      stock_balances: {
+        Row: {
+          created_at: string
+          current_quantity: number
+          id: string
+          min_quantity: number | null
+          product_id: string
+          property_id: string
+          team_id: string | null
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_quantity?: number
+          id?: string
+          min_quantity?: number | null
+          product_id: string
+          property_id: string
+          team_id?: string | null
+          unit: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_quantity?: number
+          id?: string
+          min_quantity?: number | null
+          product_id?: string
+          property_id?: string
+          team_id?: string | null
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_balances_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_balances_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_balances_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          application_id: string | null
+          created_at: string
+          id: string
+          movement_date: string
+          movement_type: string
+          notes: string | null
+          product_id: string
+          property_id: string
+          quantity: number
+          reason: string | null
+          team_id: string | null
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string
+          id?: string
+          movement_date?: string
+          movement_type: string
+          notes?: string | null
+          product_id: string
+          property_id: string
+          quantity: number
+          reason?: string | null
+          team_id?: string | null
+          unit: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string
+          id?: string
+          movement_date?: string
+          movement_type?: string
+          notes?: string | null
+          product_id?: string
+          property_id?: string
+          quantity?: number
+          reason?: string | null
+          team_id?: string | null
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           created_at: string
