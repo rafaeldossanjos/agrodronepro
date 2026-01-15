@@ -14,6 +14,7 @@ import {
   Search,
   AlertTriangle,
   Download,
+  FileText,
   Filter
 } from "lucide-react";
 import { format } from "date-fns";
@@ -22,6 +23,9 @@ import { useStockMovements, StockMovement, StockBalance } from "@/hooks/useStock
 import { useProperties } from "@/hooks/useProperties";
 import { useProducts } from "@/hooks/useProducts";
 import { StockMovementDialog } from "@/components/StockMovementDialog";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { toast } from "sonner";
 
 export default function Stock() {
   const { movements, balances, isLoading } = useStockMovements();
@@ -60,30 +64,6 @@ export default function Stock() {
     return matchesSearch && matchesProperty && matchesType && matchesDate;
   });
 
-  // Calculate totals for period report
-  const periodTotals = filteredMovements.reduce((acc, mov) => {
-    const key = `${mov.product_id}-${mov.product?.name}`;
-    const product = products.find(p => p.id === mov.product_id);
-    if (!acc[key]) {
-      acc[key] = { 
-        name: mov.product?.name || 'Produto', 
-        unit: mov.unit,
-        packageSize: product?.package_size || null,
-        entradas: 0, 
-        saidas: 0,
-        ajustes: 0,
-      };
-    }
-    if (mov.movement_type === 'entrada') {
-      acc[key].entradas += Number(mov.quantity);
-    } else if (mov.movement_type === 'saida') {
-      acc[key].saidas += Number(mov.quantity);
-    } else {
-      acc[key].ajustes += Number(mov.quantity);
-    }
-    return acc;
-  }, {} as Record<string, { name: string; unit: string; packageSize: number | null; entradas: number; saidas: number; ajustes: number }>);
-
   // Low stock alerts
   const lowStockItems = balances.filter(b => 
     b.min_quantity > 0 && b.current_quantity <= b.min_quantity
@@ -117,6 +97,64 @@ export default function Stock() {
     const packages = quantity / packageSize;
     const unitLabel = unit.toLowerCase().includes('kg') || unit.toLowerCase().includes('l') ? 'balde(s)' : 'unidade(s)';
     return `${packages.toFixed(2)} ${unitLabel}`;
+  };
+
+  // Função para gerar PDF do relatório
+  const generatePDF = () => {
+    if (filteredMovements.length === 0) {
+      toast.error("Nenhum dado para gerar o relatório");
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Título
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório de Saída de Estoque", pageWidth / 2, 20, { align: "center" });
+    
+    // Período
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    const periodoText = dateFrom && dateTo 
+      ? `Período: ${format(new Date(dateFrom), "dd/MM/yyyy")} a ${format(new Date(dateTo), "dd/MM/yyyy")}`
+      : `Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`;
+    doc.text(periodoText, pageWidth / 2, 30, { align: "center" });
+
+    // Propriedade filtrada
+    if (selectedProperty !== "all") {
+      const propName = properties.find(p => p.id === selectedProperty)?.name || "";
+      doc.text(`Propriedade: ${propName}`, pageWidth / 2, 38, { align: "center" });
+    }
+
+    // Tabela de movimentações detalhadas
+    const tableData = filteredMovements.map((mov) => {
+      const product = products.find(p => p.id === mov.product_id);
+      const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null, mov.unit);
+      return [
+        format(new Date(mov.movement_date), "dd/MM/yyyy", { locale: ptBR }),
+        mov.product?.name || "",
+        mov.property?.name || "",
+        packageQty || "-",
+        `${Number(mov.quantity).toFixed(2)} ${mov.unit}`,
+        getReasonLabel(mov.reason)
+      ];
+    });
+
+    autoTable(doc, {
+      startY: selectedProperty !== "all" ? 45 : 38,
+      head: [["Data", "Produto", "Propriedade", "Quantidade", "Volume", "Motivo"]],
+      body: tableData,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+    });
+
+    // Salvar PDF
+    const fileName = `relatorio_estoque_${format(new Date(), "yyyy-MM-dd_HH-mm")}.pdf`;
+    doc.save(fileName);
+    toast.success("PDF gerado com sucesso!");
   };
 
   if (isLoading) {
@@ -279,16 +317,28 @@ export default function Stock() {
         <TabsContent value="report" className="space-y-2">
           <Card>
             <CardHeader className="py-3">
-              <CardTitle className="text-xl sm:text-2xl">Resumo por Período</CardTitle>
-              <p className="text-base sm:text-lg text-muted-foreground">
-                {dateFrom && dateTo 
-                  ? `${format(new Date(dateFrom), "dd/MM/yyyy")} a ${format(new Date(dateTo), "dd/MM/yyyy")}`
-                  : "Selecione um período nos filtros"
-                }
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl sm:text-2xl">Relatório de Saídas</CardTitle>
+                  <p className="text-base sm:text-lg text-muted-foreground">
+                    {dateFrom && dateTo 
+                      ? `${format(new Date(dateFrom), "dd/MM/yyyy")} a ${format(new Date(dateTo), "dd/MM/yyyy")}`
+                      : "Selecione um período nos filtros"
+                    }
+                  </p>
+                </div>
+                <Button 
+                  onClick={generatePDF} 
+                  className="h-12 px-4 text-base sm:text-lg gap-2"
+                  disabled={filteredMovements.length === 0}
+                >
+                  <FileText className="h-5 w-5" />
+                  Gerar PDF
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="pt-0">
-              {Object.keys(periodTotals).length === 0 ? (
+              {filteredMovements.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4 text-lg sm:text-xl">
                   Nenhum dado para o período selecionado
                 </p>
@@ -297,22 +347,29 @@ export default function Stock() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Data</TableHead>
                         <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Produto</TableHead>
+                        <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Propriedade</TableHead>
                         <TableHead className="text-right text-base sm:text-lg md:text-xl font-semibold">Quantidade</TableHead>
                         <TableHead className="text-right text-base sm:text-lg md:text-xl font-semibold">Volume</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {Object.entries(periodTotals).map(([key, data]) => {
-                        const packageQty = formatPackageQuantity(data.saidas, data.packageSize, data.unit);
+                      {filteredMovements.map((mov) => {
+                        const product = products.find(p => p.id === mov.product_id);
+                        const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null, mov.unit);
                         return (
-                          <TableRow key={key}>
-                            <TableCell className="font-medium text-base sm:text-lg md:text-xl">{data.name}</TableCell>
+                          <TableRow key={mov.id}>
+                            <TableCell className="text-base sm:text-lg md:text-xl">
+                              {format(new Date(mov.movement_date), "dd/MM/yyyy", { locale: ptBR })}
+                            </TableCell>
+                            <TableCell className="font-medium text-base sm:text-lg md:text-xl">{mov.product?.name}</TableCell>
+                            <TableCell className="text-base sm:text-lg md:text-xl">{mov.property?.name}</TableCell>
                             <TableCell className="text-right font-bold text-base sm:text-lg md:text-xl">
-                              {packageQty || '-'}
+                              {packageQty || "-"}
                             </TableCell>
                             <TableCell className="text-right text-base sm:text-lg md:text-xl">
-                              {data.saidas.toFixed(2)} {data.unit}
+                              {Number(mov.quantity).toFixed(2)} {mov.unit}
                             </TableCell>
                           </TableRow>
                         );
