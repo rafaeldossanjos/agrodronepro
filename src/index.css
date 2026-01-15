@@ -126,20 +126,20 @@ All colors MUST be HSL.
     font-size: 16px;
   }
 
-  /* Bigger base fonts on mobile/tablet (scroll is OK; readability first) */
+  /* Slightly larger base fonts on mobile/tablet for readability */
   @media (max-width: 640px) {
     html {
-      font-size: 30px; /* +30% vs 23px */
+      font-size: 17px;
     }
   }
 
   @media (min-width: 641px) and (max-width: 1023px) {
     html {
-      font-size: 29px; /* +30% vs 22px */
+      font-size: 17px;
     }
   }
 
-  /* Larger fonts for bigger screens */
+  /* Standard fonts for bigger screens */
   @media (min-width: 1024px) {
     html {
       font-size: 16px;
