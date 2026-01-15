@@ -12,7 +12,8 @@ import {
   User,
   FileText,
   Users,
-  Landmark
+  Landmark,
+  PackageSearch
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ const navigation = [
   { name: "Propriedades", href: "/properties", icon: Landmark },
   { name: "Aplicações", href: "/applications", icon: ClipboardList },
   { name: "Produtos", href: "/products", icon: Cylinder },
+  { name: "Estoque", href: "/stock", icon: PackageSearch },
   { name: "Receituários", href: "/recipes", icon: FileText },
   { name: "Relatórios", href: "/reports", icon: BarChart3 },
   { name: "Equipe", href: "/team", icon: Users },
