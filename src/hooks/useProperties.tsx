@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useOnlineStatus } from './useOnlineStatus';
 import { supabase } from '@/integrations/supabase/client';
-import { getByIndex, put, remove, initOfflineDb } from '@/lib/offlineDb';
+import { getByIndex, put, remove, initOfflineDb, getAll } from '@/lib/offlineDb';
 import { toast } from 'sonner';
 
 export interface Property {
   id: string;
   user_id: string;
+  team_id?: string | null;
   name: string;
   location: string;
   total_area: number;
@@ -23,6 +24,24 @@ export const useProperties = () => {
   const isOnline = useOnlineStatus();
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userTeamId, setUserTeamId] = useState<string | null>(null);
+
+  // Buscar team_id do usuário
+  useEffect(() => {
+    const fetchUserTeam = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      setUserTeamId(data?.team_id || null);
+    };
+    
+    fetchUserTeam();
+  }, [user?.id]);
 
   const loadProperties = useCallback(async () => {
     if (!user?.id) return;
@@ -32,10 +51,10 @@ export const useProperties = () => {
       await initOfflineDb();
 
       if (isOnline) {
+        // Buscar propriedades do usuário OU do time (RLS cuida do filtro)
         const { data: serverData, error } = await supabase
           .from('properties')
           .select('*')
-          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -47,33 +66,41 @@ export const useProperties = () => {
           }
         }
       } else {
-        const localData = await getByIndex('properties', 'user_id', user.id);
-        setProperties(localData);
+        // Offline: carregar dados locais (do usuário e do time)
+        const localData = await getAll('properties');
+        const filteredData = localData.filter((p: Property) => 
+          p.user_id === user.id || (userTeamId && p.team_id === userTeamId)
+        );
+        setProperties(filteredData);
       }
     } catch (error) {
       console.error('Erro ao carregar propriedades:', error);
       try {
-        const localData = await getByIndex('properties', 'user_id', user.id);
-        setProperties(localData);
+        const localData = await getAll('properties');
+        const filteredData = localData.filter((p: Property) => 
+          p.user_id === user.id || (userTeamId && p.team_id === userTeamId)
+        );
+        setProperties(filteredData);
       } catch (localError) {
         console.error('Erro ao carregar dados locais:', localError);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, isOnline]);
+  }, [user?.id, isOnline, userTeamId]);
 
   useEffect(() => {
     loadProperties();
   }, [loadProperties]);
 
-  const createPropertyFn = async (property: Omit<Property, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+  const createPropertyFn = async (property: Omit<Property, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'team_id'>) => {
     if (!user?.id) throw new Error('Usuário não autenticado');
 
     const now = new Date().toISOString();
     const newProperty = {
       ...property,
       user_id: user.id,
+      team_id: userTeamId, // Adiciona o team_id automaticamente
       created_at: now,
       updated_at: now,
     };

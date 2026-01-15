@@ -34,6 +34,24 @@ export const usePlots = () => {
   const isOnline = useOnlineStatus();
   const [plots, setPlots] = useState<Plot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userTeamId, setUserTeamId] = useState<string | null>(null);
+
+  // Buscar team_id do usuário
+  useEffect(() => {
+    const fetchUserTeam = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      setUserTeamId(data?.team_id || null);
+    };
+    
+    fetchUserTeam();
+  }, [user?.id]);
 
   const loadPlots = useCallback(async () => {
     if (!user?.id) return;
@@ -41,6 +59,7 @@ export const usePlots = () => {
 
     try {
       if (isOnline) {
+        // Buscar plots do usuário OU do time (RLS cuida do filtro)
         const { data, error } = await supabase
           .from('plots')
           .select('*')
@@ -58,16 +77,17 @@ export const usePlots = () => {
         
         setPlots(parsedPlots);
         
-        // Sync to local storage (não bloquear UI se o IndexedDB ainda não foi atualizado)
+        // Sync to local storage
         try {
           await bulkPut(STORE_NAME, parsedPlots);
         } catch (e) {
           console.warn('Falha ao sincronizar talhões no armazenamento local:', e);
         }
+      } else {
         // Load from local storage when offline
         const localPlots = await getAll(STORE_NAME);
         const userPlots = localPlots
-          .filter((p: Plot) => p.user_id === user.id)
+          .filter((p: Plot) => p.user_id === user.id || (userTeamId && p.team_id === userTeamId))
           .map((plot: Plot) => ({
             ...plot,
             geometry: typeof plot.geometry === 'string' 
@@ -82,7 +102,7 @@ export const usePlots = () => {
       try {
         const localPlots = await getAll(STORE_NAME);
         const userPlots = localPlots
-          .filter((p: Plot) => p.user_id === user.id)
+          .filter((p: Plot) => p.user_id === user.id || (userTeamId && p.team_id === userTeamId))
           .map((plot: Plot) => ({
             ...plot,
             geometry: typeof plot.geometry === 'string' 
@@ -96,7 +116,7 @@ export const usePlots = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, isOnline]);
+  }, [user?.id, isOnline, userTeamId]);
 
   useEffect(() => {
     loadPlots();
@@ -109,7 +129,7 @@ export const usePlots = () => {
       ...plot,
       id: uuidv4(),
       user_id: user.id,
-      team_id: null,
+      team_id: userTeamId, // Adiciona o team_id automaticamente
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       synced: false,
@@ -122,6 +142,7 @@ export const usePlots = () => {
           .insert([{
             ...plot,
             user_id: user.id,
+            team_id: userTeamId, // Adiciona o team_id automaticamente
             geometry: JSON.parse(JSON.stringify(plot.geometry)),
           }])
           .select()

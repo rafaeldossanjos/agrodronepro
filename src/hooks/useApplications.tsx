@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 export interface Application {
   id: string;
   user_id: string;
+  team_id?: string | null;
   property_id: string;
   plot_id?: string | null;
   plot_name?: string | null;
@@ -40,6 +41,24 @@ export const useApplications = () => {
   const isOnline = useOnlineStatus();
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userTeamId, setUserTeamId] = useState<string | null>(null);
+
+  // Buscar team_id do usuário
+  useEffect(() => {
+    const fetchUserTeam = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      setUserTeamId(data?.team_id || null);
+    };
+    
+    fetchUserTeam();
+  }, [user?.id]);
 
   const loadApplications = useCallback(async () => {
     if (!user?.id) return;
@@ -49,6 +68,7 @@ export const useApplications = () => {
       await initOfflineDb();
 
       if (isOnline) {
+        // Buscar aplicações do usuário OU do time (RLS cuida do filtro)
         const { data: serverData, error } = await supabase
           .from('applications')
           .select(`
@@ -64,7 +84,6 @@ export const useApplications = () => {
               products(name, unit)
             )
           `)
-          .eq('user_id', user.id)
           .order('application_date', { ascending: false });
 
         if (error) throw error;
@@ -84,39 +103,47 @@ export const useApplications = () => {
         }
       } else {
         // Load from local DB when offline
-        const localApps = await getByIndex('applications', 'user_id', user.id);
+        const localApps = await getAll('applications');
         const localProperties = await getAll('properties');
         const localAppProducts = await getAll('application_products');
         const localProducts = await getAll('products');
 
+        // Filtrar por usuário ou time
+        const filteredApps = localApps.filter((app: Application) => 
+          app.user_id === user.id || (userTeamId && app.team_id === userTeamId)
+        );
+
         // Join data locally
-        const enrichedApps = localApps.map(app => ({
+        const enrichedApps = filteredApps.map((app: Application) => ({
           ...app,
-          properties: localProperties.find(p => p.id === app.property_id),
+          properties: localProperties.find((p: any) => p.id === app.property_id),
           application_products: localAppProducts
-            .filter(ap => ap.application_id === app.id)
-            .map(ap => ({
+            .filter((ap: any) => ap.application_id === app.id)
+            .map((ap: any) => ({
               ...ap,
-              products: localProducts.find(p => p.id === ap.product_id),
+              products: localProducts.find((p: any) => p.id === ap.product_id),
             })),
         }));
 
-        setApplications(enrichedApps.sort((a, b) => 
+        setApplications(enrichedApps.sort((a: Application, b: Application) => 
           new Date(b.application_date).getTime() - new Date(a.application_date).getTime()
         ));
       }
     } catch (error) {
       console.error('Erro ao carregar aplicações:', error);
       try {
-        const localApps = await getByIndex('applications', 'user_id', user.id);
-        setApplications(localApps);
+        const localApps = await getAll('applications');
+        const filteredApps = localApps.filter((app: Application) => 
+          app.user_id === user.id || (userTeamId && app.team_id === userTeamId)
+        );
+        setApplications(filteredApps);
       } catch (localError) {
         console.error('Erro ao carregar dados locais:', localError);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, isOnline]);
+  }, [user?.id, isOnline, userTeamId]);
 
   useEffect(() => {
     loadApplications();
@@ -131,6 +158,7 @@ export const useApplications = () => {
     const newApp = {
       id: appId,
       user_id: user.id,
+      team_id: userTeamId, // Adiciona o team_id automaticamente
       property_id: application.property_id,
       plot_id: application.plot_id || null,
       plot_name: application.plot_name || null,
@@ -312,7 +340,7 @@ export const useApplications = () => {
       
       // Remove from local DB
       const localAppProducts = await getAll('application_products');
-      for (const ap of localAppProducts.filter(ap => ap.application_id === id)) {
+      for (const ap of localAppProducts.filter((ap: any) => ap.application_id === id)) {
         await remove('application_products', ap.id);
       }
       await remove('applications', id);

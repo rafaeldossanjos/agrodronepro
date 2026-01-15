@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useOnlineStatus } from './useOnlineStatus';
 import { supabase } from '@/integrations/supabase/client';
-import { getByIndex, put, remove, initOfflineDb } from '@/lib/offlineDb';
+import { put, remove, initOfflineDb, getAll } from '@/lib/offlineDb';
 import { toast } from 'sonner';
 
 export interface Product {
   id: string;
   user_id: string;
+  team_id?: string | null;
   name: string;
   manufacturer?: string;
   category: string;
@@ -27,6 +28,24 @@ export const useProducts = () => {
   const isOnline = useOnlineStatus();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userTeamId, setUserTeamId] = useState<string | null>(null);
+
+  // Buscar team_id do usuário
+  useEffect(() => {
+    const fetchUserTeam = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      setUserTeamId(data?.team_id || null);
+    };
+    
+    fetchUserTeam();
+  }, [user?.id]);
 
   const loadProducts = useCallback(async () => {
     if (!user?.id) return;
@@ -36,10 +55,10 @@ export const useProducts = () => {
       await initOfflineDb();
 
       if (isOnline) {
+        // Buscar produtos do usuário OU do time (RLS cuida do filtro)
         const { data: serverData, error } = await supabase
           .from('products')
           .select('*')
-          .eq('user_id', user.id)
           .order('name', { ascending: true });
 
         if (error) throw error;
@@ -52,35 +71,42 @@ export const useProducts = () => {
           }
         }
       } else {
-        // Load from local DB when offline
-        const localData = await getByIndex('products', 'user_id', user.id);
-        setProducts(localData.sort((a, b) => a.name.localeCompare(b.name)));
+        // Offline: carregar dados locais (do usuário e do time)
+        const localData = await getAll('products');
+        const filteredData = localData.filter((p: Product) => 
+          p.user_id === user.id || (userTeamId && p.team_id === userTeamId)
+        );
+        setProducts(filteredData.sort((a: Product, b: Product) => a.name.localeCompare(b.name)));
       }
     } catch (error) {
       console.error('Erro ao carregar produtos:', error);
       // Fallback to local data on error
       try {
-        const localData = await getByIndex('products', 'user_id', user.id);
-        setProducts(localData.sort((a, b) => a.name.localeCompare(b.name)));
+        const localData = await getAll('products');
+        const filteredData = localData.filter((p: Product) => 
+          p.user_id === user.id || (userTeamId && p.team_id === userTeamId)
+        );
+        setProducts(filteredData.sort((a: Product, b: Product) => a.name.localeCompare(b.name)));
       } catch (localError) {
         console.error('Erro ao carregar dados locais:', localError);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, isOnline]);
+  }, [user?.id, isOnline, userTeamId]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
-  const createProductFn = async (product: Omit<Product, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+  const createProductFn = async (product: Omit<Product, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'team_id'>) => {
     if (!user?.id) throw new Error('Usuário não autenticado');
 
     const now = new Date().toISOString();
     const newProduct = {
       ...product,
       user_id: user.id,
+      team_id: userTeamId, // Adiciona o team_id automaticamente
       created_at: now,
       updated_at: now,
     };
