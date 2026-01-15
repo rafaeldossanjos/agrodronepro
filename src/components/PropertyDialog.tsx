@@ -13,8 +13,8 @@ import { isValidDecimalInput, parseDecimalInput } from '@/lib/utils';
 const propertySchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100),
   location: z.string().min(3, 'Localização deve ter pelo menos 3 caracteres').max(200),
-  total_area: z.number().min(0.01, 'Área deve ser maior que 0').max(999999),
-  plot_count: z.number().int().min(1, 'Deve ter pelo menos 1 talhão').max(1000),
+  total_area: z.number().min(0).max(999999).optional(),
+  plot_count: z.number().int().min(1, 'Deve ter pelo menos 1 talhão').max(1000).optional(),
   notes: z.string().max(500).optional(),
 });
 
@@ -41,9 +41,11 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
     setIsLoading(true);
 
     try {
+      const areaValue = typeof formData.total_area === 'string' ? parseDecimalInput(formData.total_area as string) : formData.total_area;
       const validated = propertySchema.parse({
         ...formData,
-        total_area: typeof formData.total_area === 'string' ? parseDecimalInput(formData.total_area as string) : formData.total_area,
+        total_area: areaValue || undefined,
+        plot_count: formData.plot_count || undefined,
       });
 
       if (property) {
@@ -108,7 +110,7 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="total_area">Área Total (ha) *</Label>
+              <Label htmlFor="total_area">Área Total (ha)</Label>
               <Input
                 id="total_area"
                 type="text"
@@ -120,18 +122,18 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
                     setFormData({ ...formData, total_area: val as any });
                   }
                 }}
-                required
+                placeholder="Opcional"
               />
             </div>
             <div>
-              <Label htmlFor="plot_count">Número de Talhões *</Label>
+              <Label htmlFor="plot_count">Número de Talhões</Label>
               <Input
                 id="plot_count"
                 type="number"
                 min="1"
                 value={formData.plot_count || ''}
-                onChange={(e) => setFormData({ ...formData, plot_count: parseInt(e.target.value) })}
-                required
+                onChange={(e) => setFormData({ ...formData, plot_count: parseInt(e.target.value) || 0 })}
+                placeholder="Opcional"
               />
             </div>
           </div>

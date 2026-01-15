@@ -145,6 +145,7 @@ export default function Calculator() {
   
   // Dialog para salvar como aplicação
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveAppName, setSaveAppName] = useState<string>("");
   const [savePropertyId, setSavePropertyId] = useState<string>("");
   const [savePlotName, setSavePlotName] = useState<string>("");
   const [saveDate, setSaveDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -418,6 +419,7 @@ export default function Calculator() {
     const applicationData = {
       property_id: savePropertyId,
       plot_name: savePlotName || null,
+      name: saveAppName || null,
       application_date: saveDate,
       application_type: 'pulverização' as const,
       status: saveStatus,
@@ -437,6 +439,7 @@ export default function Calculator() {
     try {
       await createApplication.mutateAsync(applicationData);
       setSaveDialogOpen(false);
+      setSaveAppName("");
       setSavePropertyId("");
       setSavePlotName("");
       setSaveDate(new Date().toISOString().split('T')[0]);
@@ -928,6 +931,15 @@ export default function Calculator() {
             <DialogTitle className="text-base">Salvar como Aplicação</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Nome da Aplicação</Label>
+              <Input
+                value={saveAppName}
+                onChange={(e) => setSaveAppName(e.target.value)}
+                placeholder="Ex: Aplicação Talhão 5"
+                className="h-8 text-xs"
+              />
+            </div>
             <div>
               <Label className="text-xs">Propriedade *</Label>
               <Select value={savePropertyId} onValueChange={setSavePropertyId}>
