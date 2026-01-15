@@ -241,20 +241,28 @@ export default function Stock() {
                     <SelectItem value="ajuste" className="text-base sm:text-lg">Ajustes</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full sm:w-44 h-12 text-base sm:text-lg"
-                  placeholder="Data inicial"
-                />
-                <Input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full sm:w-44 h-12 text-base sm:text-lg"
-                  placeholder="Data final"
-                />
+                <div className="flex flex-col w-full sm:w-44">
+                  <label className="text-sm sm:text-base text-muted-foreground mb-1 font-medium">
+                    Data inicial
+                  </label>
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full h-12 text-base sm:text-lg"
+                  />
+                </div>
+                <div className="flex flex-col w-full sm:w-44">
+                  <label className="text-sm sm:text-base text-muted-foreground mb-1 font-medium">
+                    Data final
+                  </label>
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full h-12 text-base sm:text-lg"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
