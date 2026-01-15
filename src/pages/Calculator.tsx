@@ -50,6 +50,19 @@ type Product = {
   unit: string;
 };
 
+type TankBreakdown = {
+  tankNumber: number;
+  volume: number;
+  water: number;
+  products: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    unit: string;
+  }>;
+  isComplement: boolean;
+};
+
 type CalculationResults = {
   totalVolume: number;
   tanks: number;
@@ -57,6 +70,7 @@ type CalculationResults = {
   totalProductVolume: number;
   waterPerTank: number;
   totalWater: number;
+  tankBreakdown: TankBreakdown[];
   productPerTank: Array<{
     id: string;
     productId?: string;
@@ -275,18 +289,21 @@ export default function Calculator() {
     }
 
     const totalVolume = areaNum * flowRateNum;
-    const tanks = Math.ceil(totalVolume / tankVolumeNum);
-    const volumePerTank = totalVolume / tanks;
+    const fullTanks = Math.floor(totalVolume / tankVolumeNum);
+    const remainder = totalVolume - (fullTanks * tankVolumeNum);
+    const tanks = remainder > 0 ? fullTanks + 1 : fullTanks;
+    const volumePerTank = tankVolumeNum; // Tanques cheios usam capacidade total
 
     const productPerTank = products.map((p) => {
       const doseValue = parseDecimalInput(p.dose);
       const totalQuantity = doseValue * areaNum;
-      const quantityPerTank = totalQuantity / tanks;
+      // Para "por tanque" mantemos proporcional ao volume de um tanque cheio
+      const quantityPerTank = (doseValue * flowRateNum * tankVolumeNum) / totalVolume * areaNum / tanks;
 
       return {
         ...p,
         dose: doseValue,
-        quantityPerTank,
+        quantityPerTank: totalQuantity / tanks, // Média para compatibilidade
         totalQuantity,
       };
     });
@@ -314,15 +331,52 @@ export default function Calculator() {
     );
 
     const waterPerTank = volumePerTank - totalProductVolumeInLiters;
-    const totalWater = waterPerTank * tanks;
+    const totalWater = totalVolume - (totalProductVolumeInLiters * tanks / (remainder > 0 ? tanks : tanks));
+
+    // Criar breakdown detalhado de cada tanque
+    const tankBreakdown: TankBreakdown[] = [];
+    
+    for (let i = 0; i < tanks; i++) {
+      const isComplement = remainder > 0 && i === tanks - 1;
+      const tankVolume = isComplement ? remainder : tankVolumeNum;
+      const volumeRatio = tankVolume / totalVolume;
+      
+      // Calcular produtos proporcionais ao volume deste tanque
+      const tankProducts = productPerTank.map(p => ({
+        id: p.id,
+        name: p.name,
+        quantity: p.totalQuantity * volumeRatio,
+        unit: p.unit,
+      }));
+      
+      // Calcular volume de produtos em litros para este tanque
+      const productVolumeInLiters = tankProducts.reduce((sum, p) => {
+        const normalizedUnit = p.unit.trim().toLowerCase();
+        const baseUnit = normalizedUnit.replace("/ha", "");
+        if (baseUnit === "ml") return sum + p.quantity / 1000;
+        if (baseUnit === "l") return sum + p.quantity;
+        if (baseUnit === "g") return sum + p.quantity / 1000;
+        if (baseUnit === "kg") return sum + p.quantity;
+        return sum;
+      }, 0);
+      
+      tankBreakdown.push({
+        tankNumber: i + 1,
+        volume: tankVolume,
+        water: tankVolume - productVolumeInLiters,
+        products: tankProducts,
+        isComplement,
+      });
+    }
 
     const calculationResults: CalculationResults = {
       totalVolume,
       tanks,
-      volumePerTank,
+      volumePerTank: tankVolumeNum,
       totalProductVolume,
       waterPerTank,
-      totalWater,
+      totalWater: tankBreakdown.reduce((sum, t) => sum + t.water, 0),
+      tankBreakdown,
       productPerTank,
     };
 
@@ -632,91 +686,111 @@ export default function Calculator() {
 
         {/* Results Panel */}
         <div className="space-y-3">
-          <Card className="p-3 sm:p-4">
-            <h2 className="mb-3 text-sm font-semibold text-foreground">
+          <Card className="p-4 sm:p-5">
+            <h2 className="mb-4 text-lg font-bold text-foreground">
               Resultados
             </h2>
 
             {!calculated ? (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <CalcIcon className="mb-2 h-8 w-8 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground px-4">
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <CalcIcon className="mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground px-4">
                   Configure os parâmetros e clique em Calcular
                 </p>
               </div>
             ) : (
               results && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {/* Resumo Geral */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-semibold text-foreground border-l-2 border-primary pl-2">
+                  <div className="space-y-3">
+                    <h3 className="text-base font-bold text-foreground border-l-4 border-primary pl-3">
                       Resumo Geral
                     </h3>
                     
-                    <div className="rounded-lg bg-primary/10 p-2.5">
-                      <p className="text-[10px] text-muted-foreground">Volume Total</p>
-                      <p className="text-base font-bold text-primary">
+                    <div className="rounded-lg bg-primary/10 p-4">
+                      <p className="text-sm text-muted-foreground">Volume Total de Calda</p>
+                      <p className="text-2xl font-bold text-primary">
                         {Math.round(results.totalVolume)} L
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-lg bg-muted p-2">
-                        <p className="text-[10px] text-muted-foreground">Tanques</p>
-                        <p className="text-sm font-semibold text-foreground">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-lg bg-muted p-3">
+                        <p className="text-sm text-muted-foreground">Tanques</p>
+                        <p className="text-xl font-bold text-foreground">
                           {results.tanks}
                         </p>
                       </div>
-                      <div className="rounded-lg bg-muted p-2">
-                        <p className="text-[10px] text-muted-foreground">Vol/Tanque</p>
-                        <p className="text-sm font-semibold text-foreground">
-                          {results.volumePerTank.toFixed(1)} L
+                      <div className="rounded-lg bg-muted p-3">
+                        <p className="text-sm text-muted-foreground">Capacidade</p>
+                        <p className="text-xl font-bold text-foreground">
+                          {results.volumePerTank.toFixed(0)} L
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Receita por Tanque */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-semibold text-foreground border-l-2 border-primary pl-2">
+                  {/* Detalhamento por Tanque */}
+                  <div className="space-y-3">
+                    <h3 className="text-base font-bold text-foreground border-l-4 border-primary pl-3">
                       Receita por Tanque
                     </h3>
                     
-                    <div className="rounded-lg border border-border p-2 space-y-1.5">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Água</span>
-                        <span className="font-medium text-foreground">
-                          {Math.round(results.waterPerTank)} L
-                        </span>
-                      </div>
-                      {results.productPerTank.map((p) => (
-                        <div key={p.id} className="flex justify-between text-xs">
-                          <span className="text-muted-foreground truncate max-w-[60%]">{p.name}</span>
-                          <span className="font-medium text-foreground">
-                            {formatQuantity(p.quantityPerTank, p.unit)}
+                    {results.tankBreakdown.map((tank) => (
+                      <div 
+                        key={tank.tankNumber} 
+                        className={`rounded-lg border-2 p-4 ${
+                          tank.isComplement 
+                            ? 'border-warning bg-warning/5' 
+                            : 'border-border'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`text-base font-bold ${tank.isComplement ? 'text-warning' : 'text-foreground'}`}>
+                            {tank.isComplement ? '⚠️ Complemento' : `Tanque ${tank.tankNumber}`}
+                          </span>
+                          <span className={`text-lg font-bold ${tank.isComplement ? 'text-warning' : 'text-primary'}`}>
+                            {Math.round(tank.volume)} L
                           </span>
                         </div>
-                      ))}
-                    </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-base">
+                            <span className="text-muted-foreground">💧 Água</span>
+                            <span className="font-bold text-foreground">
+                              {Math.round(tank.water)} L
+                            </span>
+                          </div>
+                          {tank.products.map((p) => (
+                            <div key={p.id} className="flex justify-between text-base">
+                              <span className="text-muted-foreground truncate max-w-[55%]">🧪 {p.name}</span>
+                              <span className="font-bold text-foreground">
+                                {formatQuantity(p.quantity, p.unit)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Total Geral */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-semibold text-foreground border-l-2 border-primary pl-2">
+                  <div className="space-y-3">
+                    <h3 className="text-base font-bold text-foreground border-l-4 border-primary pl-3">
                       Total Geral
                     </h3>
                     
-                    <div className="rounded-lg border border-border p-2 space-y-1.5">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Água Total</span>
-                        <span className="font-medium text-foreground">
+                    <div className="rounded-lg border-2 border-border p-4 space-y-2">
+                      <div className="flex justify-between text-base">
+                        <span className="text-muted-foreground">💧 Água Total</span>
+                        <span className="font-bold text-foreground">
                           {Math.round(results.totalWater)} L
                         </span>
                       </div>
                       {results.productPerTank.map((p) => (
-                        <div key={p.id} className="flex justify-between text-xs">
-                          <span className="text-muted-foreground truncate max-w-[60%]">{p.name}</span>
-                          <span className="font-medium text-foreground">
+                        <div key={p.id} className="flex justify-between text-base">
+                          <span className="text-muted-foreground truncate max-w-[55%]">🧪 {p.name}</span>
+                          <span className="font-bold text-foreground">
                             {formatQuantity(p.totalQuantity, p.unit)}
                           </span>
                         </div>
@@ -725,32 +799,32 @@ export default function Calculator() {
                   </div>
 
                   {/* Teste de Compatibilidade */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-semibold text-foreground border-l-2 border-warning pl-2">
+                  <div className="space-y-3">
+                    <h3 className="text-base font-bold text-foreground border-l-4 border-warning pl-3">
                       Teste de Compatibilidade
                     </h3>
-                    <div className="rounded-lg bg-warning/10 border border-warning/20 p-2.5 space-y-2">
-                      <p className="text-[10px] text-muted-foreground">
+                    <div className="rounded-lg bg-warning/10 border-2 border-warning/30 p-4 space-y-3">
+                      <p className="text-sm text-muted-foreground">
                         Antes de preparar a calda completa, faça um teste em pequena escala:
                       </p>
                       {[2, 5].map((liters) => {
                         const ratio = liters / results.volumePerTank;
                         return (
-                          <div key={liters} className="rounded bg-background/50 p-2">
-                            <p className="text-xs font-medium text-foreground mb-1">
+                          <div key={liters} className="rounded-lg bg-background/50 p-3">
+                            <p className="text-base font-bold text-foreground mb-2">
                               Receita para {liters}L:
                             </p>
-                            <div className="space-y-0.5">
-                              <div className="flex justify-between text-[10px]">
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Água</span>
-                                <span className="font-medium text-foreground">
+                                <span className="font-semibold text-foreground">
                                   {(results.waterPerTank * ratio).toFixed(2)} L
                                 </span>
                               </div>
                               {results.productPerTank.map((p) => (
-                                <div key={p.id} className="flex justify-between text-[10px]">
+                                <div key={p.id} className="flex justify-between text-sm">
                                   <span className="text-muted-foreground truncate max-w-[50%]">{p.name}</span>
-                                  <span className="font-medium text-foreground">
+                                  <span className="font-semibold text-foreground">
                                     {formatQuantity(p.quantityPerTank * ratio, p.unit)}
                                   </span>
                                 </div>
@@ -763,25 +837,25 @@ export default function Calculator() {
                   </div>
 
                   {/* Botões de Salvar */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-semibold text-foreground border-l-2 border-primary pl-2">
+                  <div className="space-y-3">
+                    <h3 className="text-base font-bold text-foreground border-l-4 border-primary pl-3">
                       Salvar Como
                     </h3>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       <Button 
                         onClick={() => setSaveDialogOpen(true)} 
                         variant="outline" 
-                        className="flex-1 h-8 gap-2 text-xs"
+                        className="flex-1 h-10 gap-2 text-sm"
                       >
-                        <Save className="h-3 w-3" />
+                        <Save className="h-4 w-4" />
                         Aplicação
                       </Button>
                       <Button 
                         onClick={() => setSaveRecipeDialogOpen(true)} 
                         variant="outline" 
-                        className="flex-1 h-8 gap-2 text-xs"
+                        className="flex-1 h-10 gap-2 text-sm"
                       >
-                        <FileText className="h-3 w-3" />
+                        <FileText className="h-4 w-4" />
                         Receituário
                       </Button>
                     </div>
