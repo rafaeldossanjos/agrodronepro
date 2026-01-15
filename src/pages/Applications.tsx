@@ -168,12 +168,12 @@ export default function Applications() {
   };
 
   const ApplicationCard = ({ app }: { app: any }) => (
-    <Card key={app.id} className="p-4 sm:p-6">
+    <Card key={app.id} className="p-5 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1 space-y-3">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-lg sm:text-xl font-bold text-foreground">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
                 {app.name || "Sem nome"}
               </h3>
               <StatusBadge app={app} />
@@ -181,28 +181,28 @@ export default function Applications() {
                 {typeConfig[app.application_type as keyof typeof typeConfig]}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               {app.properties?.name || "Propriedade não informada"}
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Data</p>
-              <p className="flex items-center gap-1.5 text-sm sm:text-base font-medium text-foreground">
-                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+              <p className="text-sm sm:text-base text-muted-foreground">Data</p>
+              <p className="flex items-center gap-1.5 text-base sm:text-lg font-medium text-foreground">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                 {format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
               </p>
             </div>
             <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Área</p>
-              <p className="text-sm sm:text-base font-medium text-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">Área</p>
+              <p className="text-base sm:text-lg font-medium text-foreground">
                 {app.area_applied} ha
               </p>
             </div>
             <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Produtos</p>
-              <p className="text-sm sm:text-base font-medium text-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">Produtos</p>
+              <p className="text-base sm:text-lg font-medium text-foreground">
                 {app.application_products?.length || 0} produto(s)
               </p>
             </div>
@@ -210,8 +210,8 @@ export default function Applications() {
 
           {app.notes && (
             <div className="pt-2">
-              <p className="text-xs sm:text-sm text-muted-foreground">Observações:</p>
-              <p className="text-xs sm:text-sm text-foreground mt-1">{app.notes}</p>
+              <p className="text-sm sm:text-base text-muted-foreground">Observações:</p>
+              <p className="text-sm sm:text-base text-foreground mt-1">{app.notes}</p>
             </div>
           )}
         </div>
@@ -220,31 +220,31 @@ export default function Applications() {
           {app.plot_id && (
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={() => navigate('/map')}
-              className="flex-1 sm:flex-none"
+              className="flex-1 sm:flex-none h-11"
               title="Ver no Mapa"
             >
-              <Map className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+              <Map className="h-5 w-5 sm:mr-2" />
               <span className="hidden sm:inline">Mapa</span>
             </Button>
           )}
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => handleEdit(app)}
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none h-11"
           >
-            <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+            <Edit className="h-5 w-5 sm:mr-2" />
             <span className="hidden sm:inline">Editar</span>
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={() => handleDelete(app.id)}
-            className="flex-1 sm:flex-none text-destructive hover:text-destructive"
+            className="flex-1 sm:flex-none h-11 text-destructive hover:text-destructive"
           >
-            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
+            <Trash2 className="h-5 w-5 sm:mr-2" />
             <span className="hidden sm:inline">Excluir</span>
           </Button>
         </div>
@@ -259,23 +259,23 @@ export default function Applications() {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Histórico de Aplicações
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
+          <p className="text-base sm:text-lg text-muted-foreground">
             Registros de todas as pulverizações realizadas
           </p>
         </div>
-        <Button onClick={handleNew} className="gap-2 w-full sm:w-auto">
-          <Plus className="h-4 w-4" />
+        <Button onClick={handleNew} className="gap-2 w-full sm:w-auto h-12 text-lg">
+          <Plus className="h-5 w-5" />
           Nova Aplicação
         </Button>
       </div>
 
       {applications.length === 0 ? (
         <Card className="p-8 sm:p-12 text-center">
-          <p className="text-muted-foreground mb-4">
+          <p className="text-lg text-muted-foreground mb-4">
             Nenhuma aplicação cadastrada ainda
           </p>
-          <Button onClick={handleNew}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={handleNew} className="h-12 text-lg">
+            <Plus className="h-5 w-5 mr-2" />
             Cadastrar Primeira Aplicação
           </Button>
         </Card>
