@@ -38,7 +38,7 @@ export default function Products() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -53,36 +53,34 @@ export default function Products() {
       </div>
 
       {/* Search */}
-      <Card className="p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar produtos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-11 h-12 text-lg"
-          />
-        </div>
-      </Card>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Buscar produtos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-12 h-12 text-lg"
+        />
+      </div>
 
       {/* Products Grid */}
       {products.length === 0 ? (
-        <Card className="p-12">
+        <Card className="p-8">
           <div className="text-center">
-            <Cylinder className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <Cylinder className="mx-auto h-14 w-14 text-muted-foreground mb-3" />
             <h3 className="text-xl font-semibold text-foreground mb-2">
               Nenhum produto cadastrado
             </h3>
-            <p className="text-lg text-muted-foreground mb-4">
+            <p className="text-lg text-muted-foreground mb-3">
               Comece criando seu primeiro produto
             </p>
             <ProductDialog />
           </div>
         </Card>
       ) : filteredProducts.length === 0 ? (
-        <Card className="p-12">
+        <Card className="p-8">
           <div className="text-center">
-            <Search className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <Search className="mx-auto h-14 w-14 text-muted-foreground mb-3" />
             <h3 className="text-xl font-semibold text-foreground mb-2">
               Nenhum produto encontrado
             </h3>
@@ -92,16 +90,16 @@ export default function Products() {
           </div>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           {filteredProducts.map((product) => (
-            <Card key={product.id} className="p-6">
-              <div className="mb-4">
-                <div className="flex gap-3">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-                    <Cylinder className="h-8 w-8 text-primary" />
+            <Card key={product.id} className="p-4">
+              <div className="mb-2">
+                <div className="flex gap-2">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+                    <Cylinder className="h-7 w-7 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg text-foreground line-clamp-2">
+                    <h3 className="font-semibold text-xl text-foreground line-clamp-1">
                       {product.name}
                     </h3>
                     {product.manufacturer && (
@@ -121,26 +119,26 @@ export default function Products() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
+              <div className="grid grid-cols-2 gap-2 border-t border-border pt-2">
                 <div>
                   <p className="text-base text-muted-foreground">Preço</p>
-                  <p className="font-semibold text-lg text-foreground">
+                  <p className="font-semibold text-xl text-foreground">
                     R$ {product.unit_price.toFixed(2)}/{product.unit}
                   </p>
                 </div>
                 <div>
                   <p className="text-base text-muted-foreground">Estoque</p>
-                  <p className="font-semibold text-lg text-foreground">
+                  <p className="font-semibold text-xl text-foreground">
                     {product.stock_quantity} {product.unit}
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-2 flex gap-2">
                 <ProductDialog
                   product={product}
                   trigger={
-                    <Button variant="outline" size="default" className="flex-1 h-11">
+                    <Button variant="outline" size="default" className="flex-1 h-11 text-base">
                       <Edit className="h-5 w-5 mr-2" />
                       Editar
                     </Button>
@@ -148,7 +146,7 @@ export default function Products() {
                 />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="default" className="flex-1 h-11">
+                    <Button variant="outline" size="default" className="flex-1 h-11 text-base">
                       <Trash2 className="h-5 w-5 mr-2" />
                       Excluir
                     </Button>
@@ -158,7 +156,6 @@ export default function Products() {
                       <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                       <AlertDialogDescription>
                         Tem certeza que deseja excluir o produto "{product.name}"?
-                        Esta ação não pode ser desfeita.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

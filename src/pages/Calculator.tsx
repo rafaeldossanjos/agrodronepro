@@ -490,13 +490,13 @@ export default function Calculator() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+        <h1 className="text-3xl font-bold text-foreground">
           Calculadora de Calda
         </h1>
-        <p className="text-base sm:text-lg text-muted-foreground">
+        <p className="text-lg text-muted-foreground">
           Calcule a quantidade de produtos e volume necessários
         </p>
       </div>

@@ -116,13 +116,13 @@ export default function Stock() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-2">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Controle de Estoque</h1>
-          <p className="text-base text-muted-foreground">
-            Gerencie entradas, saídas e saldos por propriedade
+          <h1 className="text-3xl font-bold text-foreground">Saída de Estoque</h1>
+          <p className="text-lg text-muted-foreground">
+            Registre retiradas de produtos por propriedade
           </p>
         </div>
         <StockMovementDialog />
@@ -131,19 +131,12 @@ export default function Stock() {
       {/* Low Stock Alerts */}
       {lowStockItems.length > 0 && (
         <Card className="border-orange-500/50 bg-orange-500/10">
-          <CardContent className="py-4">
+          <CardContent className="py-2">
             <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
               <AlertTriangle className="h-6 w-6" />
               <span className="font-medium text-lg">
                 {lowStockItems.length} produto(s) com estoque baixo
               </span>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {lowStockItems.slice(0, 5).map((item) => (
-                <Badge key={item.id} variant="outline" className="text-orange-600 border-orange-500 text-base py-1">
-                  {item.product?.name} ({item.property?.name})
-                </Badge>
-              ))}
             </div>
           </CardContent>
         </Card>
@@ -151,8 +144,8 @@ export default function Stock() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="py-4">
-          <div className="flex flex-col sm:flex-row gap-3">
+        <CardContent className="py-2">
+          <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
@@ -163,11 +156,11 @@ export default function Stock() {
               />
             </div>
             <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-              <SelectTrigger className="w-full sm:w-48 h-12 text-base">
+              <SelectTrigger className="w-48 h-12 text-base">
                 <SelectValue placeholder="Propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todas propriedades</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {properties.map((prop) => (
                   <SelectItem key={prop.id} value={prop.id}>{prop.name}</SelectItem>
                 ))}
@@ -177,82 +170,11 @@ export default function Stock() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="balances" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="balances">Saldos</TabsTrigger>
-          <TabsTrigger value="movements">Movimentações</TabsTrigger>
-          <TabsTrigger value="report">Relatório</TabsTrigger>
+      <Tabs defaultValue="movements" className="space-y-2">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="movements" className="text-lg py-2">Movimentações</TabsTrigger>
+          <TabsTrigger value="report" className="text-lg py-2">Relatório</TabsTrigger>
         </TabsList>
-
-        {/* Saldos Tab */}
-        <TabsContent value="balances" className="space-y-4">
-          {filteredBalances.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-lg text-muted-foreground">Nenhum saldo de estoque encontrado</p>
-                <p className="text-base text-muted-foreground mt-1">
-                  Registre movimentações para começar a controlar o estoque
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredBalances.map((balance) => (
-                <Card key={balance.id}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      <span className="truncate">{balance.product?.name}</span>
-                      {balance.min_quantity > 0 && balance.current_quantity <= balance.min_quantity && (
-                        <AlertTriangle className="h-5 w-5 text-orange-500" />
-                      )}
-                    </CardTitle>
-                    <p className="text-base text-muted-foreground">
-                      {balance.property?.name}
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-bold">
-                        {Number(balance.current_quantity).toFixed(2)}
-                      </span>
-                      <span className="text-lg text-muted-foreground">{balance.unit}</span>
-                    </div>
-                    {balance.min_quantity > 0 && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Mínimo: {balance.min_quantity} {balance.unit}
-                      </p>
-                    )}
-                    <div className="flex gap-2 mt-3">
-                      <StockMovementDialog 
-                        defaultType="entrada"
-                        defaultPropertyId={balance.property_id}
-                        defaultProductId={balance.product_id}
-                        trigger={
-                          <Button size="default" variant="outline" className="flex-1 gap-1 h-11">
-                            <ArrowDownCircle className="h-4 w-4 text-green-500" />
-                            Entrada
-                          </Button>
-                        }
-                      />
-                      <StockMovementDialog 
-                        defaultType="saida"
-                        defaultPropertyId={balance.property_id}
-                        defaultProductId={balance.product_id}
-                        trigger={
-                          <Button size="default" variant="outline" className="flex-1 gap-1 h-11">
-                            <ArrowUpCircle className="h-4 w-4 text-red-500" />
-                            Saída
-                          </Button>
-                        }
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
 
         {/* Movimentações Tab */}
         <TabsContent value="movements" className="space-y-4">
@@ -290,8 +212,8 @@ export default function Stock() {
 
           {filteredMovements.length === 0 ? (
             <Card>
-              <CardContent className="py-12 text-center">
-                <RefreshCw className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <CardContent className="py-8 text-center">
+                <RefreshCw className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                 <p className="text-lg text-muted-foreground">Nenhuma movimentação encontrada</p>
               </CardContent>
             </Card>
@@ -301,39 +223,27 @@ export default function Stock() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Produto</TableHead>
-                      <TableHead>Propriedade</TableHead>
-                      <TableHead>Quantidade</TableHead>
-                      <TableHead>Motivo</TableHead>
+                      <TableHead className="text-base">Data</TableHead>
+                      <TableHead className="text-base">Produto</TableHead>
+                      <TableHead className="text-base">Propriedade</TableHead>
+                      <TableHead className="text-base">Quantidade</TableHead>
+                      <TableHead className="text-base">Motivo</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredMovements.map((movement) => (
                       <TableRow key={movement.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {getMovementIcon(movement.movement_type)}
-                            <span className="capitalize text-sm">{movement.movement_type}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm">
+                        <TableCell className="text-base">
                           {format(new Date(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
                         </TableCell>
-                        <TableCell className="font-medium">{movement.product?.name}</TableCell>
-                        <TableCell className="text-sm">{movement.property?.name}</TableCell>
+                        <TableCell className="font-medium text-base">{movement.product?.name}</TableCell>
+                        <TableCell className="text-base">{movement.property?.name}</TableCell>
                         <TableCell>
-                          <span className={`font-medium ${
-                            movement.movement_type === 'entrada' ? 'text-green-600' :
-                            movement.movement_type === 'saida' ? 'text-red-600' : 'text-blue-600'
-                          }`}>
-                            {movement.movement_type === 'entrada' ? '+' : 
-                             movement.movement_type === 'saida' ? '-' : ''}
-                            {Number(movement.quantity).toFixed(2)} {movement.unit}
+                          <span className="font-medium text-red-600 text-base">
+                            -{Number(movement.quantity).toFixed(2)} {movement.unit}
                           </span>
                         </TableCell>
-                        <TableCell className="text-sm">{getReasonLabel(movement.reason)}</TableCell>
+                        <TableCell className="text-base">{getReasonLabel(movement.reason)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -344,20 +254,20 @@ export default function Stock() {
         </TabsContent>
 
         {/* Relatório Tab */}
-        <TabsContent value="report" className="space-y-4">
+        <TabsContent value="report" className="space-y-2">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Resumo por Período</CardTitle>
-              <p className="text-sm text-muted-foreground">
+            <CardHeader className="py-3">
+              <CardTitle className="text-xl">Resumo por Período</CardTitle>
+              <p className="text-base text-muted-foreground">
                 {dateFrom && dateTo 
                   ? `${format(new Date(dateFrom), "dd/MM/yyyy")} a ${format(new Date(dateTo), "dd/MM/yyyy")}`
-                  : "Selecione um período nos filtros da aba Movimentações"
+                  : "Selecione um período nos filtros"
                 }
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {Object.keys(periodTotals).length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
+                <p className="text-center text-muted-foreground py-4 text-base">
                   Nenhum dado para o período selecionado
                 </p>
               ) : (
@@ -365,28 +275,16 @@ export default function Stock() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Produto</TableHead>
-                        <TableHead className="text-right text-green-600">Entradas</TableHead>
-                        <TableHead className="text-right text-red-600">Saídas</TableHead>
-                        <TableHead className="text-right text-blue-600">Ajustes</TableHead>
-                        <TableHead className="text-right">Saldo Período</TableHead>
+                        <TableHead className="text-base">Produto</TableHead>
+                        <TableHead className="text-right text-red-600 text-base">Total Saídas</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {Object.entries(periodTotals).map(([key, data]) => (
                         <TableRow key={key}>
-                          <TableCell className="font-medium">{data.name}</TableCell>
-                          <TableCell className="text-right text-green-600">
-                            +{data.entradas.toFixed(2)} {data.unit}
-                          </TableCell>
-                          <TableCell className="text-right text-red-600">
+                          <TableCell className="font-medium text-base">{data.name}</TableCell>
+                          <TableCell className="text-right text-red-600 font-bold text-base">
                             -{data.saidas.toFixed(2)} {data.unit}
-                          </TableCell>
-                          <TableCell className="text-right text-blue-600">
-                            {data.ajustes >= 0 ? '+' : ''}{data.ajustes.toFixed(2)} {data.unit}
-                          </TableCell>
-                          <TableCell className="text-right font-bold">
-                            {(data.entradas - data.saidas + data.ajustes).toFixed(2)} {data.unit}
                           </TableCell>
                         </TableRow>
                       ))}

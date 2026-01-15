@@ -253,45 +253,42 @@ export default function Applications() {
   );
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h1 className="text-3xl font-bold text-foreground">
             Histórico de Aplicações
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Registros de todas as pulverizações realizadas
           </p>
         </div>
-        <Button onClick={handleNew} className="gap-2 w-full sm:w-auto h-12 text-lg">
-          <Plus className="h-5 w-5" />
+        <Button onClick={handleNew} className="gap-2 h-12 text-lg">
+          <Plus className="h-6 w-6" />
           Nova Aplicação
         </Button>
       </div>
 
       {applications.length === 0 ? (
-        <Card className="p-8 sm:p-12 text-center">
-          <p className="text-lg text-muted-foreground mb-4">
+        <Card className="p-6 text-center">
+          <p className="text-lg text-muted-foreground mb-3">
             Nenhuma aplicação cadastrada ainda
           </p>
           <Button onClick={handleNew} className="h-12 text-lg">
-            <Plus className="h-5 w-5 mr-2" />
+            <Plus className="h-6 w-6 mr-2" />
             Cadastrar Primeira Aplicação
           </Button>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Aplicações pendentes com destaque */}
           {pendingApps.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Clock className="h-5 w-5 text-warning" />
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <Clock className="h-6 w-6 text-warning" />
                 Pendentes ({pendingApps.length})
-                <span className="text-sm font-normal text-muted-foreground">
-                  - Clique no status para atualizar
-                </span>
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {pendingApps.map((app: any) => (
                   <ApplicationCard key={app.id} app={app} />
                 ))}
@@ -301,13 +298,13 @@ export default function Applications() {
 
           {/* Outras aplicações */}
           {otherApps.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {pendingApps.length > 0 && (
-                <h2 className="text-lg font-semibold text-foreground">
+                <h2 className="text-xl font-semibold text-foreground">
                   Histórico
                 </h2>
               )}
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {otherApps.map((app: any) => (
                   <ApplicationCard key={app.id} app={app} />
                 ))}
