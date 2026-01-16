@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, ArrowUpCircle, Trash2, BookOpen } from "lucide-react";
+import { Plus, ArrowUpCircle, Trash2, BookOpen, Search } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { useProperties } from "@/hooks/useProperties";
+import { cn } from "@/lib/utils";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useStockMovements } from "@/hooks/useStockMovements";
 
@@ -36,7 +37,108 @@ const reasons = {
   ],
 };
 
-export function StockMovementDialog({ 
+// Componente de autocomplete para produtos
+interface ProductAutocompleteInputProps {
+  products: Array<{
+    id: string;
+    name: string;
+    unit: string;
+    package_size?: number | null;
+  }>;
+  onSelect: (product: { id: string; name: string; unit: string; package_size: number | null }) => void;
+  placeholder?: string;
+}
+
+function ProductAutocompleteInput({ products, onSelect, placeholder }: ProductAutocompleteInputProps) {
+  const [search, setSearch] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  const filtered = products.filter(p => 
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleSelect = (product: typeof products[0]) => {
+    setSearch('');
+    setIsOpen(false);
+    onSelect({
+      id: product.id,
+      name: product.name,
+      unit: product.unit,
+      package_size: product.package_size ?? null,
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen || filtered.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightIndex(prev => (prev + 1) % filtered.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightIndex(prev => (prev - 1 + filtered.length) % filtered.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSelect(filtered[highlightIndex]);
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          ref={inputRef}
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setIsOpen(true);
+            setHighlightIndex(0);
+          }}
+          onFocus={() => setIsOpen(true)}
+          onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className="pl-9 h-10 text-sm"
+        />
+      </div>
+      
+      {isOpen && search.length > 0 && (
+        <ul 
+          ref={listRef}
+          className="absolute z-50 w-full mt-1 max-h-48 overflow-auto rounded-md border bg-popover shadow-lg"
+        >
+          {filtered.length === 0 ? (
+            <li className="px-3 py-2 text-sm text-muted-foreground">
+              Nenhum produto encontrado
+            </li>
+          ) : (
+            filtered.map((product, idx) => (
+              <li
+                key={product.id}
+                onClick={() => handleSelect(product)}
+                className={cn(
+                  "px-3 py-2 text-sm cursor-pointer flex justify-between items-center",
+                  idx === highlightIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                )}
+              >
+                <span>{product.name}</span>
+                <span className="text-xs text-muted-foreground">{product.unit}</span>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function StockMovementDialog({
   open, 
   onOpenChange, 
   trigger,
@@ -246,13 +348,7 @@ export function StockMovementDialog({
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">Produtos</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addProduct} className="h-8">
-                <Plus className="h-4 w-4 mr-1" />
-                Adicionar
-              </Button>
-            </div>
+            <Label className="text-base font-semibold">Produtos</Label>
             
             {productItems.length === 0 ? (
               <p className="text-muted-foreground text-sm py-2">
@@ -263,21 +359,21 @@ export function StockMovementDialog({
                 {productItems.map((item, index) => (
                   <div key={index} className="border rounded-lg p-2 space-y-2">
                     {!item.product_id ? (
-                      <Select
-                        value={item.product_id}
-                        onValueChange={(value) => updateProductSelection(index, value)}
-                      >
-                        <SelectTrigger className="h-10 text-sm">
-                          <SelectValue placeholder="Selecione o produto" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover max-h-60">
-                          {products.filter(p => p.active).map((product) => (
-                            <SelectItem key={product.id} value={product.id}>
-                              {product.name} ({product.unit})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ProductAutocompleteInput
+                        products={products.filter(p => p.active)}
+                        onSelect={(product) => {
+                          setProductItems(prev => prev.map((it, i) => 
+                            i === index ? {
+                              ...it,
+                              product_id: product.id,
+                              product_name: product.name,
+                              unit: product.unit,
+                              package_size: product.package_size || 1,
+                            } : it
+                          ));
+                        }}
+                        placeholder="Digite para buscar produto..."
+                      />
                     ) : (
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-sm">{item.product_name}</span>
@@ -332,6 +428,11 @@ export function StockMovementDialog({
                 ))}
               </div>
             )}
+            
+            <Button type="button" variant="outline" onClick={addProduct} className="w-full h-10 gap-2">
+              <Plus className="h-4 w-4" />
+              Adicionar Produto
+            </Button>
           </div>
 
           <div className="space-y-1">
