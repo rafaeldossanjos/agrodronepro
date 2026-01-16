@@ -27,6 +27,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedProperty, setSelectedProperty] = useState<string>("all");
   const { applications, isLoading: loadingApps } = useApplications();
   const { properties } = useProperties();
 
@@ -59,20 +60,30 @@ export default function Dashboard() {
     }
   };
 
+  const handlePropertyChange = (propertyId: string) => {
+    setSelectedProperty(propertyId);
+  };
+
   // Calcular estatísticas reais
   const stats = useMemo(() => {
     const now = new Date();
+    
+    // Primeiro filtrar por propriedade
+    let filteredApps = selectedProperty === 'all' 
+      ? applications 
+      : applications.filter(app => app.property_id === selectedProperty);
+    
     let periodApps: typeof applications = [];
     let periodLabel = '';
 
     if (periodFilter === 'all') {
       // Filtro "Todos" - todas as aplicações concluídas
-      periodApps = applications.filter(app => app.status === 'concluída');
+      periodApps = filteredApps.filter(app => app.status === 'concluída');
       periodLabel = 'Todos';
     } else if (periodFilter === 'month' && selectedMonth !== '') {
       // Filtro por mês específico
       const [year, month] = selectedMonth.split('-').map(Number);
-      periodApps = applications.filter(app => {
+      periodApps = filteredApps.filter(app => {
         const appDate = new Date(app.application_date + 'T00:00:00');
         return appDate.getFullYear() === year && appDate.getMonth() + 1 === month && app.status === 'concluída';
       });
@@ -82,7 +93,7 @@ export default function Dashboard() {
       const periodStart = subDays(now, days);
 
       // Filtrar apenas aplicações CONCLUÍDAS do período selecionado
-      periodApps = applications.filter(app => {
+      periodApps = filteredApps.filter(app => {
         const appDate = new Date(app.application_date + 'T00:00:00');
         return appDate >= periodStart && appDate <= now && app.status === 'concluída';
       });
@@ -92,13 +103,13 @@ export default function Dashboard() {
     // Área aplicada no período
     const totalAreaPeriod = periodApps.reduce((sum, app) => sum + Number(app.area_applied), 0);
 
-    // Área em andamento
-    const areaEmAndamento = applications
+    // Área em andamento (também filtrar por propriedade)
+    const areaEmAndamento = filteredApps
       .filter(app => app.status === 'em_andamento')
       .reduce((sum, app) => sum + Number(app.area_applied), 0);
 
-    // Área planejada
-    const areaPlanejada = applications
+    // Área planejada (também filtrar por propriedade)
+    const areaPlanejada = filteredApps
       .filter(app => app.status === 'planejada')
       .reduce((sum, app) => sum + Number(app.area_applied), 0);
 
@@ -131,11 +142,15 @@ export default function Dashboard() {
         },
       ]
     };
-  }, [applications, periodFilter, selectedMonth]);
+  }, [applications, periodFilter, selectedMonth, selectedProperty]);
 
-  // Buscar aplicações recentes
+  // Buscar aplicações recentes (também filtrar por propriedade)
   const recentApplications = useMemo(() => {
-    return applications
+    const filteredApps = selectedProperty === 'all' 
+      ? applications 
+      : applications.filter(app => app.property_id === selectedProperty);
+    
+    return filteredApps
       .sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime())
       .slice(0, 3)
       .map(app => {
@@ -146,7 +161,7 @@ export default function Dashboard() {
           status: app.status,
         };
       });
-  }, [applications]);
+  }, [applications, selectedProperty]);
 
   // Contar aplicações pendentes
   const pendingCount = useMemo(() => {
@@ -177,12 +192,12 @@ export default function Dashboard() {
       </div>
 
       {/* Filtros de Período */}
-      <div className="flex gap-2 flex-wrap items-center">
+      <div className="flex gap-3 flex-wrap items-center">
         <Button
           variant={periodFilter === 'all' ? "default" : "outline"}
           size="lg"
           onClick={() => handlePeriodChange('all' as PeriodFilter)}
-          className="h-12 px-5 text-base sm:text-lg"
+          className="h-14 px-6 text-lg sm:text-xl"
         >
           Todos
         </Button>
@@ -196,22 +211,34 @@ export default function Dashboard() {
             variant={periodFilter === value ? "default" : "outline"}
             size="lg"
             onClick={() => handlePeriodChange(value as PeriodFilter)}
-            className="h-12 px-5 text-base sm:text-lg"
+            className="h-14 px-6 text-lg sm:text-xl"
           >
             {label}
           </Button>
         ))}
         
-        <span className="text-base sm:text-lg text-muted-foreground mx-2">ou</span>
-        
         <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-12 w-[280px] text-base sm:text-lg">
-            <SelectValue placeholder="Selecionar mês" />
+          <SelectTrigger className="h-14 w-[200px] text-lg sm:text-xl">
+            <SelectValue placeholder="Mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
             {availableMonths.map((month) => (
-              <SelectItem key={month} value={month} className="capitalize text-base sm:text-lg">
+              <SelectItem key={month} value={month} className="capitalize text-lg sm:text-xl py-3">
                 {getMonthLabel(month)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedProperty} onValueChange={handlePropertyChange}>
+          <SelectTrigger className="h-14 w-[220px] text-lg sm:text-xl">
+            <SelectValue placeholder="Fazenda" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover max-h-[200px]">
+            <SelectItem value="all" className="text-lg sm:text-xl py-3">Todas as fazendas</SelectItem>
+            {properties.map((property) => (
+              <SelectItem key={property.id} value={property.id} className="text-lg sm:text-xl py-3">
+                {property.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -236,21 +263,21 @@ export default function Dashboard() {
       {/* Recent Applications */}
       <Card className="p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
             Aplicações Recentes
           </h2>
           <button 
             onClick={() => navigate('/applications')}
-            className="text-base sm:text-lg font-medium text-primary hover:underline"
+            className="text-lg sm:text-xl font-medium text-primary hover:underline"
           >
             Ver todas
           </button>
         </div>
         <div className="space-y-4">
           {loadingApps ? (
-            <p className="text-base sm:text-lg text-muted-foreground">Carregando...</p>
+            <p className="text-lg sm:text-xl text-muted-foreground">Carregando...</p>
           ) : recentApplications.length === 0 ? (
-            <p className="text-base sm:text-lg text-muted-foreground">Nenhuma aplicação registrada.</p>
+            <p className="text-lg sm:text-xl text-muted-foreground">Nenhuma aplicação registrada.</p>
           ) : (
             recentApplications.map((app, index) => (
             <div
@@ -258,13 +285,13 @@ export default function Dashboard() {
               className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-lg sm:text-xl font-medium text-foreground truncate">{app.name}</p>
-                <p className="text-base sm:text-lg text-muted-foreground">{app.plotName}</p>
+                <p className="text-xl sm:text-2xl font-medium text-foreground truncate">{app.name}</p>
+                <p className="text-lg sm:text-xl text-muted-foreground">{app.plotName}</p>
               </div>
               <div className="text-right flex-shrink-0 ml-4">
-                <p className="text-lg sm:text-xl font-semibold text-foreground">{app.area}</p>
+                <p className="text-xl sm:text-2xl font-semibold text-foreground">{app.area}</p>
                 <span className={cn(
-                  "inline-flex items-center rounded-full px-3 py-1 text-sm sm:text-base font-medium",
+                  "inline-flex items-center rounded-full px-3 py-1 text-base sm:text-lg font-medium",
                   app.status === 'concluída' ? "bg-success/10 text-success" :
                   app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
                   app.status === 'planejada' ? "bg-warning/10 text-warning" :

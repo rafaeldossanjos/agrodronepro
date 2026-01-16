@@ -59,20 +59,20 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-3 px-3 py-4 lg:py-5">
-          <div className="flex h-12 w-12 lg:h-14 lg:w-14 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary">
-            <Plane className="h-7 w-7 lg:h-8 lg:w-8 text-primary-foreground" />
+        <div className="flex items-center gap-3 px-4 py-5 lg:py-6">
+          <div className="flex h-14 w-14 lg:h-16 lg:w-16 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-secondary">
+            <Plane className="h-8 w-8 lg:h-10 lg:w-10 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl lg:text-2xl font-bold text-sidebar-foreground">AgroDrone</h1>
-            <p className="text-sm lg:text-base text-sidebar-foreground/70">Sistema PRO</p>
+            <h1 className="text-2xl lg:text-3xl font-bold text-sidebar-foreground">AgroDrone</h1>
+            <p className="text-base lg:text-lg text-sidebar-foreground/70">Sistema PRO</p>
           </div>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-base lg:text-lg px-3">Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-lg lg:text-xl px-4">Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigation.map((item) => {
@@ -83,9 +83,9 @@ export function AppSidebar() {
                       isActive={isActive}
                       size="lg"
                       onClick={() => handleNavigation(item.href)}
-                      className="min-h-[56px] lg:min-h-[60px] text-lg lg:text-xl px-3"
+                      className="min-h-[60px] lg:min-h-[64px] text-xl lg:text-2xl px-4"
                     >
-                      <item.icon className="h-7 w-7 lg:h-8 lg:w-8" />
+                      <item.icon className="h-8 w-8 lg:h-9 lg:w-9" />
                       <span>{item.name}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -96,22 +96,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4 lg:p-6">
+      <SidebarFooter className="border-t border-sidebar-border p-5 lg:p-6">
         <div className="space-y-4 lg:space-y-5">
-          <div className="flex items-center gap-3 text-base lg:text-lg">
-            <User className="h-6 w-6 lg:h-7 lg:w-7 text-sidebar-foreground/70" />
+          <div className="flex items-center gap-3 text-lg lg:text-xl">
+            <User className="h-7 w-7 lg:h-8 lg:w-8 text-sidebar-foreground/70" />
             <span className="text-sidebar-foreground/70 truncate">{user?.email}</span>
           </div>
           <Button 
             variant="outline" 
             size="lg"
-            className="w-full text-lg lg:text-xl h-14 lg:h-16" 
+            className="w-full text-xl lg:text-2xl h-16 lg:h-18" 
             onClick={signOut}
           >
-            <LogOut className="h-6 w-6 lg:h-7 lg:w-7 mr-2" />
+            <LogOut className="h-7 w-7 lg:h-8 lg:w-8 mr-3" />
             Sair
           </Button>
-          <p className="text-sm lg:text-base text-sidebar-foreground/50 text-center">
+          <p className="text-base lg:text-lg text-sidebar-foreground/50 text-center">
             © 2025 AgroDrone PRO
           </p>
         </div>
