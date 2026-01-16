@@ -128,8 +128,15 @@ export default function Stock() {
       doc.text(`Propriedade: ${propName}`, pageWidth / 2, 38, { align: "center" });
     }
 
+    // Ordenar movimentações por nome do produto (alfabético)
+    const sortedMovements = [...filteredMovements].sort((a, b) => {
+      const nameA = a.product?.name?.toLowerCase() || "";
+      const nameB = b.product?.name?.toLowerCase() || "";
+      return nameA.localeCompare(nameB, 'pt-BR');
+    });
+
     // Tabela de movimentações detalhadas
-    const tableData = filteredMovements.map((mov) => {
+    const tableData = sortedMovements.map((mov) => {
       const product = products.find(p => p.id === mov.product_id);
       const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null, mov.unit);
       return [
@@ -363,7 +370,11 @@ export default function Stock() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredMovements.map((mov) => {
+                      {[...filteredMovements].sort((a, b) => {
+                        const nameA = a.product?.name?.toLowerCase() || "";
+                        const nameB = b.product?.name?.toLowerCase() || "";
+                        return nameA.localeCompare(nameB, 'pt-BR');
+                      }).map((mov) => {
                         const product = products.find(p => p.id === mov.product_id);
                         const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null, mov.unit);
                         return (
