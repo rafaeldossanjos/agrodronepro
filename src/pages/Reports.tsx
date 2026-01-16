@@ -984,20 +984,20 @@ export default function Reports() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
             Relatórios e Análises
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
+          <p className="text-base sm:text-lg text-muted-foreground">
             Visão analítica das suas operações e custos
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button onClick={exportToCSV} variant="outline" className="gap-2 w-full sm:w-auto" disabled={filteredApplications.length === 0}>
-            <Download className="h-4 w-4" />
+          <Button onClick={exportToCSV} variant="outline" className="gap-2 w-full sm:w-auto h-12 text-base sm:text-lg" disabled={filteredApplications.length === 0}>
+            <Download className="h-5 w-5" />
             CSV
           </Button>
-          <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto" disabled={filteredApplications.length === 0}>
-            <FileText className="h-4 w-4" />
+          <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto h-12 text-base sm:text-lg" disabled={filteredApplications.length === 0}>
+            <FileText className="h-5 w-5" />
             PDF
           </Button>
         </div>
@@ -1007,12 +1007,12 @@ export default function Reports() {
       <Card className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            <h2 className="font-semibold">Filtros</h2>
+            <Filter className="h-5 w-5 sm:h-6 sm:w-6" />
+            <h2 className="font-semibold text-lg sm:text-xl">Filtros</h2>
           </div>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground hover:text-foreground">
-              <X className="h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground hover:text-foreground text-base sm:text-lg">
+              <X className="h-5 w-5" />
               Limpar filtros
             </Button>
           )}
@@ -1022,39 +1022,39 @@ export default function Reports() {
           {/* Linha 1: Propriedade, Talhão, Receituário */}
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
             <Select value={selectedProperty} onValueChange={(v) => { setSelectedProperty(v); setSelectedPlot("all"); }}>
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-12 text-base sm:text-lg">
                 <SelectValue placeholder="Propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todas Propriedades</SelectItem>
+                <SelectItem value="all" className="text-base sm:text-lg">Todas Propriedades</SelectItem>
                 {properties.map((prop: any) => (
-                  <SelectItem key={prop.id} value={prop.id}>{prop.name}</SelectItem>
+                  <SelectItem key={prop.id} value={prop.id} className="text-base sm:text-lg">{prop.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
             <Select value={selectedPlot} onValueChange={setSelectedPlot}>
-              <SelectTrigger className="h-9 text-xs">
-                <MapPin className="h-3 w-3 mr-1" />
+              <SelectTrigger className="h-12 text-base sm:text-lg">
+                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 <SelectValue placeholder="Talhão" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos Talhões</SelectItem>
+                <SelectItem value="all" className="text-base sm:text-lg">Todos Talhões</SelectItem>
                 {filteredPlots.map((plot) => (
-                  <SelectItem key={plot.id} value={plot.id}>{plot.name}</SelectItem>
+                  <SelectItem key={plot.id} value={plot.id} className="text-base sm:text-lg">{plot.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
             <Select value={selectedRecipe} onValueChange={setSelectedRecipe}>
-              <SelectTrigger className="h-9 text-xs">
-                <FlaskConical className="h-3 w-3 mr-1" />
+              <SelectTrigger className="h-12 text-base sm:text-lg">
+                <FlaskConical className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 <SelectValue placeholder="Receituário" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos Receituários</SelectItem>
+                <SelectItem value="all" className="text-base sm:text-lg">Todos Receituários</SelectItem>
                 {recipes.map((recipe) => (
-                  <SelectItem key={recipe.id} value={recipe.id}>{recipe.name}</SelectItem>
+                  <SelectItem key={recipe.id} value={recipe.id} className="text-base sm:text-lg">{recipe.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -1063,28 +1063,28 @@ export default function Reports() {
           {/* Linha 2: Status, Tipo, Produtos múltiplos */}
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-12 text-base sm:text-lg">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos Status</SelectItem>
-                <SelectItem value="planejada">Planejada</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                <SelectItem value="concluída">Concluída</SelectItem>
-                <SelectItem value="cancelada">Cancelada</SelectItem>
+                <SelectItem value="all" className="text-base sm:text-lg">Todos Status</SelectItem>
+                <SelectItem value="planejada" className="text-base sm:text-lg">Planejada</SelectItem>
+                <SelectItem value="em_andamento" className="text-base sm:text-lg">Em Andamento</SelectItem>
+                <SelectItem value="concluída" className="text-base sm:text-lg">Concluída</SelectItem>
+                <SelectItem value="cancelada" className="text-base sm:text-lg">Cancelada</SelectItem>
               </SelectContent>
             </Select>
             
             <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="h-9 text-xs">
+              <SelectTrigger className="h-12 text-base sm:text-lg">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all">Todos Tipos</SelectItem>
-                <SelectItem value="pulverização">Pulverização</SelectItem>
-                <SelectItem value="adubação">Adubação</SelectItem>
-                <SelectItem value="semeadura">Semeadura</SelectItem>
-                <SelectItem value="outro">Outro</SelectItem>
+                <SelectItem value="all" className="text-base sm:text-lg">Todos Tipos</SelectItem>
+                <SelectItem value="pulverização" className="text-base sm:text-lg">Pulverização</SelectItem>
+                <SelectItem value="adubação" className="text-base sm:text-lg">Adubação</SelectItem>
+                <SelectItem value="semeadura" className="text-base sm:text-lg">Semeadura</SelectItem>
+                <SelectItem value="outro" className="text-base sm:text-lg">Outro</SelectItem>
               </SelectContent>
             </Select>
 
@@ -1092,7 +1092,7 @@ export default function Reports() {
             <div className="relative">
               <Button 
                 variant="outline" 
-                className="h-9 w-full justify-start text-xs font-normal"
+                className="h-12 w-full justify-start text-base sm:text-lg font-normal"
                 onClick={() => setShowProductsDropdown(!showProductsDropdown)}
               >
                 {selectedProducts.length > 0 
@@ -1100,15 +1100,16 @@ export default function Reports() {
                   : 'Selecionar produtos'}
               </Button>
               {showProductsDropdown && (
-                <div className="absolute top-10 left-0 right-0 z-50 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto p-2">
+                <div className="absolute top-14 left-0 right-0 z-50 bg-popover border rounded-md shadow-lg max-h-64 overflow-y-auto p-3">
                   {products.map((product: any) => (
-                    <div key={product.id} className="flex items-center space-x-2 py-1">
+                    <div key={product.id} className="flex items-center space-x-3 py-2">
                       <Checkbox
                         id={`product-${product.id}`}
                         checked={selectedProducts.includes(product.id)}
                         onCheckedChange={() => handleProductToggle(product.id)}
+                        className="h-5 w-5"
                       />
-                      <Label htmlFor={`product-${product.id}`} className="text-xs cursor-pointer">
+                      <Label htmlFor={`product-${product.id}`} className="text-base sm:text-lg cursor-pointer">
                         {product.name}
                       </Label>
                     </div>
@@ -1116,7 +1117,7 @@ export default function Reports() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-full mt-2 text-xs"
+                    className="w-full mt-2 text-base sm:text-lg h-10"
                     onClick={() => setShowProductsDropdown(false)}
                   >
                     Fechar
@@ -1127,16 +1128,16 @@ export default function Reports() {
           </div>
 
           {/* Linha 3: Período */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs text-muted-foreground">Período:</span>
+          <div className="flex flex-wrap gap-3 items-center">
+            <span className="text-base sm:text-lg text-muted-foreground">Período:</span>
             
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               <Button
                 key="all"
                 variant={selectedPeriod === "all" && selectedMonth === "all" && !dateFrom && !dateTo ? "default" : "outline"}
                 size="sm"
                 onClick={() => handlePeriodChange("all")}
-                className="h-7 px-2 text-xs"
+                className="h-10 px-4 text-base sm:text-lg"
               >
                 Todos
               </Button>
@@ -1150,57 +1151,58 @@ export default function Reports() {
                   variant={selectedPeriod === value && selectedMonth === "all" && !dateFrom && !dateTo ? "default" : "outline"}
                   size="sm"
                   onClick={() => handlePeriodChange(value)}
-                  className="h-7 px-2 text-xs"
+                  className="h-10 px-4 text-base sm:text-lg"
                 >
                   {label}
                 </Button>
               ))}
             </div>
 
-            <span className="text-xs text-muted-foreground mx-1">ou</span>
+            <span className="text-base sm:text-lg text-muted-foreground mx-2">ou</span>
 
             <Select value={selectedMonth} onValueChange={handleMonthChange}>
-              <SelectTrigger className="h-7 w-[140px] text-xs">
+              <SelectTrigger className="h-10 w-[160px] text-base sm:text-lg">
                 <SelectValue placeholder="Por mês" />
               </SelectTrigger>
               <SelectContent className="bg-popover max-h-[200px]">
-                <SelectItem value="all">Todos os meses</SelectItem>
+                <SelectItem value="all" className="text-base sm:text-lg">Todos os meses</SelectItem>
                 {availableMonths.map((month) => (
-                  <SelectItem key={month} value={month} className="capitalize">
+                  <SelectItem key={month} value={month} className="capitalize text-base sm:text-lg">
                     {getMonthLabel(month)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <span className="text-xs text-muted-foreground mx-1">ou</span>
+            <span className="text-base sm:text-lg text-muted-foreground mx-2">ou</span>
 
-            <div className="flex gap-1 items-center">
+            <div className="flex gap-2 items-center">
               <Input 
                 type="date" 
                 value={dateFrom} 
                 onChange={(e) => handleDateChange(e.target.value, dateTo)}
-                className="h-7 w-[120px] text-xs"
+                className="h-10 w-[140px] text-base sm:text-lg"
               />
-              <span className="text-xs text-muted-foreground">-</span>
+              <span className="text-base sm:text-lg text-muted-foreground">-</span>
               <Input 
                 type="date" 
                 value={dateTo} 
                 onChange={(e) => handleDateChange(dateFrom, e.target.value)}
-                className="h-7 w-[120px] text-xs"
+                className="h-10 w-[140px] text-base sm:text-lg"
               />
             </div>
           </div>
 
           {/* Linha 4: Comparativo e opções de PDF */}
-          <div className="flex flex-wrap gap-4 items-center pt-2 border-t">
+          <div className="flex flex-wrap gap-4 items-center pt-3 border-t">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="comparison"
                 checked={showComparison}
                 onCheckedChange={(checked) => setShowComparison(!!checked)}
+                className="h-5 w-5"
               />
-              <Label htmlFor="comparison" className="text-xs cursor-pointer">
+              <Label htmlFor="comparison" className="text-base sm:text-lg cursor-pointer">
                 Comparar com período anterior
               </Label>
             </div>
@@ -1210,8 +1212,9 @@ export default function Reports() {
                 id="pdfNotes"
                 checked={pdfIncludeNotes}
                 onCheckedChange={(checked) => setPdfIncludeNotes(!!checked)}
+                className="h-5 w-5"
               />
-              <Label htmlFor="pdfNotes" className="text-xs cursor-pointer">
+              <Label htmlFor="pdfNotes" className="text-base sm:text-lg cursor-pointer">
                 Incluir observações no PDF
               </Label>
             </div>
@@ -1221,8 +1224,9 @@ export default function Reports() {
                 id="pdfPlotHistory"
                 checked={pdfIncludePlotHistory}
                 onCheckedChange={(checked) => setPdfIncludePlotHistory(!!checked)}
+                className="h-5 w-5"
               />
-              <Label htmlFor="pdfPlotHistory" className="text-xs cursor-pointer">
+              <Label htmlFor="pdfPlotHistory" className="text-base sm:text-lg cursor-pointer">
                 Histórico por talhão no PDF
               </Label>
             </div>
@@ -1232,8 +1236,9 @@ export default function Reports() {
                 id="pdfExecutive"
                 checked={pdfIncludeExecutiveSummary}
                 onCheckedChange={(checked) => setPdfIncludeExecutiveSummary(!!checked)}
+                className="h-5 w-5"
               />
-              <Label htmlFor="pdfExecutive" className="text-xs cursor-pointer">
+              <Label htmlFor="pdfExecutive" className="text-base sm:text-lg cursor-pointer">
                 Resumo executivo no PDF
               </Label>
             </div>
@@ -1243,16 +1248,17 @@ export default function Reports() {
                 id="pdfProductCosts"
                 checked={pdfIncludeProductCosts}
                 onCheckedChange={(checked) => setPdfIncludeProductCosts(!!checked)}
+                className="h-5 w-5"
               />
-              <Label htmlFor="pdfProductCosts" className="text-xs cursor-pointer">
+              <Label htmlFor="pdfProductCosts" className="text-base sm:text-lg cursor-pointer">
                 Custos por produto no PDF
               </Label>
             </div>
           </div>
 
           {/* Rodapé personalizado */}
-          <div className="flex items-center gap-2 pt-2">
-            <Label htmlFor="customFooter" className="text-xs whitespace-nowrap">
+          <div className="flex items-center gap-3 pt-3">
+            <Label htmlFor="customFooter" className="text-base sm:text-lg whitespace-nowrap">
               Rodapé PDF:
             </Label>
             <Input
@@ -1260,7 +1266,7 @@ export default function Reports() {
               value={pdfCustomFooter}
               onChange={(e) => setPdfCustomFooter(e.target.value)}
               placeholder={profile?.company || "Nome da empresa, contato..."}
-              className="h-8 text-xs flex-1"
+              className="h-10 text-base sm:text-lg flex-1"
             />
           </div>
         </div>
@@ -1268,33 +1274,33 @@ export default function Reports() {
 
       {/* Stats Overview */}
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card className="p-3 sm:p-4">
-          <div className="mb-1 sm:mb-2 flex items-center gap-2">
-            <Target className="h-4 w-4 text-primary" />
-            <p className="text-xs text-muted-foreground">Área Total</p>
+        <Card className="p-4 sm:p-5">
+          <div className="mb-2 flex items-center gap-2">
+            <Target className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <p className="text-sm sm:text-base text-muted-foreground">Área Total</p>
           </div>
-          <p className="text-lg sm:text-2xl font-bold text-foreground">
+          <p className="text-2xl sm:text-3xl font-bold text-foreground">
             {stats.totalArea.toFixed(1)} ha
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {filteredApplications.length} aplicações
           </p>
           {showComparison && previousStats && (
-            <p className={`text-xs mt-1 ${stats.totalArea >= previousStats.totalArea ? 'text-green-600' : 'text-red-500'}`}>
+            <p className={`text-sm mt-1 ${stats.totalArea >= previousStats.totalArea ? 'text-green-600' : 'text-red-500'}`}>
               {stats.totalArea >= previousStats.totalArea ? '↑' : '↓'} {Math.abs(stats.totalArea - previousStats.totalArea).toFixed(1)} ha vs anterior
             </p>
           )}
         </Card>
 
-        <Card className="p-3 sm:p-4">
-          <div className="mb-1 sm:mb-2 flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-blue-500" />
-            <p className="text-xs text-muted-foreground">Eficiência</p>
+        <Card className="p-4 sm:p-5">
+          <div className="mb-2 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+            <p className="text-sm sm:text-base text-muted-foreground">Eficiência</p>
           </div>
-          <p className="text-lg sm:text-2xl font-bold text-foreground">
+          <p className="text-2xl sm:text-3xl font-bold text-foreground">
             {stats.efficiency.toFixed(0)}%
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {statusStats.concluída} concluídas
           </p>
         </Card>
@@ -1304,8 +1310,8 @@ export default function Reports() {
       {/* Gráfico de barras por propriedade */}
       {propertyChartData.length > 0 && (
         <Card className="p-4 sm:p-6">
-          <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
+          <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
+            <BarChart3 className="h-6 w-6" />
             Área por Propriedade
           </h2>
           <div className="h-[250px] sm:h-[300px]">
@@ -1314,16 +1320,16 @@ export default function Reports() {
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis 
                   dataKey="name" 
-                  tick={{ fontSize: 10 }} 
+                  tick={{ fontSize: 12 }} 
                   angle={-45} 
                   textAnchor="end"
                   height={60}
                   className="fill-muted-foreground"
                 />
                 <YAxis 
-                  tick={{ fontSize: 10 }}
+                  tick={{ fontSize: 12 }}
                   className="fill-muted-foreground"
-                  label={{ value: 'Hectares', angle: -90, position: 'insideLeft', fontSize: 10 }}
+                  label={{ value: 'Hectares', angle: -90, position: 'insideLeft', fontSize: 12 }}
                 />
                 <Tooltip 
                   formatter={(value: number, name: string) => [
@@ -1331,7 +1337,7 @@ export default function Reports() {
                     name === 'area' ? 'Área' : 'Aplicações'
                   ]}
                   labelFormatter={(label) => propertyChartData.find(d => d.name === label)?.fullName || label}
-                  contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))' }}
+                  contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '14px' }}
                 />
                 <Bar dataKey="area" name="area" radius={[4, 4, 0, 0]}>
                   {propertyChartData.map((_, index) => (
@@ -1346,40 +1352,40 @@ export default function Reports() {
 
       {/* Status e Tipo breakdown */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="p-4">
-          <h3 className="font-semibold mb-3 text-sm">Por Status</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
+        <Card className="p-4 sm:p-5">
+          <h3 className="font-semibold mb-4 text-lg sm:text-xl">Por Status</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between text-base sm:text-lg">
               <span className="text-muted-foreground">Planejadas</span>
               <span className="font-medium">{statusStats.planejada}</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-base sm:text-lg">
               <span className="text-muted-foreground">Em Andamento</span>
               <span className="font-medium">{statusStats.em_andamento}</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-base sm:text-lg">
               <span className="text-muted-foreground">Concluídas</span>
               <span className="font-medium text-green-600">{statusStats.concluída}</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-base sm:text-lg">
               <span className="text-muted-foreground">Canceladas</span>
               <span className="font-medium text-red-500">{statusStats.cancelada}</span>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
-          <h3 className="font-semibold mb-3 text-sm">Por Tipo</h3>
-          <div className="space-y-2">
+        <Card className="p-4 sm:p-5">
+          <h3 className="font-semibold mb-4 text-lg sm:text-xl">Por Tipo</h3>
+          <div className="space-y-3">
             {Object.entries(typeStats).length > 0 ? (
               Object.entries(typeStats).map(([type, count]) => (
-                <div key={type} className="flex justify-between text-sm">
+                <div key={type} className="flex justify-between text-base sm:text-lg">
                   <span className="text-muted-foreground capitalize">{type}</span>
                   <span className="font-medium">{count}</span>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">Nenhum dado</p>
+              <p className="text-base sm:text-lg text-muted-foreground">Nenhum dado</p>
             )}
           </div>
         </Card>
@@ -1388,23 +1394,23 @@ export default function Reports() {
       {/* Consumo Total por Produto */}
       {productStats.length > 0 && (
         <Card className="p-4 sm:p-6">
-          <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground">
+          <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground">
             Consumo Total por Produto
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b border-border">
                 <tr>
-                  <th className="pb-3 text-left text-xs sm:text-sm font-medium text-muted-foreground">
+                  <th className="pb-3 text-left text-sm sm:text-base font-medium text-muted-foreground">
                     Produto
                   </th>
-                  <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
+                  <th className="pb-3 text-right text-sm sm:text-base font-medium text-muted-foreground">
                     Consumo Total
                   </th>
-                  <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
+                  <th className="pb-3 text-right text-sm sm:text-base font-medium text-muted-foreground">
                     Dose Média/ha
                   </th>
-                  <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
+                  <th className="pb-3 text-right text-sm sm:text-base font-medium text-muted-foreground">
                     Aplicações
                   </th>
                 </tr>
@@ -1412,16 +1418,16 @@ export default function Reports() {
               <tbody className="divide-y divide-border">
                 {productStats.map((row: any) => (
                   <tr key={row.name}>
-                    <td className="py-3 text-xs sm:text-sm font-medium text-foreground">
+                    <td className="py-3 text-sm sm:text-base font-medium text-foreground">
                       {row.name}
                     </td>
-                    <td className="py-3 text-right text-xs sm:text-sm text-foreground">
+                    <td className="py-3 text-right text-sm sm:text-base text-foreground">
                       {row.totalAmount.toFixed(2)} {row.unit}
                     </td>
-                    <td className="py-3 text-right text-xs sm:text-sm text-foreground">
+                    <td className="py-3 text-right text-sm sm:text-base text-foreground">
                       {row.avgDose.toFixed(3)} {row.unit}/ha
                     </td>
-                    <td className="py-3 text-right text-xs sm:text-sm text-foreground">
+                    <td className="py-3 text-right text-sm sm:text-base text-foreground">
                       {row.count}
                     </td>
                   </tr>
@@ -1434,20 +1440,20 @@ export default function Reports() {
 
       {/* Resumo por Propriedade */}
       <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground">
+        <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground">
           Resumo por Propriedade
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-border">
               <tr>
-                <th className="pb-3 text-left text-xs sm:text-sm font-medium text-muted-foreground">
+                <th className="pb-3 text-left text-sm sm:text-base font-medium text-muted-foreground">
                   Propriedade
                 </th>
-                <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
+                <th className="pb-3 text-right text-sm sm:text-base font-medium text-muted-foreground">
                   Área (ha)
                 </th>
-                <th className="pb-3 text-right text-xs sm:text-sm font-medium text-muted-foreground">
+                <th className="pb-3 text-right text-sm sm:text-base font-medium text-muted-foreground">
                   Aplicações
                 </th>
               </tr>
@@ -1455,20 +1461,20 @@ export default function Reports() {
             <tbody className="divide-y divide-border">
               {propertyStats.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={3} className="py-8 text-center text-base sm:text-lg text-muted-foreground">
                     Nenhum dado disponível para os filtros selecionados
                   </td>
                 </tr>
               ) : (
                 propertyStats.map((row: any) => (
                   <tr key={row.name}>
-                    <td className="py-3 text-xs sm:text-sm font-medium text-foreground">
+                    <td className="py-3 text-sm sm:text-base font-medium text-foreground">
                       {row.name}
                     </td>
-                    <td className="py-3 text-right text-xs sm:text-sm text-foreground">
+                    <td className="py-3 text-right text-sm sm:text-base text-foreground">
                       {row.area.toFixed(1)}
                     </td>
-                    <td className="py-3 text-right text-xs sm:text-sm text-foreground">
+                    <td className="py-3 text-right text-sm sm:text-base text-foreground">
                       {row.apps}
                     </td>
                   </tr>
@@ -1482,8 +1488,8 @@ export default function Reports() {
       {/* Resumo por Talhão */}
       {plotStats.length > 0 && (
         <Card className="p-4 sm:p-6">
-          <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
+          <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
+            <MapPin className="h-6 w-6" />
             Resumo por Talhão
           </h2>
           <div className="space-y-4">
@@ -1491,40 +1497,40 @@ export default function Reports() {
               <div key={plot.id} className="border border-border rounded-lg p-4">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
                   <div>
-                    <p className="font-medium text-foreground text-base">
+                    <p className="font-medium text-foreground text-lg sm:text-xl">
                       {plot.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       {plot.propertyName}
                     </p>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                  <div className="bg-muted/30 rounded p-2">
-                    <p className="text-xs text-muted-foreground">Área do Talhão</p>
-                    <p className="font-medium text-foreground">
+                  <div className="bg-muted/30 rounded p-3">
+                    <p className="text-sm sm:text-base text-muted-foreground">Área do Talhão</p>
+                    <p className="font-medium text-foreground text-base sm:text-lg">
                       {plot.plotAreaHectares ? `${Number(plot.plotAreaHectares).toFixed(2)} ha` : 'N/A'}
                     </p>
                   </div>
-                  <div className="bg-muted/30 rounded p-2">
-                    <p className="text-xs text-muted-foreground">Área Aplicada</p>
-                    <p className="font-medium text-foreground">
+                  <div className="bg-muted/30 rounded p-3">
+                    <p className="text-sm sm:text-base text-muted-foreground">Área Aplicada</p>
+                    <p className="font-medium text-foreground text-base sm:text-lg">
                       {plot.areaApplied.toFixed(2)} ha
                     </p>
                   </div>
-                  <div className="bg-muted/30 rounded p-2">
-                    <p className="text-xs text-muted-foreground">Aplicações</p>
-                    <p className="font-medium text-foreground">{plot.apps}</p>
+                  <div className="bg-muted/30 rounded p-3">
+                    <p className="text-sm sm:text-base text-muted-foreground">Aplicações</p>
+                    <p className="font-medium text-foreground text-base sm:text-lg">{plot.apps}</p>
                   </div>
                 </div>
                 
                 {plot.products.length > 0 && (
                   <div className="bg-muted/30 rounded p-3">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Produtos Consumidos (Total):</p>
-                    <div className="space-y-1">
+                    <p className="text-sm sm:text-base font-medium text-muted-foreground mb-2">Produtos Consumidos (Total):</p>
+                    <div className="space-y-2">
                       {plot.products.map((p: any, idx: number) => (
-                        <div key={idx} className="flex justify-between text-sm">
+                        <div key={idx} className="flex justify-between text-base sm:text-lg">
                           <span className="text-foreground">{p.name}</span>
                           <span className="text-muted-foreground">
                             {Number(p.amount).toFixed(2)} {p.unit}
@@ -1542,12 +1548,12 @@ export default function Reports() {
 
       {/* Lista de Aplicações Detalhada */}
       <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 text-base sm:text-lg font-semibold text-foreground">
+        <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground">
           Detalhes das Aplicações
         </h2>
         <div className="space-y-4">
           {filteredApplications.length === 0 ? (
-            <p className="text-center text-sm text-muted-foreground py-8">
+            <p className="text-center text-base sm:text-lg text-muted-foreground py-8">
               Nenhuma aplicação encontrada para os filtros selecionados
             </p>
           ) : (
@@ -1555,14 +1561,14 @@ export default function Reports() {
               <div key={app.id} className="border border-border rounded-lg p-4">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
                   <div>
-                    <p className="font-medium text-foreground">
+                    <p className="font-medium text-foreground text-base sm:text-lg">
                       {app.properties?.name || 'Propriedade'}
                       {app.plot_name && ` - ${app.plot_name}`}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       {format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })} • {app.application_type} • {app.area_applied} ha
                     </p>
-                    <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full ${
+                    <span className={`inline-block mt-1 text-sm sm:text-base px-3 py-1 rounded-full ${
                       app.status === 'concluída' ? 'bg-green-100 text-green-800' :
                       app.status === 'em_andamento' ? 'bg-blue-100 text-blue-800' :
                       app.status === 'cancelada' ? 'bg-red-100 text-red-800' :
@@ -1575,10 +1581,10 @@ export default function Reports() {
                 
                 {app.application_products && app.application_products.length > 0 && (
                   <div className="bg-muted/30 rounded p-3">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Produtos:</p>
-                    <div className="space-y-1">
+                    <p className="text-sm sm:text-base font-medium text-muted-foreground mb-2">Produtos:</p>
+                    <div className="space-y-2">
                       {app.application_products.map((p: any, idx: number) => (
-                        <div key={idx} className="flex justify-between text-sm">
+                        <div key={idx} className="flex justify-between text-base sm:text-lg">
                           <span className="text-foreground">{p.products?.name || 'Produto'}</span>
                           <span className="text-muted-foreground">
                             {Number(p.total_amount).toFixed(2)} {p.products?.unit || ''}
@@ -1590,7 +1596,7 @@ export default function Reports() {
                 )}
 
                 {app.notes && (
-                  <div className="mt-2 p-2 bg-muted/20 rounded text-xs text-muted-foreground">
+                  <div className="mt-2 p-3 bg-muted/20 rounded text-sm sm:text-base text-muted-foreground">
                     <span className="font-medium">Obs:</span> {app.notes}
                   </div>
                 )}
