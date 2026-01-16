@@ -121,15 +121,15 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  /* Base font size - mobile first */
+  /* Base font size - mobile first with larger sizes */
   html {
     font-size: 16px;
   }
 
-  /* Slightly larger base fonts on mobile/tablet for readability */
+  /* Much larger base fonts on mobile for better readability */
   @media (max-width: 640px) {
     html {
-      font-size: 17px;
+      font-size: 18px;
     }
   }
 
@@ -157,51 +157,77 @@ All colors MUST be HSL.
     button, 
     [role="button"],
     a {
-      min-height: 44px;
+      min-height: 48px;
     }
 
     /* Larger inputs */
     input,
     select,
     textarea {
-      min-height: 48px;
-      font-size: 1rem !important;
+      min-height: 52px;
+      font-size: 1.1rem !important;
     }
 
     /* Larger base text */
     p,
     span {
-      font-size: 1.05rem;
-      line-height: 1.6;
+      font-size: 1.15rem;
+      line-height: 1.65;
     }
 
     /* Larger headings */
     h1 {
-      font-size: 2rem !important;
+      font-size: 2.25rem !important;
     }
     h2 {
-      font-size: 1.75rem !important;
+      font-size: 1.85rem !important;
     }
     h3 {
-      font-size: 1.4rem !important;
+      font-size: 1.5rem !important;
     }
 
     /* Larger labels */
     label {
-      font-size: 1.05rem !important;
+      font-size: 1.1rem !important;
     }
 
     /* Larger badges and small text */
     .text-xs {
-      font-size: 0.9rem !important;
+      font-size: 0.95rem !important;
     }
     .text-sm {
-      font-size: 1rem !important;
+      font-size: 1.05rem !important;
     }
     .text-base {
-      font-size: 1.1rem !important;
+      font-size: 1.15rem !important;
+    }
+    .text-lg {
+      font-size: 1.25rem !important;
+    }
+    .text-xl {
+      font-size: 1.4rem !important;
+    }
+    .text-2xl {
+      font-size: 1.6rem !important;
     }
 
+    /* Cards and containers */
+    .card {
+      padding: 1.25rem;
+    }
+
+    /* Buttons */
+    button,
+    [role="button"] {
+      font-size: 1.1rem !important;
+      padding: 0.75rem 1.25rem;
+    }
+
+    /* Icons */
+    svg {
+      min-width: 1.25rem;
+      min-height: 1.25rem;
+    }
   }
 }
 
