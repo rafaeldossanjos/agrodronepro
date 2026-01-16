@@ -219,15 +219,15 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-4">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-10 flex flex-col items-center">
-            <div className={cn("p-6 rounded-2xl bg-muted", stat.color)}>
-              <stat.icon className="h-16 w-16" />
+          <Card key={stat.label} className="p-4 sm:p-6 flex flex-col items-center">
+            <div className={cn("p-3 sm:p-4 rounded-xl bg-muted", stat.color)}>
+              <stat.icon className="h-8 w-8 sm:h-10 sm:w-10" />
             </div>
-            <div className="mt-6 text-center">
-              <p className="text-6xl font-bold text-foreground leading-none">{stat.value}</p>
-              <p className="text-2xl text-muted-foreground mt-4">{stat.label}</p>
+            <div className="mt-3 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-foreground leading-none">{stat.value}</p>
+              <p className="text-sm sm:text-base text-muted-foreground mt-2">{stat.label}</p>
             </div>
           </Card>
         ))}
