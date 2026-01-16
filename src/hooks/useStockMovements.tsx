@@ -179,6 +179,24 @@ export const useStockMovements = () => {
     }
   };
 
+  const updateMovement = async (id: string, movement: Partial<Omit<StockMovement, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'team_id'>>) => {
+    try {
+      const { error } = await supabase
+        .from('stock_movements')
+        .update(movement)
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      await loadMovements();
+      await loadBalances();
+      toast.success('Movimentação atualizada com sucesso!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao atualizar movimentação');
+      throw error;
+    }
+  };
+
   const deleteMovement = async (id: string) => {
     try {
       const { error } = await supabase
@@ -224,6 +242,7 @@ export const useStockMovements = () => {
     isLoading,
     createMovement,
     createBulkMovements,
+    updateMovement,
     deleteMovement,
     updateMinQuantity,
     getBalanceByProductAndProperty,

@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   Download,
   FileText,
-  Filter
+  Filter,
+  Pencil
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -37,6 +38,8 @@ export default function Stock() {
   const [movementTypeFilter, setMovementTypeFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [editingMovement, setEditingMovement] = useState<StockMovement | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Filter balances
   const filteredBalances = balances.filter((balance) => {
@@ -97,6 +100,16 @@ export default function Stock() {
     const packages = quantity / packageSize;
     const unitLabel = unit.toLowerCase().includes('kg') || unit.toLowerCase().includes('l') ? 'balde(s)' : 'unidade(s)';
     return `${packages.toFixed(2)} ${unitLabel}`;
+  };
+
+  const handleEditMovement = (movement: StockMovement) => {
+    setEditingMovement(movement);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditComplete = () => {
+    setEditingMovement(null);
+    setIsEditDialogOpen(false);
   };
 
   // Função para gerar PDF do relatório
@@ -292,6 +305,7 @@ export default function Stock() {
                       <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Propriedade</TableHead>
                       <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Quantidade</TableHead>
                       <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Motivo</TableHead>
+                      <TableHead className="text-base sm:text-lg md:text-xl font-semibold w-20">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -318,6 +332,16 @@ export default function Stock() {
                             </div>
                           </TableCell>
                           <TableCell className="text-base sm:text-lg md:text-xl">{getReasonLabel(movement.reason)}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditMovement(movement)}
+                              className="h-12 w-12 p-0"
+                            >
+                              <Pencil className="h-5 w-5" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       );
                     })}
@@ -326,6 +350,14 @@ export default function Stock() {
               </div>
             </Card>
           )}
+          
+          {/* Dialog de edição */}
+          <StockMovementDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            editingMovement={editingMovement}
+            onEditComplete={handleEditComplete}
+          />
         </TabsContent>
 
         {/* Relatório Tab */}
