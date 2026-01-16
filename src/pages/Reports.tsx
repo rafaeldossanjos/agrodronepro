@@ -699,7 +699,7 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Detalhes das Aplicações (com observações)
+    // Detalhes das Aplicações - Agrupado por Talhão
     if (filteredApplications.length > 0) {
       if (yPosition > 200) {
         doc.addPage();
@@ -709,58 +709,103 @@ export default function Reports() {
       doc.setTextColor(34, 139, 34);
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Detalhes das Aplicações', 14, yPosition);
+      doc.text('Detalhes das Aplicações por Talhão', 14, yPosition);
       yPosition += 4;
 
-      const appRows = filteredApplications.map((app: any) => {
-        const appProducts = app.application_products && app.application_products.length > 0
-          ? app.application_products.map((p: any) => 
-              `${p.products?.name || 'N/A'}: ${Number(p.total_amount).toFixed(2)} ${p.products?.unit || ''}`
-            ).join('\n')
-          : '-';
+      // Agrupar aplicações por talhão
+      const appsByPlot: Record<string, {
+        plotName: string;
+        propertyName: string;
+        apps: typeof filteredApplications;
+        totalArea: number;
+        products: Map<string, { amount: number; unit: string }>;
+      }> = {};
+
+      filteredApplications.forEach((app: any) => {
+        const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
+        const plotName = app.plot_name || 'Sem talhão';
+        
+        if (!appsByPlot[plotKey]) {
+          appsByPlot[plotKey] = {
+            plotName,
+            propertyName: app.properties?.name || 'N/A',
+            apps: [],
+            totalArea: 0,
+            products: new Map(),
+          };
+        }
+        
+        appsByPlot[plotKey].apps.push(app);
+        appsByPlot[plotKey].totalArea += Number(app.area_applied);
+        
+        // Somar produtos
+        if (app.application_products) {
+          app.application_products.forEach((p: any) => {
+            const productName = p.products?.name || 'Produto';
+            const productUnit = p.products?.unit || '';
+            const existing = appsByPlot[plotKey].products.get(productName) || { amount: 0, unit: productUnit };
+            existing.amount += Number(p.total_amount || 0);
+            appsByPlot[plotKey].products.set(productName, existing);
+          });
+        }
+      });
+
+      const plotRows = Object.values(appsByPlot).map((plotData) => {
+        // Nomes das aplicações
+        const appNames = plotData.apps
+          .map((app: any) => app.name || `Aplicação ${format(new Date(app.application_date + 'T00:00:00'), "dd/MM", { locale: ptBR })}`)
+          .join(', ');
+        
+        // Produtos somados
+        const productsText = Array.from(plotData.products.entries())
+          .map(([name, data]) => `${name}: ${data.amount.toFixed(2)} ${data.unit}`)
+          .join('\n');
+        
+        // Observações (se habilitado)
+        const notesText = plotData.apps
+          .filter((app: any) => app.notes)
+          .map((app: any) => app.notes)
+          .join('; ');
         
         const row = [
-          format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }),
-          `${app.properties?.name || 'N/A'}${app.plot_name ? `\n${app.plot_name}` : ''}`,
-          app.application_type,
-          formatStatusLabel(app.status),
-          `${app.area_applied} ha`,
-          appProducts,
+          plotData.plotName,
+          `${plotData.apps.length} aplicação(ões)`,
+          appNames.length > 50 ? appNames.substring(0, 47) + '...' : appNames,
+          `${plotData.totalArea.toFixed(2)} ha`,
+          productsText || '-',
         ];
         
         if (pdfIncludeNotes) {
-          row.push(app.notes || '-');
+          row.push(notesText || '-');
         }
         
         return row;
       });
 
-      const headers = ['Data', 'Propriedade', 'Tipo', 'Status', 'Área', 'Produtos'];
+      const headers = ['Talhão', 'Qtd', 'Aplicações', 'Área Total', 'Produtos (Total)'];
       if (pdfIncludeNotes) headers.push('Observações');
 
       autoTable(doc, {
         startY: yPosition,
         head: [headers],
-        body: appRows,
+        body: plotRows,
         theme: 'striped',
         headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8, cellPadding: 2 },
         alternateRowStyles: { fillColor: [245, 250, 245] },
         columnStyles: pdfIncludeNotes ? {
-          0: { cellWidth: 16 },
-          1: { cellWidth: 30 },
-          2: { cellWidth: 22 },
-          3: { cellWidth: 20 },
-          4: { cellWidth: 16 },
-          5: { cellWidth: 40 },
-          6: { cellWidth: 35 },
+          0: { cellWidth: 28 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 18 },
+          4: { cellWidth: 45 },
+          5: { cellWidth: 30 },
         } : {
-          0: { cellWidth: 18 },
-          1: { cellWidth: 38 },
-          2: { cellWidth: 28 },
-          3: { cellWidth: 24 },
-          4: { cellWidth: 20 },
-          5: { cellWidth: 55 },
+          0: { cellWidth: 35 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 45 },
+          3: { cellWidth: 22 },
+          4: { cellWidth: 55 },
         },
       });
     }
