@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, ArrowUpCircle, Trash2, BookOpen, Search } from "lucide-react";
+import { Plus, ArrowUpCircle, Trash2, BookOpen, Search, Pencil } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { useProperties } from "@/hooks/useProperties";
 import { cn } from "@/lib/utils";
 import { useRecipes } from "@/hooks/useRecipes";
-import { useStockMovements } from "@/hooks/useStockMovements";
+import { useStockMovements, StockMovement } from "@/hooks/useStockMovements";
 
 interface StockMovementDialogProps {
   open?: boolean;
@@ -18,6 +18,8 @@ interface StockMovementDialogProps {
   trigger?: React.ReactNode;
   defaultPropertyId?: string;
   defaultProductId?: string;
+  editingMovement?: StockMovement | null;
+  onEditComplete?: () => void;
 }
 
 interface ProductItem {
@@ -91,7 +93,7 @@ function ProductAutocompleteInput({ products, onSelect, placeholder }: ProductAu
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           ref={inputRef}
           value={search}
@@ -104,17 +106,17 @@ function ProductAutocompleteInput({ products, onSelect, placeholder }: ProductAu
           onBlur={() => setTimeout(() => setIsOpen(false), 150)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="pl-9 h-10 text-sm"
+          className="pl-10 h-14 text-lg"
         />
       </div>
       
       {isOpen && search.length > 0 && (
         <ul 
           ref={listRef}
-          className="absolute z-50 w-full mt-1 max-h-48 overflow-auto rounded-md border bg-popover shadow-lg"
+          className="absolute z-50 w-full mt-1 max-h-60 overflow-auto rounded-md border bg-popover shadow-lg"
         >
           {filtered.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-muted-foreground">
+            <li className="px-4 py-3 text-base text-muted-foreground">
               Nenhum produto encontrado
             </li>
           ) : (
@@ -123,12 +125,12 @@ function ProductAutocompleteInput({ products, onSelect, placeholder }: ProductAu
                 key={product.id}
                 onClick={() => handleSelect(product)}
                 className={cn(
-                  "px-3 py-2 text-sm cursor-pointer flex justify-between items-center",
+                  "px-4 py-3 text-base cursor-pointer flex justify-between items-center",
                   idx === highlightIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted"
                 )}
               >
-                <span>{product.name}</span>
-                <span className="text-xs text-muted-foreground">{product.unit}</span>
+                <span className="font-medium">{product.name}</span>
+                <span className="text-sm text-muted-foreground">{product.unit}</span>
               </li>
             ))
           )}
@@ -144,16 +146,20 @@ export function StockMovementDialog({
   trigger,
   defaultPropertyId,
   defaultProductId,
+  editingMovement,
+  onEditComplete,
 }: StockMovementDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { products } = useProducts();
   const { properties } = useProperties();
   const { recipes } = useRecipes();
-  const { createMovement } = useStockMovements();
+  const { createMovement, updateMovement } = useStockMovements();
 
   const dialogOpen = open !== undefined ? open : isOpen;
   const setDialogOpen = onOpenChange || setIsOpen;
+
+  const isEditing = !!editingMovement;
 
   const [formData, setFormData] = useState({
     property_id: defaultPropertyId || '',
@@ -167,31 +173,54 @@ export function StockMovementDialog({
 
   useEffect(() => {
     if (dialogOpen) {
-      setFormData({
-        property_id: defaultPropertyId || '',
-        recipe_id: '',
-        reason: '',
-        notes: '',
-        movement_date: new Date().toISOString().split('T')[0],
-      });
-      
-      // Se tiver um produto padrão, adiciona ele
-      if (defaultProductId) {
-        const product = products.find(p => p.id === defaultProductId);
-        if (product) {
-          setProductItems([{
-            product_id: product.id,
-            product_name: product.name,
-            quantity_units: '',
-            unit: product.unit,
-            package_size: product.package_size || 1,
-          }]);
-        }
+      if (editingMovement) {
+        // Modo edição: preencher com dados existentes
+        const product = products.find(p => p.id === editingMovement.product_id);
+        const packageSize = product?.package_size || 1;
+        const quantityUnits = packageSize > 0 ? (editingMovement.quantity / packageSize) : editingMovement.quantity;
+        
+        setFormData({
+          property_id: editingMovement.property_id,
+          recipe_id: '',
+          reason: editingMovement.reason || '',
+          notes: editingMovement.notes || '',
+          movement_date: editingMovement.movement_date.split('T')[0],
+        });
+        
+        setProductItems([{
+          product_id: editingMovement.product_id,
+          product_name: editingMovement.product?.name || product?.name || '',
+          quantity_units: quantityUnits.toString(),
+          unit: editingMovement.unit,
+          package_size: packageSize,
+        }]);
       } else {
-        setProductItems([]);
+        // Modo criação
+        setFormData({
+          property_id: defaultPropertyId || '',
+          recipe_id: '',
+          reason: '',
+          notes: '',
+          movement_date: new Date().toISOString().split('T')[0],
+        });
+        
+        if (defaultProductId) {
+          const product = products.find(p => p.id === defaultProductId);
+          if (product) {
+            setProductItems([{
+              product_id: product.id,
+              product_name: product.name,
+              quantity_units: '',
+              unit: product.unit,
+              package_size: product.package_size || 1,
+            }]);
+          }
+        } else {
+          setProductItems([]);
+        }
       }
     }
-  }, [dialogOpen, defaultProductId, defaultPropertyId, products]);
+  }, [dialogOpen, editingMovement, defaultProductId, defaultPropertyId, products]);
 
   // Quando seleciona um receituário, preenche os produtos automaticamente
   const handleRecipeChange = (recipeId: string) => {
@@ -255,28 +284,47 @@ export function StockMovementDialog({
     setIsSubmitting(true);
 
     try {
-      // Registrar cada produto como uma movimentação separada
-      for (const item of productItems) {
-        if (item.product_id && item.quantity_units && Number(item.quantity_units) > 0) {
+      if (isEditing && editingMovement) {
+        // Atualizar movimentação existente
+        const item = productItems[0];
+        if (item && item.product_id && item.quantity_units && Number(item.quantity_units) > 0) {
           const totalQuantity = Number(item.quantity_units) * item.package_size;
           
-          await createMovement({
+          await updateMovement(editingMovement.id, {
             product_id: item.product_id,
             property_id: formData.property_id,
-            movement_type: 'saida',
             quantity: totalQuantity,
             unit: item.unit,
             reason: formData.reason || null,
-            notes: formData.notes 
-              ? `${formData.notes} (${item.quantity_units} embalagem(ns) de ${item.package_size}${item.unit})`
-              : `${item.quantity_units} embalagem(ns) de ${item.package_size}${item.unit}`,
+            notes: formData.notes || null,
             movement_date: new Date(formData.movement_date).toISOString(),
           });
+        }
+        onEditComplete?.();
+      } else {
+        // Criar novas movimentações
+        for (const item of productItems) {
+          if (item.product_id && item.quantity_units && Number(item.quantity_units) > 0) {
+            const totalQuantity = Number(item.quantity_units) * item.package_size;
+            
+            await createMovement({
+              product_id: item.product_id,
+              property_id: formData.property_id,
+              movement_type: 'saida',
+              quantity: totalQuantity,
+              unit: item.unit,
+              reason: formData.reason || null,
+              notes: formData.notes 
+                ? `${formData.notes} (${item.quantity_units} embalagem(ns) de ${item.package_size}${item.unit})`
+                : `${item.quantity_units} embalagem(ns) de ${item.package_size}${item.unit}`,
+              movement_date: new Date(formData.movement_date).toISOString(),
+            });
+          }
         }
       }
       setDialogOpen(false);
     } catch (error) {
-      console.error('Erro ao criar movimentação:', error);
+      console.error('Erro ao salvar movimentação:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -288,36 +336,47 @@ export function StockMovementDialog({
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button className="gap-2 h-12 text-lg">
-            <Plus className="h-5 w-5" />
-            Registrar Saída
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      {!isEditing && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button className="gap-2 h-14 text-lg px-6">
+              <Plus className="h-6 w-6" />
+              Registrar Saída
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <ArrowUpCircle className="h-5 w-5 text-red-500" />
-            Registrar Saída de Estoque
+          <DialogTitle className="flex items-center gap-2 text-2xl">
+            {isEditing ? (
+              <>
+                <Pencil className="h-6 w-6 text-primary" />
+                Editar Movimentação
+              </>
+            ) : (
+              <>
+                <ArrowUpCircle className="h-6 w-6 text-red-500" />
+                Registrar Saída de Estoque
+              </>
+            )}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-          <div className="space-y-1">
-            <Label className="text-base">Propriedade *</Label>
+          <div className="space-y-2">
+            <Label className="text-lg font-medium">Propriedade *</Label>
             <Select
               value={formData.property_id}
               onValueChange={(value) => setFormData({ ...formData, property_id: value })}
             >
-              <SelectTrigger className="h-11 text-base">
+              <SelectTrigger className="h-14 text-lg">
                 <SelectValue placeholder="Selecione a propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
                 {properties.map((property) => (
-                  <SelectItem key={property.id} value={property.id}>
+                  <SelectItem key={property.id} value={property.id} className="text-base py-3">
                     {property.name}
                   </SelectItem>
                 ))}
@@ -325,39 +384,41 @@ export function StockMovementDialog({
             </Select>
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-base flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Carregar do Receituário
-            </Label>
-            <Select
-              value={formData.recipe_id}
-              onValueChange={handleRecipeChange}
-            >
-              <SelectTrigger className="h-11 text-base">
-                <SelectValue placeholder="Selecione um receituário (opcional)" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover max-h-60">
-                {recipes.map((recipe) => (
-                  <SelectItem key={recipe.id} value={recipe.id}>
-                    {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!isEditing && (
+            <div className="space-y-2">
+              <Label className="text-lg font-medium flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Carregar do Receituário
+              </Label>
+              <Select
+                value={formData.recipe_id}
+                onValueChange={handleRecipeChange}
+              >
+                <SelectTrigger className="h-14 text-lg">
+                  <SelectValue placeholder="Selecione um receituário (opcional)" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover max-h-60">
+                  {recipes.map((recipe) => (
+                    <SelectItem key={recipe.id} value={recipe.id} className="text-base py-3">
+                      {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          <div className="space-y-2">
-            <Label className="text-base font-semibold">Produtos</Label>
+          <div className="space-y-3">
+            <Label className="text-lg font-semibold">Produtos</Label>
             
             {productItems.length === 0 ? (
-              <p className="text-muted-foreground text-sm py-2">
+              <p className="text-muted-foreground text-base py-3">
                 Selecione um receituário ou adicione produtos manualmente
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {productItems.map((item, index) => (
-                  <div key={index} className="border rounded-lg p-2 space-y-2">
+                  <div key={index} className="border rounded-lg p-4 space-y-3">
                     {!item.product_id ? (
                       <ProductAutocompleteInput
                         products={products.filter(p => p.active)}
@@ -376,50 +437,52 @@ export function StockMovementDialog({
                       />
                     ) : (
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm">{item.product_name}</span>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => removeProduct(index)}
-                          className="h-7 w-7 p-0 text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <span className="font-medium text-lg">{item.product_name}</span>
+                        {!isEditing && (
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeProduct(index)}
+                            className="h-10 w-10 p-0 text-destructive"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </Button>
+                        )}
                       </div>
                     )}
                     
                     {item.product_id && (
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-3 gap-3">
                         <div>
-                          <Label className="text-xs">Embalagens</Label>
+                          <Label className="text-sm font-medium">Embalagens</Label>
                           <Input
                             type="number"
-                            step="1"
-                            min="1"
+                            step="0.5"
+                            min="0.5"
                             value={item.quantity_units}
                             onChange={(e) => updateProductQuantity(index, e.target.value)}
                             placeholder="Qtd"
-                            className="h-9 text-sm"
+                            className="h-14 text-lg"
                           />
                         </div>
                         <div>
-                          <Label className="text-xs">Tamanho</Label>
+                          <Label className="text-sm font-medium">Tamanho</Label>
                           <Input
                             value={`${item.package_size} ${item.unit}`}
                             readOnly
-                            className="bg-muted h-9 text-sm"
+                            className="bg-muted h-14 text-lg"
                           />
                         </div>
                         <div>
-                          <Label className="text-xs">Total</Label>
+                          <Label className="text-sm font-medium">Total</Label>
                           <Input
                             value={item.quantity_units ? 
                               `${(Number(item.quantity_units) * item.package_size).toFixed(1)} ${item.unit}` : 
                               '-'
                             }
                             readOnly
-                            className="bg-muted h-9 text-sm font-medium text-primary"
+                            className="bg-muted h-14 text-lg font-medium text-primary"
                           />
                         </div>
                       </div>
@@ -429,34 +492,36 @@ export function StockMovementDialog({
               </div>
             )}
             
-            <Button type="button" variant="outline" onClick={addProduct} className="w-full h-10 gap-2">
-              <Plus className="h-4 w-4" />
-              Adicionar Produto
-            </Button>
+            {!isEditing && (
+              <Button type="button" variant="outline" onClick={addProduct} className="w-full h-14 gap-2 text-lg">
+                <Plus className="h-5 w-5" />
+                Adicionar Produto
+              </Button>
+            )}
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-base">Data</Label>
+          <div className="space-y-2">
+            <Label className="text-lg font-medium">Data</Label>
             <Input
               type="date"
               value={formData.movement_date}
               onChange={(e) => setFormData({ ...formData, movement_date: e.target.value })}
-              className="h-11 text-base"
+              className="h-14 text-lg"
             />
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-base">Motivo</Label>
+          <div className="space-y-2">
+            <Label className="text-lg font-medium">Motivo</Label>
             <Select
               value={formData.reason}
               onValueChange={(value) => setFormData({ ...formData, reason: value })}
             >
-              <SelectTrigger className="h-11 text-base">
+              <SelectTrigger className="h-14 text-lg">
                 <SelectValue placeholder="Selecione o motivo" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
                 {reasons.saida.map((reason) => (
-                  <SelectItem key={reason.value} value={reason.value}>
+                  <SelectItem key={reason.value} value={reason.value} className="text-base py-3">
                     {reason.label}
                   </SelectItem>
                 ))}
@@ -464,27 +529,27 @@ export function StockMovementDialog({
             </Select>
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-base">Observações</Label>
+          <div className="space-y-2">
+            <Label className="text-lg font-medium">Observações</Label>
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Informações adicionais..."
-              rows={2}
-              className="text-base"
+              rows={3}
+              className="text-lg"
             />
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1 h-11">
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1 h-14 text-lg">
               Cancelar
             </Button>
             <Button 
               type="submit" 
               disabled={isSubmitting || !formData.property_id || !hasValidProducts} 
-              className="flex-1 h-11 text-base"
+              className="flex-1 h-14 text-lg"
             >
-              {isSubmitting ? 'Salvando...' : 'Salvar'}
+              {isSubmitting ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar'}
             </Button>
           </div>
         </form>
