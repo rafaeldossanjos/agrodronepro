@@ -156,21 +156,21 @@ export default function Dashboard() {
   }, [applications]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-base sm:text-lg text-muted-foreground">
             Visão geral das operações
           </p>
         </div>
         {pendingCount > 0 && (
           <button
             onClick={() => navigate('/applications')}
-            className="flex items-center gap-2 px-3 py-2 rounded-full bg-warning/10 text-warning text-sm font-medium hover:bg-warning/20 transition-colors"
+            className="flex items-center gap-2 px-4 py-3 rounded-full bg-warning/10 text-warning text-base sm:text-lg font-medium hover:bg-warning/20 transition-colors"
           >
-            <Clock className="h-4 w-4" />
+            <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
             {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
           </button>
         )}
@@ -180,9 +180,9 @@ export default function Dashboard() {
       <div className="flex gap-2 flex-wrap items-center">
         <Button
           variant={periodFilter === 'all' ? "default" : "outline"}
-          size="sm"
+          size="lg"
           onClick={() => handlePeriodChange('all' as PeriodFilter)}
-          className="h-9 px-4 text-sm"
+          className="h-12 px-5 text-base sm:text-lg"
         >
           Todos
         </Button>
@@ -194,23 +194,23 @@ export default function Dashboard() {
           <Button
             key={value}
             variant={periodFilter === value ? "default" : "outline"}
-            size="sm"
+            size="lg"
             onClick={() => handlePeriodChange(value as PeriodFilter)}
-            className="h-9 px-4 text-sm"
+            className="h-12 px-5 text-base sm:text-lg"
           >
             {label}
           </Button>
         ))}
         
-        <span className="text-sm text-muted-foreground mx-1">ou</span>
+        <span className="text-base sm:text-lg text-muted-foreground mx-2">ou</span>
         
         <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-9 w-[250px] text-sm">
+          <SelectTrigger className="h-12 w-[280px] text-base sm:text-lg">
             <SelectValue placeholder="Selecionar mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[200px]">
             {availableMonths.map((month) => (
-              <SelectItem key={month} value={month} className="capitalize">
+              <SelectItem key={month} value={month} className="capitalize text-base sm:text-lg">
                 {getMonthLabel(month)}
               </SelectItem>
             ))}
@@ -219,52 +219,52 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:gap-6">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-4 sm:p-6 flex flex-col items-center">
-            <div className={cn("p-3 sm:p-4 rounded-xl bg-muted", stat.color)}>
-              <stat.icon className="h-8 w-8 sm:h-10 sm:w-10" />
+          <Card key={stat.label} className="p-5 sm:p-8 flex flex-col items-center">
+            <div className={cn("p-4 sm:p-5 rounded-xl bg-muted", stat.color)}>
+              <stat.icon className="h-10 w-10 sm:h-12 sm:w-12" />
             </div>
-            <div className="mt-3 text-center">
-              <p className="text-xl sm:text-2xl font-bold text-foreground leading-none">{stat.value}</p>
-              <p className="text-sm sm:text-base text-muted-foreground mt-2">{stat.label}</p>
+            <div className="mt-4 text-center">
+              <p className="text-3xl sm:text-4xl font-bold text-foreground leading-none">{stat.value}</p>
+              <p className="text-base sm:text-lg text-muted-foreground mt-2">{stat.label}</p>
             </div>
           </Card>
         ))}
       </div>
 
       {/* Recent Applications */}
-      <Card className="p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">
+      <Card className="p-5 sm:p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
             Aplicações Recentes
           </h2>
           <button 
             onClick={() => navigate('/applications')}
-            className="text-sm font-medium text-primary hover:underline"
+            className="text-base sm:text-lg font-medium text-primary hover:underline"
           >
             Ver todas
           </button>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {loadingApps ? (
-            <p className="text-sm text-muted-foreground">Carregando...</p>
+            <p className="text-base sm:text-lg text-muted-foreground">Carregando...</p>
           ) : recentApplications.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma aplicação registrada.</p>
+            <p className="text-base sm:text-lg text-muted-foreground">Nenhuma aplicação registrada.</p>
           ) : (
             recentApplications.map((app, index) => (
             <div
               key={index}
-              className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0"
+              className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-base font-medium text-foreground truncate">{app.name}</p>
-                <p className="text-sm text-muted-foreground">{app.plotName}</p>
+                <p className="text-lg sm:text-xl font-medium text-foreground truncate">{app.name}</p>
+                <p className="text-base sm:text-lg text-muted-foreground">{app.plotName}</p>
               </div>
-              <div className="text-right flex-shrink-0 ml-3">
-                <p className="text-base font-semibold text-foreground">{app.area}</p>
+              <div className="text-right flex-shrink-0 ml-4">
+                <p className="text-lg sm:text-xl font-semibold text-foreground">{app.area}</p>
                 <span className={cn(
-                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                  "inline-flex items-center rounded-full px-3 py-1 text-sm sm:text-base font-medium",
                   app.status === 'concluída' ? "bg-success/10 text-success" :
                   app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
                   app.status === 'planejada' ? "bg-warning/10 text-warning" :

@@ -17,8 +17,8 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     <div className="flex min-h-screen w-full bg-background">
       <AppSidebar />
       <main className="flex-1 flex flex-col w-full">
-        <header className="sticky top-0 z-[200] flex h-14 lg:h-16 items-center gap-4 border-b border-border bg-card px-4 sm:px-6 lg:px-8">
-          <SidebarTrigger className="h-8 w-8 lg:h-10 lg:w-10 [&>svg]:h-5 [&>svg]:w-5 lg:[&>svg]:h-6 lg:[&>svg]:w-6" />
+        <header className="sticky top-0 z-[200] flex h-16 lg:h-18 items-center gap-4 border-b border-border bg-card px-4 sm:px-6 lg:px-8">
+          <SidebarTrigger className="h-10 w-10 lg:h-12 lg:w-12 [&>svg]:h-7 [&>svg]:w-7 lg:[&>svg]:h-8 lg:[&>svg]:w-8" />
         </header>
         <div className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8">
           {children}
