@@ -190,8 +190,8 @@ export default function Stock() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Saída de Estoque</h1>
-          <p className="text-base text-muted-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Saída de Estoque</h1>
+          <p className="text-lg text-muted-foreground">
             Registre retiradas de produtos por propriedade
           </p>
         </div>
@@ -204,7 +204,7 @@ export default function Stock() {
           <CardContent className="py-4">
             <div className="flex items-center gap-3 text-orange-600 dark:text-orange-400">
               <AlertTriangle className="h-7 w-7" />
-              <span className="font-semibold text-lg">
+              <span className="font-semibold text-xl">
                 {lowStockItems.length} produto(s) com estoque baixo
               </span>
             </div>
@@ -242,8 +242,8 @@ export default function Stock() {
 
       <Tabs defaultValue="movements" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 h-14">
-          <TabsTrigger value="movements" className="text-base sm:text-lg py-3 rounded-xl">Movimentações</TabsTrigger>
-          <TabsTrigger value="report" className="text-base sm:text-lg py-3 rounded-xl">Relatório</TabsTrigger>
+          <TabsTrigger value="movements" className="text-lg sm:text-xl py-3 rounded-xl">Movimentações</TabsTrigger>
+          <TabsTrigger value="report" className="text-lg sm:text-xl py-3 rounded-xl">Relatório</TabsTrigger>
         </TabsList>
 
         {/* Movimentações Tab */}
@@ -291,7 +291,7 @@ export default function Stock() {
             <Card className="rounded-xl">
               <CardContent className="py-8 text-center">
                 <RefreshCw className="h-14 w-14 mx-auto text-muted-foreground mb-3" />
-                <p className="text-lg text-muted-foreground">Nenhuma movimentação encontrada</p>
+                <p className="text-xl text-muted-foreground">Nenhuma movimentação encontrada</p>
               </CardContent>
             </Card>
           ) : (
@@ -300,12 +300,12 @@ export default function Stock() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-base font-semibold">Data</TableHead>
-                      <TableHead className="text-base font-semibold">Produto</TableHead>
-                      <TableHead className="text-base font-semibold">Propriedade</TableHead>
-                      <TableHead className="text-base font-semibold">Quantidade</TableHead>
-                      <TableHead className="text-base font-semibold">Motivo</TableHead>
-                      <TableHead className="text-base font-semibold w-20">Ações</TableHead>
+                      <TableHead className="text-lg font-semibold">Data</TableHead>
+                      <TableHead className="text-lg font-semibold">Produto</TableHead>
+                      <TableHead className="text-lg font-semibold">Propriedade</TableHead>
+                      <TableHead className="text-lg font-semibold">Quantidade</TableHead>
+                      <TableHead className="text-lg font-semibold">Motivo</TableHead>
+                      <TableHead className="text-lg font-semibold w-20">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -314,24 +314,24 @@ export default function Stock() {
                       const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null, movement.unit);
                       return (
                         <TableRow key={movement.id}>
-                          <TableCell className="text-base">
+                          <TableCell className="text-lg">
                             {format(new Date(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
                           </TableCell>
-                          <TableCell className="font-semibold text-base">{movement.product?.name}</TableCell>
-                          <TableCell className="text-base">{movement.property?.name}</TableCell>
+                          <TableCell className="font-semibold text-lg">{movement.product?.name}</TableCell>
+                          <TableCell className="text-lg">{movement.property?.name}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <span className="font-bold text-base">
+                              <span className="font-bold text-lg">
                                 {Number(movement.quantity).toFixed(2)} {movement.unit}
                               </span>
                               {packageQty && (
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-base text-muted-foreground">
                                   ({packageQty})
                                 </span>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-base">{getReasonLabel(movement.reason)}</TableCell>
+                          <TableCell className="text-lg">{getReasonLabel(movement.reason)}</TableCell>
                           <TableCell>
                             <Button
                               variant="ghost"
@@ -366,8 +366,8 @@ export default function Stock() {
             <CardHeader className="py-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl">Relatório de Saídas</CardTitle>
-                  <p className="text-base text-muted-foreground">
+                  <CardTitle className="text-2xl">Relatório de Saídas</CardTitle>
+                  <p className="text-lg text-muted-foreground">
                     {dateFrom && dateTo 
                       ? `${format(new Date(dateFrom), "dd/MM/yyyy")} a ${format(new Date(dateTo), "dd/MM/yyyy")}`
                       : "Selecione um período nos filtros"
@@ -386,7 +386,7 @@ export default function Stock() {
             </CardHeader>
             <CardContent className="pt-0">
               {filteredMovements.length === 0 ? (
-                <p className="text-center text-muted-foreground py-6 text-lg">
+                <p className="text-center text-muted-foreground py-6 text-xl">
                   Nenhum dado para o período selecionado
                 </p>
               ) : (
@@ -394,11 +394,11 @@ export default function Stock() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-base font-semibold">Data</TableHead>
-                        <TableHead className="text-base font-semibold">Produto</TableHead>
-                        <TableHead className="text-base font-semibold">Propriedade</TableHead>
-                        <TableHead className="text-right text-base font-semibold">Quantidade</TableHead>
-                        <TableHead className="text-right text-base font-semibold">Volume</TableHead>
+                        <TableHead className="text-lg font-semibold">Data</TableHead>
+                        <TableHead className="text-lg font-semibold">Produto</TableHead>
+                        <TableHead className="text-lg font-semibold">Propriedade</TableHead>
+                        <TableHead className="text-right text-lg font-semibold">Quantidade</TableHead>
+                        <TableHead className="text-right text-lg font-semibold">Volume</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
