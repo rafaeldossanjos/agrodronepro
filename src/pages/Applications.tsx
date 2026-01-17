@@ -307,10 +307,10 @@ export default function Applications() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
             Histórico de Aplicações
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-xl text-muted-foreground">
             Registros de todas as pulverizações realizadas
           </p>
         </div>

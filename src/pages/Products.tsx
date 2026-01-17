@@ -42,10 +42,10 @@ export default function Products() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
             Banco de Produtos
           </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground">
+          <p className="text-xl sm:text-2xl text-muted-foreground">
             Gerencie defensivos, fertilizantes e adjuvantes
           </p>
         </div>
