@@ -197,31 +197,31 @@ export default function Dashboard() {
           variant={periodFilter === 'all' ? "default" : "outline"}
           size="lg"
           onClick={() => handlePeriodChange('all' as PeriodFilter)}
-          className="h-14 px-6 text-lg sm:text-xl"
+          className="h-14 px-5 text-lg sm:text-xl rounded-xl"
         >
           Todos
         </Button>
         {[
-          { value: 7, label: '7d' },
-          { value: 15, label: '15d' },
-          { value: 30, label: '30d' },
+          { value: 7, label: '7 dias' },
+          { value: 15, label: '15 dias' },
+          { value: 30, label: '30 dias' },
         ].map(({ value, label }) => (
           <Button
             key={value}
             variant={periodFilter === value ? "default" : "outline"}
             size="lg"
             onClick={() => handlePeriodChange(value as PeriodFilter)}
-            className="h-14 px-6 text-lg sm:text-xl"
+            className="h-14 px-5 text-lg sm:text-xl rounded-xl"
           >
             {label}
           </Button>
         ))}
         
         <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-14 w-[200px] text-lg sm:text-xl">
-            <SelectValue placeholder="Mês" />
+          <SelectTrigger className="h-14 w-auto min-w-[140px] text-lg sm:text-xl rounded-xl px-4">
+            <SelectValue placeholder="Selecionar mês" />
           </SelectTrigger>
-          <SelectContent className="bg-popover max-h-[200px]">
+          <SelectContent className="bg-popover max-h-[280px]">
             {availableMonths.map((month) => (
               <SelectItem key={month} value={month} className="capitalize text-lg sm:text-xl py-3">
                 {getMonthLabel(month)}
@@ -231,10 +231,10 @@ export default function Dashboard() {
         </Select>
 
         <Select value={selectedProperty} onValueChange={handlePropertyChange}>
-          <SelectTrigger className="h-14 w-[220px] text-lg sm:text-xl">
-            <SelectValue placeholder="Fazenda" />
+          <SelectTrigger className="h-14 w-auto min-w-[180px] text-lg sm:text-xl rounded-xl px-4">
+            <SelectValue placeholder="Selecionar fazenda" />
           </SelectTrigger>
-          <SelectContent className="bg-popover max-h-[200px]">
+          <SelectContent className="bg-popover max-h-[280px]">
             <SelectItem value="all" className="text-lg sm:text-xl py-3">Todas as fazendas</SelectItem>
             {properties.map((property) => (
               <SelectItem key={property.id} value={property.id} className="text-lg sm:text-xl py-3">

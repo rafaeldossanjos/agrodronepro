@@ -339,31 +339,34 @@ export function StockMovementDialog({
       {!isEditing && (
         <DialogTrigger asChild>
           {trigger || (
-            <Button className="gap-2 h-14 text-lg px-6">
+            <Button className="gap-3 h-14 text-lg px-6 rounded-xl">
               <Plus className="h-6 w-6" />
               Registrar Saída
             </Button>
           )}
         </DialogTrigger>
       )}
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
+          <DialogTitle className="flex items-center gap-3 text-2xl sm:text-3xl font-bold">
             {isEditing ? (
               <>
-                <Pencil className="h-6 w-6 text-primary" />
+                <Pencil className="h-7 w-7 text-primary" />
                 Editar Movimentação
               </>
             ) : (
               <>
-                <ArrowUpCircle className="h-6 w-6 text-red-500" />
+                <ArrowUpCircle className="h-7 w-7 text-red-500" />
                 Registrar Saída de Estoque
               </>
             )}
           </DialogTitle>
+          <p className="text-base sm:text-lg text-muted-foreground mt-1">
+            {isEditing ? 'Atualize os dados da movimentação' : 'Registre a retirada de produtos do estoque'}
+          </p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
 
           <div className="space-y-2">
             <Label className="text-lg font-medium">Propriedade *</Label>
@@ -501,27 +504,30 @@ export function StockMovementDialog({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-lg font-medium">Data</Label>
+            <Label className="text-lg font-medium">Data da Movimentação</Label>
             <Input
               type="date"
               value={formData.movement_date}
               onChange={(e) => setFormData({ ...formData, movement_date: e.target.value })}
-              className="h-14 text-lg"
+              className="h-14 text-lg px-4 rounded-xl"
             />
+            <p className="text-sm text-muted-foreground">
+              Data em que a retirada foi realizada
+            </p>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-lg font-medium">Motivo</Label>
+            <Label className="text-lg font-medium">Motivo da Saída</Label>
             <Select
               value={formData.reason}
               onValueChange={(value) => setFormData({ ...formData, reason: value })}
             >
-              <SelectTrigger className="h-14 text-lg">
+              <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
                 <SelectValue placeholder="Selecione o motivo" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
                 {reasons.saida.map((reason) => (
-                  <SelectItem key={reason.value} value={reason.value} className="text-base py-3">
+                  <SelectItem key={reason.value} value={reason.value} className="text-lg py-3">
                     {reason.label}
                   </SelectItem>
                 ))}
@@ -534,22 +540,27 @@ export function StockMovementDialog({
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Informações adicionais..."
+              placeholder="Informações adicionais sobre a movimentação..."
               rows={3}
-              className="text-lg"
+              className="text-lg px-4 py-3 rounded-xl resize-none"
             />
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1 h-14 text-lg">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setDialogOpen(false)} 
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               disabled={isSubmitting || !formData.property_id || !hasValidProducts} 
-              className="flex-1 h-14 text-lg"
+              className="flex-1 h-14 text-lg rounded-xl"
             >
-              {isSubmitting ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar'}
+              {isSubmitting ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar Saída'}
             </Button>
           </div>
         </form>

@@ -123,57 +123,72 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button className="gap-3 h-14 px-6 text-lg rounded-xl">
+            <Plus className="h-6 w-6" />
             Novo Receituário
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-3 text-2xl sm:text-3xl font-bold">
+            <FileText className="h-7 w-7 text-primary" />
             {recipe ? "Editar Receituário" : "Novo Receituário"}
           </DialogTitle>
+          <p className="text-base sm:text-lg text-muted-foreground mt-1">
+            {recipe ? 'Atualize os produtos e doses' : 'Crie uma receita com produtos e doses padrão'}
+          </p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome do Receituário *</Label>
+            <Label htmlFor="name" className="text-lg font-medium">
+              Nome do Receituário *
+            </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Dessecação pré-plantio"
+              className="h-14 text-lg px-4 rounded-xl"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
+            <Label htmlFor="description" className="text-lg font-medium">
+              Descrição
+            </Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Descrição opcional do receituário..."
-              rows={2}
+              rows={3}
+              className="text-lg px-4 py-3 rounded-xl resize-none"
             />
           </div>
 
-          <div className="space-y-3">
-            <Label>Produtos e Doses *</Label>
+          <div className="space-y-4">
+            <Label className="text-lg font-medium">Produtos e Doses *</Label>
+            <p className="text-sm text-muted-foreground -mt-2">
+              Adicione os produtos que compõem este receituário
+            </p>
+            
             {recipeProducts.map((item, index) => (
-              <Card key={index} className="p-3 space-y-2">
+              <Card key={index} className="p-4 space-y-3 bg-muted/30">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">Produto {index + 1}</span>
+                  <span className="text-base font-medium text-foreground">
+                    Produto {index + 1}
+                  </span>
                   {recipeProducts.length > 1 && (
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => removeProduct(index)}
-                      className="h-6 w-6 p-0 text-destructive"
+                      className="h-10 w-10 p-0 text-destructive hover:text-destructive"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-5 w-5" />
                     </Button>
                   )}
                 </div>
@@ -182,21 +197,21 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
                   value={item.product_id}
                   onValueChange={(v) => updateProduct(index, "product_id", v)}
                 >
-                  <SelectTrigger className="h-9">
+                  <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
                     <SelectValue placeholder="Selecione um produto" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover max-h-[300px]">
                     {products.filter(p => p.active).map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
+                      <SelectItem key={p.id} value={p.id} className="text-lg py-3">
                         {p.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Dose</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-base">Dose por Hectare</Label>
                     <Input
                       type="text"
                       inputMode="decimal"
@@ -208,23 +223,23 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
                         }
                       }}
                       placeholder="0.5"
-                      className="h-8"
+                      className="h-14 text-lg px-4 rounded-xl"
                     />
                   </div>
-                  <div>
-                    <Label className="text-xs">Unidade</Label>
+                  <div className="space-y-2">
+                    <Label className="text-base">Unidade</Label>
                     <Select
                       value={item.dose_unit}
                       onValueChange={(v) => updateProduct(index, "dose_unit", v)}
                     >
-                      <SelectTrigger className="h-8">
+                      <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="L/ha">L/ha</SelectItem>
-                        <SelectItem value="mL/ha">mL/ha</SelectItem>
-                        <SelectItem value="kg/ha">kg/ha</SelectItem>
-                        <SelectItem value="g/ha">g/ha</SelectItem>
+                      <SelectContent className="bg-popover">
+                        <SelectItem value="L/ha" className="text-lg py-3">L/ha</SelectItem>
+                        <SelectItem value="mL/ha" className="text-lg py-3">mL/ha</SelectItem>
+                        <SelectItem value="kg/ha" className="text-lg py-3">kg/ha</SelectItem>
+                        <SelectItem value="g/ha" className="text-lg py-3">g/ha</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -235,21 +250,29 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
             <Button
               type="button"
               variant="outline"
-              size="sm"
               onClick={addProduct}
-              className="w-full gap-1"
+              className="w-full gap-2 h-14 text-lg rounded-xl"
             >
-              <Plus className="h-3 w-3" />
+              <Plus className="h-5 w-5" />
               Adicionar Produto
             </Button>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+          <div className="flex gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)} 
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? "Salvando..." : recipe ? "Atualizar" : "Criar"}
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
+              {isLoading ? "Salvando..." : recipe ? "Atualizar" : "Criar Receituário"}
             </Button>
           </div>
         </form>

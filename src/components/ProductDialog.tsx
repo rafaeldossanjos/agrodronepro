@@ -99,77 +99,95 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button className="gap-3 h-14 px-6 text-lg rounded-xl">
+            <Plus className="h-6 w-6" />
             Novo Produto
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-2xl sm:text-3xl font-bold">
             {product ? 'Editar Produto' : 'Novo Produto'}
           </DialogTitle>
+          <p className="text-base sm:text-lg text-muted-foreground mt-1">
+            {product ? 'Atualize os dados do produto' : 'Cadastre um novo defensivo agrícola ou insumo'}
+          </p>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Nome do Produto *</Label>
+        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-lg font-medium">
+              Nome do Produto *
+            </Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: Herbicida Glifosato 480"
+              className="h-14 text-lg px-4 rounded-xl"
               required
             />
           </div>
-          <div>
-            <Label htmlFor="manufacturer">Fabricante</Label>
+          <div className="space-y-2">
+            <Label htmlFor="manufacturer" className="text-lg font-medium">
+              Fabricante
+            </Label>
             <Input
               id="manufacturer"
               value={formData.manufacturer}
               onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
               placeholder="Ex: Agro Solutions"
+              className="h-14 text-lg px-4 rounded-xl"
             />
+            <p className="text-sm text-muted-foreground">
+              Empresa que fabrica o produto
+            </p>
           </div>
-          <div>
-            <Label htmlFor="category">Categoria *</Label>
+          <div className="space-y-2">
+            <Label htmlFor="category" className="text-lg font-medium">
+              Categoria *
+            </Label>
             <Select
               value={formData.category}
               onValueChange={(value) => setFormData({ ...formData, category: value })}
             >
-              <SelectTrigger>
-                <SelectValue />
+              <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
+                <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Herbicida">Herbicida</SelectItem>
-                <SelectItem value="Fungicida">Fungicida</SelectItem>
-                <SelectItem value="Inseticida">Inseticida</SelectItem>
-                <SelectItem value="Adjuvante">Adjuvante</SelectItem>
-                <SelectItem value="Fertilizante">Fertilizante</SelectItem>
-                <SelectItem value="Outro">Outro</SelectItem>
+              <SelectContent className="bg-popover">
+                <SelectItem value="Herbicida" className="text-lg py-3">Herbicida</SelectItem>
+                <SelectItem value="Fungicida" className="text-lg py-3">Fungicida</SelectItem>
+                <SelectItem value="Inseticida" className="text-lg py-3">Inseticida</SelectItem>
+                <SelectItem value="Adjuvante" className="text-lg py-3">Adjuvante</SelectItem>
+                <SelectItem value="Fertilizante" className="text-lg py-3">Fertilizante</SelectItem>
+                <SelectItem value="Outro" className="text-lg py-3">Outro</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="unit">Unidade *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="unit" className="text-lg font-medium">
+                Unidade de Medida *
+              </Label>
               <Select
                 value={formData.unit}
                 onValueChange={(value) => setFormData({ ...formData, unit: value })}
               >
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
+                  <SelectValue placeholder="Unidade" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="L">Litros (L)</SelectItem>
-                  <SelectItem value="mL">Mililitros (mL)</SelectItem>
-                  <SelectItem value="kg">Quilogramas (kg)</SelectItem>
-                  <SelectItem value="g">Gramas (g)</SelectItem>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="L" className="text-lg py-3">Litros (L)</SelectItem>
+                  <SelectItem value="mL" className="text-lg py-3">Mililitros (mL)</SelectItem>
+                  <SelectItem value="kg" className="text-lg py-3">Quilogramas (kg)</SelectItem>
+                  <SelectItem value="g" className="text-lg py-3">Gramas (g)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="package_size">Tamanho da Embalagem</Label>
+            <div className="space-y-2">
+              <Label htmlFor="package_size" className="text-lg font-medium">
+                Tamanho Embalagem
+              </Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="package_size"
@@ -182,17 +200,22 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                       setFormData({ ...formData, package_size: val });
                     }
                   }}
-                  placeholder="Ex: 20"
+                  placeholder="20"
+                  className="h-14 text-lg px-4 rounded-xl"
                 />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">{formData.unit}</span>
+                <span className="text-lg text-muted-foreground whitespace-nowrap min-w-[40px]">
+                  {formData.unit}
+                </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Capacidade de cada embalagem
+              <p className="text-sm text-muted-foreground">
+                Capacidade de cada embalagem/balde
               </p>
             </div>
           </div>
-          <div>
-            <Label htmlFor="unit_price">Preço por Embalagem (R$)</Label>
+          <div className="space-y-2">
+            <Label htmlFor="unit_price" className="text-lg font-medium">
+              Preço por Embalagem (R$)
+            </Label>
             <Input
               id="unit_price"
               type="text"
@@ -205,18 +228,26 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                 }
               }}
               placeholder="0.00"
+              className="h-14 text-lg px-4 rounded-xl"
             />
+            <p className="text-sm text-muted-foreground">
+              Valor pago por cada unidade/embalagem do produto
+            </p>
           </div>
           
           {/* Dose Recomendada */}
-          <div className="rounded-lg border border-border p-3 space-y-3">
-            <Label className="text-sm font-medium">Dose Recomendada (opcional)</Label>
-            <p className="text-xs text-muted-foreground">
-              Será preenchida automaticamente ao selecionar este produto na calculadora
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="recommended_dose" className="text-xs">Dose</Label>
+          <div className="rounded-xl border border-border p-4 space-y-4 bg-muted/30">
+            <div>
+              <Label className="text-lg font-medium">Dose Recomendada (opcional)</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                Será preenchida automaticamente ao selecionar este produto na calculadora
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="recommended_dose" className="text-base">
+                  Dose
+                </Label>
                 <Input
                   id="recommended_dose"
                   type="text"
@@ -229,34 +260,46 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                     }
                   }}
                   placeholder="0.5"
+                  className="h-14 text-lg px-4 rounded-xl"
                 />
               </div>
-              <div>
-                <Label htmlFor="recommended_dose_unit" className="text-xs">Unidade</Label>
+              <div className="space-y-2">
+                <Label htmlFor="recommended_dose_unit" className="text-base">
+                  Unidade da Dose
+                </Label>
                 <Select
                   value={formData.recommended_dose_unit}
                   onValueChange={(value) => setFormData({ ...formData, recommended_dose_unit: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="L/ha">L/ha</SelectItem>
-                    <SelectItem value="mL/ha">mL/ha</SelectItem>
-                    <SelectItem value="kg/ha">kg/ha</SelectItem>
-                    <SelectItem value="g/ha">g/ha</SelectItem>
+                  <SelectContent className="bg-popover">
+                    <SelectItem value="L/ha" className="text-lg py-3">L/ha</SelectItem>
+                    <SelectItem value="mL/ha" className="text-lg py-3">mL/ha</SelectItem>
+                    <SelectItem value="kg/ha" className="text-lg py-3">kg/ha</SelectItem>
+                    <SelectItem value="g/ha" className="text-lg py-3">g/ha</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+          <div className="flex gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)} 
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'Salvando...' : product ? 'Atualizar' : 'Criar'}
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
+              {isLoading ? 'Salvando...' : product ? 'Atualizar' : 'Criar Produto'}
             </Button>
           </div>
         </form>
