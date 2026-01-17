@@ -99,22 +99,25 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-3 max-w-2xl">
+    <div className="space-y-4 max-w-2xl">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
-        <p className="text-lg text-muted-foreground">Gerencie suas informações pessoais</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Configurações</h1>
+        <p className="text-base text-muted-foreground">Gerencie suas informações pessoais e preferências</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações do Perfil</CardTitle>
-          <CardDescription>Atualize suas informações pessoais</CardDescription>
+      <Card className="rounded-xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Informações do Perfil
+          </CardTitle>
+          <CardDescription className="text-base">Atualize suas informações pessoais</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="full_name" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
+              <Label htmlFor="full_name" className="text-base flex items-center gap-2">
+                <User className="h-5 w-5" />
                 Nome Completo *
               </Label>
               <Input
@@ -122,12 +125,15 @@ export default function Settings() {
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                 required
+                className="h-14 text-base rounded-xl"
+                placeholder="Digite seu nome completo"
               />
+              <p className="text-sm text-muted-foreground">Seu nome será exibido nos relatórios</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
+              <Label htmlFor="email" className="text-base flex items-center gap-2">
+                <Mail className="h-5 w-5" />
                 Email
               </Label>
               <Input
@@ -135,14 +141,14 @@ export default function Settings() {
                 type="email"
                 value={profile?.email || ''}
                 disabled
-                className="bg-muted"
+                className="h-14 text-base rounded-xl bg-muted"
               />
-              <p className="text-xs text-muted-foreground">O email não pode ser alterado</p>
+              <p className="text-sm text-muted-foreground">O email não pode ser alterado</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
+              <Label htmlFor="phone" className="text-base flex items-center gap-2">
+                <Phone className="h-5 w-5" />
                 Telefone
               </Label>
               <Input
@@ -150,23 +156,29 @@ export default function Settings() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="h-14 text-base rounded-xl"
+                placeholder="(00) 00000-0000"
               />
+              <p className="text-sm text-muted-foreground">Número para contato</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
+              <Label htmlFor="company" className="text-base flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
                 Empresa
               </Label>
               <Input
                 id="company"
                 value={formData.company}
                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                className="h-14 text-base rounded-xl"
+                placeholder="Nome da sua empresa"
               />
+              <p className="text-sm text-muted-foreground">O nome aparecerá no cabeçalho dos relatórios</p>
             </div>
 
-            <Button type="submit" className="w-full gap-2" disabled={isSaving}>
-              <Save className="h-4 w-4" />
+            <Button type="submit" className="w-full gap-2 h-14 text-base rounded-xl" disabled={isSaving}>
+              <Save className="h-5 w-5" />
               {isSaving ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </form>
@@ -174,20 +186,20 @@ export default function Settings() {
       </Card>
 
       {/* Configurações de PDF */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="rounded-xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Configurações de PDF
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-base">
             Personalize o cabeçalho e rodapé dos relatórios em PDF
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="logoUrl" className="flex items-center gap-2">
-              <Image className="h-4 w-4" />
+            <Label htmlFor="logoUrl" className="text-base flex items-center gap-2">
+              <Image className="h-5 w-5" />
               URL da Logo
             </Label>
             <Input
@@ -196,42 +208,45 @@ export default function Settings() {
               value={pdfSettings.logoUrl}
               onChange={(e) => setPdfSettings({ ...pdfSettings, logoUrl: e.target.value })}
               placeholder="https://exemplo.com/logo.png"
+              className="h-14 text-base rounded-xl"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Insira a URL de uma imagem para usar como logo no cabeçalho do PDF
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="headerText">Texto do Cabeçalho</Label>
+            <Label htmlFor="headerText" className="text-base">Texto do Cabeçalho</Label>
             <Textarea
               id="headerText"
               value={pdfSettings.headerText}
               onChange={(e) => setPdfSettings({ ...pdfSettings, headerText: e.target.value })}
               placeholder="Nome da empresa, slogan..."
-              rows={2}
+              rows={3}
+              className="text-base rounded-xl min-h-[80px]"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Este texto aparecerá no cabeçalho dos relatórios em PDF
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="footerText">Texto do Rodapé</Label>
+            <Label htmlFor="footerText" className="text-base">Texto do Rodapé</Label>
             <Textarea
               id="footerText"
               value={pdfSettings.footerText}
               onChange={(e) => setPdfSettings({ ...pdfSettings, footerText: e.target.value })}
               placeholder="Contato, endereço, CNPJ..."
-              rows={2}
+              rows={3}
+              className="text-base rounded-xl min-h-[80px]"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Este texto aparecerá no rodapé dos relatórios em PDF
             </p>
           </div>
 
-          <Button onClick={handleSavePdfSettings} className="w-full gap-2" disabled={isSavingPdf}>
-            <Save className="h-4 w-4" />
+          <Button onClick={handleSavePdfSettings} className="w-full gap-2 h-14 text-base rounded-xl" disabled={isSavingPdf}>
+            <Save className="h-5 w-5" />
             {isSavingPdf ? 'Salvando...' : 'Salvar Configurações de PDF'}
           </Button>
         </CardContent>
