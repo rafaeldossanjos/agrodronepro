@@ -46,6 +46,20 @@ export default function Applications() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [propertyFilter, setPropertyFilter] = useState<string>("all");
+
+  // Obter lista única de propriedades
+  const uniqueProperties = useMemo(() => {
+    const seen: Record<string, boolean> = {};
+    const result: { id: string; name: string }[] = [];
+    applications.forEach((app: any) => {
+      if (app.property_id && app.properties?.name && !seen[app.property_id]) {
+        seen[app.property_id] = true;
+        result.push({ id: app.property_id, name: app.properties.name });
+      }
+    });
+    return result;
+  }, [applications]);
 
   // Filtrar aplicações
   const filteredApplications = useMemo(() => {
@@ -66,9 +80,12 @@ export default function Applications() {
       // Filtro de tipo
       if (typeFilter !== "all" && app.application_type !== typeFilter) return false;
       
+      // Filtro de propriedade/fazenda
+      if (propertyFilter !== "all" && app.property_id !== propertyFilter) return false;
+      
       return true;
     });
-  }, [applications, searchTerm, statusFilter, typeFilter]);
+  }, [applications, searchTerm, statusFilter, typeFilter, propertyFilter]);
 
   const handleNew = () => {
     setEditingApp(null);
@@ -314,7 +331,18 @@ export default function Applications() {
             className="pl-12 h-14 text-lg rounded-xl"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Select value={propertyFilter} onValueChange={setPropertyFilter}>
+            <SelectTrigger className="h-14 text-base rounded-xl w-auto min-w-[180px]">
+              <SelectValue placeholder="Fazenda" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Todas as Fazendas</SelectItem>
+              {uniqueProperties.map((prop: any) => (
+                <SelectItem key={prop.id} value={prop.id}>{prop.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="h-14 text-base rounded-xl w-auto min-w-[160px]">
               <Filter className="h-5 w-5 mr-2" />
