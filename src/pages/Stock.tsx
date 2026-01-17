@@ -190,8 +190,8 @@ export default function Stock() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Saída de Estoque</h1>
-          <p className="text-lg text-muted-foreground">
+          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">Saída de Estoque</h1>
+          <p className="text-xl text-muted-foreground">
             Registre retiradas de produtos por propriedade
           </p>
         </div>

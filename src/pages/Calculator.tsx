@@ -493,10 +493,10 @@ export default function Calculator() {
     <div className="space-y-4">
       {/* Header */}
       <div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+        <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
           Calculadora de Calda
         </h1>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-xl text-muted-foreground">
           Calcule a quantidade de produtos e volume necessários para sua aplicação
         </p>
       </div>
@@ -506,7 +506,7 @@ export default function Calculator() {
         <div className="space-y-4">
           <Card className="p-4 sm:p-5 rounded-xl">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-foreground">
+              <h2 className="text-2xl font-bold text-foreground">
                 Parâmetros da Aplicação
               </h2>
               {hasSavedParams && (
@@ -523,7 +523,7 @@ export default function Calculator() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="area" className="text-base font-medium">Área (ha) *</Label>
+                <Label htmlFor="area" className="text-lg font-medium">Área (ha) *</Label>
                 <Input
                   id="area"
                   type="text"
@@ -537,13 +537,13 @@ export default function Calculator() {
                     }
                   }}
                   placeholder="Ex: 10"
-                  className="h-14 text-base rounded-xl"
+                  className="h-14 text-lg rounded-xl"
                   required
                 />
-                <p className="text-sm text-muted-foreground">Área total a ser aplicada</p>
+                <p className="text-base text-muted-foreground">Área total a ser aplicada</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="flowRate" className="text-base font-medium">Vazão (L/ha) *</Label>
+                <Label htmlFor="flowRate" className="text-lg font-medium">Vazão (L/ha) *</Label>
                 <Input
                   id="flowRate"
                   type="text"
@@ -557,13 +557,13 @@ export default function Calculator() {
                     }
                   }}
                   placeholder="Ex: 10"
-                  className="h-14 text-base rounded-xl"
+                  className="h-14 text-lg rounded-xl"
                   required
                 />
-                <p className="text-sm text-muted-foreground">Litros por hectare</p>
+                <p className="text-base text-muted-foreground">Litros por hectare</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tankVolume" className="text-base font-medium">Tanque (L) *</Label>
+                <Label htmlFor="tankVolume" className="text-lg font-medium">Tanque (L) *</Label>
                 <Input
                   id="tankVolume"
                   type="text"
@@ -577,17 +577,17 @@ export default function Calculator() {
                     }
                   }}
                   placeholder="Ex: 20"
-                  className="h-14 text-base rounded-xl"
+                  className="h-14 text-lg rounded-xl"
                   required
                 />
-                <p className="text-sm text-muted-foreground">Capacidade do tanque</p>
+                <p className="text-base text-muted-foreground">Capacidade do tanque</p>
               </div>
             </div>
           </Card>
 
           <Card className="p-4 sm:p-5 rounded-xl">
             <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 className="text-xl font-bold text-foreground">
+              <h2 className="text-2xl font-bold text-foreground">
                 Produtos
               </h2>
               <div className="flex gap-2">
