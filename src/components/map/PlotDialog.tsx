@@ -136,76 +136,97 @@ export function PlotDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md z-[10000] max-h-[90vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-md z-[10000] max-h-[95vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle className="text-xl">{plot ? 'Editar Talhão' : 'Novo Talhão'}</DialogTitle>
+          <DialogTitle className="text-2xl sm:text-3xl font-bold">
+            {plot ? 'Editar Talhão' : 'Novo Talhão'}
+          </DialogTitle>
+          <p className="text-base sm:text-lg text-muted-foreground mt-1">
+            {plot ? 'Atualize os dados do talhão' : 'Defina um nome e propriedade para o talhão desenhado'}
+          </p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-2">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome do Talhão *</Label>
+            <Label htmlFor="name" className="text-lg font-medium">
+              Nome do Talhão *
+            </Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Ex: Talhão Norte, Pivô 1"
+              className="h-14 text-lg px-4 rounded-xl"
               autoFocus={false}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="property">Propriedade</Label>
+            <Label htmlFor="property" className="text-lg font-medium">
+              Propriedade
+            </Label>
             <Select
               value={formData.property_id || "none"}
               onValueChange={(value) => setFormData(prev => ({ ...prev, property_id: value === "none" ? "" : value }))}
             >
-              <SelectTrigger id="property">
+              <SelectTrigger id="property" className="h-14 text-lg px-4 rounded-xl">
                 <SelectValue placeholder="Selecione uma propriedade" />
               </SelectTrigger>
-              <SelectContent className="z-[10001]">
-                <SelectItem value="none">Nenhuma</SelectItem>
+              <SelectContent className="z-[10001] bg-popover">
+                <SelectItem value="none" className="text-lg py-3">Nenhuma</SelectItem>
                 {properties.map((prop) => (
-                  <SelectItem key={prop.id} value={prop.id}>
+                  <SelectItem key={prop.id} value={prop.id} className="text-lg py-3">
                     {prop.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-sm text-muted-foreground">
+              Vincule o talhão a uma fazenda cadastrada
+            </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="area">Área (hectares)</Label>
+            <Label htmlFor="area" className="text-lg font-medium">
+              Área (hectares)
+            </Label>
             <Input
               id="area"
               type="text"
               value={formData.area_hectares}
               onChange={(e) => setFormData(prev => ({ ...prev, area_hectares: e.target.value }))}
               placeholder="Área calculada automaticamente"
+              className="h-14 text-lg px-4 rounded-xl"
             />
+            <p className="text-sm text-muted-foreground">
+              A área é calculada automaticamente pelo desenho
+            </p>
           </div>
 
-          <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
-            <p>O status do talhão é definido automaticamente pelas aplicações vinculadas.</p>
+          <div className="p-4 bg-muted/50 rounded-xl">
+            <p className="text-base text-muted-foreground">
+              O status do talhão é definido automaticamente pelas aplicações vinculadas.
+            </p>
           </div>
 
           {plot && (
-            <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
+            <div className="space-y-4 p-4 border rounded-xl bg-muted/30">
               <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2">
-                  <Link2 className="h-4 w-4" />
+                <Label className="flex items-center gap-2 text-lg font-medium">
+                  <Link2 className="h-5 w-5" />
                   Aplicações vinculadas
                   {linkedApplications.length > 0 && (
-                    <Badge variant="secondary" className="ml-1">{linkedApplications.length}</Badge>
+                    <Badge variant="secondary" className="ml-2 text-base">{linkedApplications.length}</Badge>
                   )}
                 </Label>
               </div>
 
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Você pode vincular <strong>várias aplicações</strong> ao mesmo talhão (ex: dividir em etapas).
               </p>
 
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Select
                   value={linkApplicationId}
                   onValueChange={async (value) => {
@@ -216,13 +237,13 @@ export function PlotDialog({
                   }}
                   disabled={isLinkingApplication || linkableApplications.length === 0}
                 >
-                  <SelectTrigger className="flex-1">
+                  <SelectTrigger className="flex-1 h-14 text-lg px-4 rounded-xl">
                     <SelectValue placeholder={linkableApplications.length === 0 ? "Nenhuma aplicação disponível" : "Selecione uma aplicação"} />
                   </SelectTrigger>
-                  <SelectContent className="z-[10001]">
-                    <SelectItem value="none">Selecionar...</SelectItem>
+                  <SelectContent className="z-[10001] bg-popover">
+                    <SelectItem value="none" className="text-lg py-3">Selecionar...</SelectItem>
                     {linkableApplications.map((app) => (
-                      <SelectItem key={app.id} value={app.id}>
+                      <SelectItem key={app.id} value={app.id} className="text-lg py-3">
                         {app.name || app.plot_name || 'Sem nome'}
                       </SelectItem>
                     ))}
@@ -239,17 +260,18 @@ export function PlotDialog({
                       setLinkApplicationId('none');
                     }
                   }}
+                  className="h-14 w-14 rounded-xl"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-6 w-6" />
                 </Button>
               </div>
 
               {linkedApplications.length > 0 && (
-                <div className="space-y-2 max-h-40 overflow-y-auto">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
                   {linkedApplications.map((app) => (
-                    <div key={app.id} className="flex items-center justify-between gap-2 rounded-md border bg-background p-2">
+                    <div key={app.id} className="flex items-center justify-between gap-3 rounded-xl border bg-background p-3">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
+                        <p className="text-lg font-medium truncate">
                           {app.name || app.plot_name || 'Sem nome'}
                         </p>
                       </div>
@@ -257,12 +279,12 @@ export function PlotDialog({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-destructive hover:text-destructive shrink-0"
+                        className="text-destructive hover:text-destructive shrink-0 h-12 w-12"
                         disabled={isLinkingApplication}
                         onClick={() => updateApplicationPlotLink(app.id, null)}
                         title="Desvincular"
                       >
-                        <Unlink className="h-4 w-4" />
+                        <Unlink className="h-5 w-5" />
                       </Button>
                     </div>
                   ))}
@@ -270,7 +292,7 @@ export function PlotDialog({
               )}
 
               {linkedApplications.length === 0 && (
-                <p className="text-xs text-muted-foreground italic text-center py-2">
+                <p className="text-base text-muted-foreground italic text-center py-3">
                   Nenhuma aplicação vinculada a este talhão.
                 </p>
               )}
@@ -278,21 +300,33 @@ export function PlotDialog({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Observações</Label>
+            <Label htmlFor="notes" className="text-lg font-medium">
+              Observações
+            </Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
               placeholder="Anotações sobre o talhão..."
               rows={3}
+              className="text-lg px-4 py-3 rounded-xl resize-none"
             />
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading || !formData.name.trim()}>
+            <Button 
+              type="submit" 
+              disabled={isLoading || !formData.name.trim()}
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
               {isLoading ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>

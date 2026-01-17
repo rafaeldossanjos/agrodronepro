@@ -75,42 +75,56 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button className="gap-3 h-14 px-6 text-lg rounded-xl">
+            <Plus className="h-6 w-6" />
             Nova Propriedade
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-2xl sm:text-3xl font-bold">
             {property ? 'Editar Propriedade' : 'Nova Propriedade'}
           </DialogTitle>
+          <p className="text-base sm:text-lg text-muted-foreground mt-1">
+            {property ? 'Atualize os dados da propriedade' : 'Cadastre uma nova fazenda ou propriedade rural'}
+          </p>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Nome *</Label>
+        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-lg font-medium">
+              Nome da Propriedade *
+            </Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: Fazenda São João"
+              className="h-14 text-lg px-4 rounded-xl"
               required
             />
           </div>
-          <div>
-            <Label htmlFor="location">Localização *</Label>
+          <div className="space-y-2">
+            <Label htmlFor="location" className="text-lg font-medium">
+              Localização *
+            </Label>
             <Input
               id="location"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               placeholder="Ex: Ribeirão Preto, SP"
+              className="h-14 text-lg px-4 rounded-xl"
               required
             />
+            <p className="text-sm text-muted-foreground">
+              Cidade e estado onde a propriedade está localizada
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="total_area">Área Total (ha)</Label>
+            <div className="space-y-2">
+              <Label htmlFor="total_area" className="text-lg font-medium">
+                Área Total (ha)
+              </Label>
               <Input
                 id="total_area"
                 type="text"
@@ -122,37 +136,59 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
                     setFormData({ ...formData, total_area: val as any });
                   }
                 }}
-                placeholder="Opcional"
+                placeholder="0.00"
+                className="h-14 text-lg px-4 rounded-xl"
               />
+              <p className="text-sm text-muted-foreground">
+                Opcional - área em hectares
+              </p>
             </div>
-            <div>
-              <Label htmlFor="plot_count">Número de Talhões</Label>
+            <div className="space-y-2">
+              <Label htmlFor="plot_count" className="text-lg font-medium">
+                Número de Talhões
+              </Label>
               <Input
                 id="plot_count"
                 type="number"
                 min="1"
                 value={formData.plot_count || ''}
                 onChange={(e) => setFormData({ ...formData, plot_count: parseInt(e.target.value) || 0 })}
-                placeholder="Opcional"
+                placeholder="1"
+                className="h-14 text-lg px-4 rounded-xl"
               />
+              <p className="text-sm text-muted-foreground">
+                Quantidade estimada
+              </p>
             </div>
           </div>
-          <div>
-            <Label htmlFor="notes">Observações</Label>
+          <div className="space-y-2">
+            <Label htmlFor="notes" className="text-lg font-medium">
+              Observações
+            </Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Informações adicionais..."
-              rows={3}
+              placeholder="Informações adicionais sobre a propriedade..."
+              rows={4}
+              className="text-lg px-4 py-3 rounded-xl resize-none"
             />
           </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+          <div className="flex gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)} 
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'Salvando...' : property ? 'Atualizar' : 'Criar'}
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="flex-1 h-14 text-lg rounded-xl"
+            >
+              {isLoading ? 'Salvando...' : property ? 'Atualizar' : 'Criar Propriedade'}
             </Button>
           </div>
         </form>
