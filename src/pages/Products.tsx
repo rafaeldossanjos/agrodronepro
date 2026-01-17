@@ -121,15 +121,19 @@ export default function Products() {
 
               <div className="grid grid-cols-2 gap-2 border-t border-border pt-2">
                 <div>
-                  <p className="text-base text-muted-foreground">Preço</p>
+                  <p className="text-base text-muted-foreground">Dose Recomendada</p>
                   <p className="font-semibold text-xl text-foreground">
-                    R$ {product.unit_price.toFixed(2)}/{product.unit}
+                    {product.recommended_dose 
+                      ? `${product.recommended_dose} ${product.recommended_dose_unit || product.unit}/ha`
+                      : "Não informada"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-base text-muted-foreground">Estoque</p>
+                  <p className="text-base text-muted-foreground">Tamanho Embalagem</p>
                   <p className="font-semibold text-xl text-foreground">
-                    {product.stock_quantity} {product.unit}
+                    {product.package_size 
+                      ? `${product.package_size} ${product.unit}`
+                      : "Não informado"}
                   </p>
                 </div>
               </div>

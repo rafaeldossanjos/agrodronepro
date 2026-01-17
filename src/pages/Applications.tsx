@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, Edit, Trash2, Check, Clock, Play, X, Map } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Calendar, Edit, Trash2, Check, Clock, Play, X, Map, Search, Filter } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { format } from "date-fns";
@@ -15,6 +16,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const statusConfig = {
   planejada: { label: "Planejada", variant: "secondary" as const, icon: Clock },
@@ -35,6 +43,32 @@ export default function Applications() {
   const { applications, isLoading, createApplication, updateApplication, deleteApplication } = useApplications();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingApp, setEditingApp] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+
+  // Filtrar aplicações
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app: any) => {
+      // Filtro de busca
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        (app.name?.toLowerCase().includes(searchLower)) ||
+        (app.properties?.name?.toLowerCase().includes(searchLower)) ||
+        (app.plot_name?.toLowerCase().includes(searchLower)) ||
+        (app.notes?.toLowerCase().includes(searchLower));
+      
+      if (searchTerm && !matchesSearch) return false;
+      
+      // Filtro de status
+      if (statusFilter !== "all" && app.status !== statusFilter) return false;
+      
+      // Filtro de tipo
+      if (typeFilter !== "all" && app.application_type !== typeFilter) return false;
+      
+      return true;
+    });
+  }, [applications, searchTerm, statusFilter, typeFilter]);
 
   const handleNew = () => {
     setEditingApp(null);
@@ -92,10 +126,10 @@ export default function Applications() {
   };
 
   // Separar aplicações pendentes (planejada/em_andamento) das outras
-  const pendingApps = applications.filter((app: any) => 
+  const pendingApps = filteredApplications.filter((app: any) => 
     app.status === 'planejada' || app.status === 'em_andamento'
   );
-  const otherApps = applications.filter((app: any) => 
+  const otherApps = filteredApplications.filter((app: any) => 
     app.status !== 'planejada' && app.status !== 'em_andamento'
   );
 
@@ -269,6 +303,46 @@ export default function Applications() {
         </Button>
       </div>
 
+      {/* Barra de pesquisa e filtros */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, propriedade, talhão ou observações..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-12 h-14 text-lg rounded-xl"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-14 text-base rounded-xl w-auto min-w-[160px]">
+              <Filter className="h-5 w-5 mr-2" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="planejada">Planejada</SelectItem>
+              <SelectItem value="em_andamento">Em Andamento</SelectItem>
+              <SelectItem value="concluída">Concluída</SelectItem>
+              <SelectItem value="cancelada">Cancelada</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="h-14 text-base rounded-xl w-auto min-w-[160px]">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">Todos os Tipos</SelectItem>
+              <SelectItem value="pulverização">Pulverização</SelectItem>
+              <SelectItem value="adubação">Adubação</SelectItem>
+              <SelectItem value="semeadura">Semeadura</SelectItem>
+              <SelectItem value="outro">Outro</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {applications.length === 0 ? (
         <Card className="p-6 text-center">
           <p className="text-lg text-muted-foreground mb-4">
@@ -278,6 +352,18 @@ export default function Applications() {
             <Plus className="h-6 w-6 mr-2" />
             Cadastrar Primeira Aplicação
           </Button>
+        </Card>
+      ) : filteredApplications.length === 0 ? (
+        <Card className="p-8">
+          <div className="text-center">
+            <Search className="mx-auto h-14 w-14 text-muted-foreground mb-3" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              Nenhuma aplicação encontrada
+            </h3>
+            <p className="text-lg text-muted-foreground">
+              Tente ajustar os filtros ou buscar por outro termo
+            </p>
+          </div>
         </Card>
       ) : (
         <div className="space-y-3">
