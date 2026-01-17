@@ -42,10 +42,10 @@ export default function Products() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
             Banco de Produtos
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg sm:text-xl text-muted-foreground">
             Gerencie defensivos, fertilizantes e adjuvantes
           </p>
         </div>
@@ -54,12 +54,12 @@ export default function Products() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Buscar produtos..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-12 h-12 text-lg"
+          className="pl-14 h-14 text-lg rounded-xl"
         />
       </div>
 
@@ -68,10 +68,10 @@ export default function Products() {
         <Card className="p-8">
           <div className="text-center">
             <Cylinder className="mx-auto h-14 w-14 text-muted-foreground mb-3" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">
+            <h3 className="text-2xl font-semibold text-foreground mb-2">
               Nenhum produto cadastrado
             </h3>
-            <p className="text-lg text-muted-foreground mb-3">
+            <p className="text-lg sm:text-xl text-muted-foreground mb-3">
               Comece criando seu primeiro produto
             </p>
             <ProductDialog />
@@ -81,10 +81,10 @@ export default function Products() {
         <Card className="p-8">
           <div className="text-center">
             <Search className="mx-auto h-14 w-14 text-muted-foreground mb-3" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">
+            <h3 className="text-2xl font-semibold text-foreground mb-2">
               Nenhum produto encontrado
             </h3>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg sm:text-xl text-muted-foreground">
               Tente buscar por outro termo
             </p>
           </div>
@@ -99,11 +99,11 @@ export default function Products() {
                     <Cylinder className="h-7 w-7 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-xl text-foreground line-clamp-1">
+                    <h3 className="font-semibold text-xl sm:text-2xl text-foreground line-clamp-1">
                       {product.name}
                     </h3>
                     {product.manufacturer && (
-                      <p className="text-base text-muted-foreground truncate">
+                      <p className="text-lg text-muted-foreground truncate">
                         {product.manufacturer}
                       </p>
                     )}
@@ -119,18 +119,18 @@ export default function Products() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 border-t border-border pt-2">
+              <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
                 <div>
-                  <p className="text-base text-muted-foreground">Dose Recomendada</p>
-                  <p className="font-semibold text-xl text-foreground">
+                  <p className="text-base sm:text-lg text-muted-foreground">Dose Recomendada</p>
+                  <p className="font-semibold text-xl sm:text-2xl text-foreground">
                     {product.recommended_dose 
                       ? `${product.recommended_dose} ${product.recommended_dose_unit || product.unit}/ha`
                       : "Não informada"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-base text-muted-foreground">Tamanho Embalagem</p>
-                  <p className="font-semibold text-xl text-foreground">
+                  <p className="text-base sm:text-lg text-muted-foreground">Tamanho Embalagem</p>
+                  <p className="font-semibold text-xl sm:text-2xl text-foreground">
                     {product.package_size 
                       ? `${product.package_size} ${product.unit}`
                       : "Não informado"}
@@ -138,11 +138,11 @@ export default function Products() {
                 </div>
               </div>
 
-              <div className="mt-2 flex gap-2">
+              <div className="mt-3 flex gap-2">
                 <ProductDialog
                   product={product}
                   trigger={
-                    <Button variant="outline" size="default" className="flex-1 h-11 text-base">
+                    <Button variant="outline" size="default" className="flex-1 h-12 text-lg">
                       <Edit className="h-5 w-5 mr-2" />
                       Editar
                     </Button>
@@ -150,7 +150,7 @@ export default function Products() {
                 />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="default" className="flex-1 h-11 text-base">
+                    <Button variant="outline" size="default" className="flex-1 h-12 text-lg">
                       <Trash2 className="h-5 w-5 mr-2" />
                       Excluir
                     </Button>

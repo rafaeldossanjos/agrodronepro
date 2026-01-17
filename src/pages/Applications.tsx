@@ -224,7 +224,7 @@ export default function Applications() {
         <div className="flex-1 space-y-3">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-lg sm:text-xl font-bold text-foreground">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
                 {app.name || "Sem nome"}
               </h3>
               <StatusBadge app={app} />
@@ -232,28 +232,28 @@ export default function Applications() {
                 {typeConfig[app.application_type as keyof typeof typeConfig]}
               </Badge>
             </div>
-            <p className="text-base text-muted-foreground">
+            <p className="text-lg text-muted-foreground">
               {app.properties?.name || "Propriedade não informada"}
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Data</p>
-              <p className="flex items-center gap-1.5 text-base font-semibold text-foreground">
+              <p className="text-base text-muted-foreground">Data</p>
+              <p className="flex items-center gap-1.5 text-lg font-semibold text-foreground">
                 <Calendar className="h-5 w-5" />
                 {format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Área</p>
-              <p className="text-base font-semibold text-foreground">
+              <p className="text-base text-muted-foreground">Área</p>
+              <p className="text-lg font-semibold text-foreground">
                 {app.area_applied} ha
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Produtos</p>
-              <p className="text-base font-semibold text-foreground">
+              <p className="text-base text-muted-foreground">Produtos</p>
+              <p className="text-lg font-semibold text-foreground">
                 {app.application_products?.length || 0} produto(s)
               </p>
             </div>
@@ -261,8 +261,8 @@ export default function Applications() {
 
           {app.notes && (
             <div className="pt-2">
-              <p className="text-sm text-muted-foreground">Observações:</p>
-              <p className="text-base text-foreground mt-1">{app.notes}</p>
+              <p className="text-base text-muted-foreground">Observações:</p>
+              <p className="text-lg text-foreground mt-1">{app.notes}</p>
             </div>
           )}
         </div>
@@ -307,10 +307,10 @@ export default function Applications() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
             Histórico de Aplicações
           </h1>
-          <p className="text-base text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Registros de todas as pulverizações realizadas
           </p>
         </div>
@@ -398,7 +398,7 @@ export default function Applications() {
           {/* Aplicações pendentes com destaque */}
           {pendingApps.length > 0 && (
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+          <h2 className="text-2xl font-semibold text-foreground flex items-center gap-2">
                 <Clock className="h-6 w-6 text-warning" />
                 Pendentes ({pendingApps.length})
               </h2>
@@ -414,7 +414,7 @@ export default function Applications() {
           {otherApps.length > 0 && (
             <div className="space-y-2">
               {pendingApps.length > 0 && (
-                <h2 className="text-xl font-semibold text-foreground">
+                <h2 className="text-2xl font-semibold text-foreground">
                   Histórico
                 </h2>
               )}

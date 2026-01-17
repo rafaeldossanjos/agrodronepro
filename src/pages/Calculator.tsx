@@ -493,10 +493,10 @@ export default function Calculator() {
     <div className="space-y-4">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
           Calculadora de Calda
         </h1>
-        <p className="text-base text-muted-foreground">
+        <p className="text-lg text-muted-foreground">
           Calcule a quantidade de produtos e volume necessários para sua aplicação
         </p>
       </div>
@@ -506,7 +506,7 @@ export default function Calculator() {
         <div className="space-y-4">
           <Card className="p-4 sm:p-5 rounded-xl">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 className="text-xl font-bold text-foreground">
                 Parâmetros da Aplicação
               </h2>
               {hasSavedParams && (
@@ -587,7 +587,7 @@ export default function Calculator() {
 
           <Card className="p-4 sm:p-5 rounded-xl">
             <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 className="text-xl font-bold text-foreground">
                 Produtos
               </h2>
               <div className="flex gap-2">

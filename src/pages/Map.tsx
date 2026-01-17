@@ -631,11 +631,11 @@ export default function Map() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-            <MapIcon className="h-6 w-6" />
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+            <MapIcon className="h-7 w-7" />
             Mapa de Talhões
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base sm:text-lg text-muted-foreground">
             {filteredPlots.length} talhão(ões) • {totalArea.toFixed(1)} ha
           </p>
         </div>
@@ -651,21 +651,21 @@ export default function Map() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card className="p-3">
-          <p className="text-xs text-muted-foreground">Total</p>
-          <p className="text-lg font-bold">{totalArea.toFixed(1)} ha</p>
+        <Card className="p-4">
+          <p className="text-sm text-muted-foreground">Total</p>
+          <p className="text-xl font-bold">{totalArea.toFixed(1)} ha</p>
         </Card>
-        <Card className="p-3 bg-green-500/10">
-          <p className="text-xs text-green-600">Concluído</p>
-          <p className="text-lg font-bold text-green-700">{completedArea.toFixed(1)} ha</p>
+        <Card className="p-4 bg-green-500/10">
+          <p className="text-sm text-green-600">Concluído</p>
+          <p className="text-xl font-bold text-green-700">{completedArea.toFixed(1)} ha</p>
         </Card>
-        <Card className="p-3 bg-amber-500/10">
-          <p className="text-xs text-amber-600">Em Andamento</p>
-          <p className="text-lg font-bold text-amber-700">{inProgressArea.toFixed(1)} ha</p>
+        <Card className="p-4 bg-amber-500/10">
+          <p className="text-sm text-amber-600">Em Andamento</p>
+          <p className="text-xl font-bold text-amber-700">{inProgressArea.toFixed(1)} ha</p>
         </Card>
-        <Card className="p-3 bg-blue-500/10">
-          <p className="text-xs text-blue-600">Planejada</p>
-          <p className="text-lg font-bold text-blue-700">{plannedArea.toFixed(1)} ha</p>
+        <Card className="p-4 bg-blue-500/10">
+          <p className="text-sm text-blue-600">Planejada</p>
+          <p className="text-xl font-bold text-blue-700">{plannedArea.toFixed(1)} ha</p>
         </Card>
       </div>
 
@@ -729,28 +729,28 @@ export default function Map() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           placeholder="Buscar talhão pelo nome..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
+          className="pl-12 h-12 text-lg"
         />
       </div>
 
       {/* Filters */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className="text-sm font-medium">Propriedade</label>
+          <label className="text-base font-medium">Propriedade</label>
           <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="h-12 text-base">
               <SelectValue placeholder="Todas" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as Propriedades</SelectItem>
-              <SelectItem value="none">Sem Propriedade</SelectItem>
+              <SelectItem value="all" className="text-base py-2">Todas as Propriedades</SelectItem>
+              <SelectItem value="none" className="text-base py-2">Sem Propriedade</SelectItem>
               {properties.map(prop => (
-                <SelectItem key={prop.id} value={prop.id}>
+                <SelectItem key={prop.id} value={prop.id} className="text-base py-2">
                   {prop.name}
                 </SelectItem>
               ))}
@@ -758,18 +758,18 @@ export default function Map() {
           </Select>
         </div>
         <div className="space-y-1">
-          <label className="text-sm font-medium">Status</label>
+          <label className="text-base font-medium">Status</label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="h-12 text-base">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="concluída">Concluída</SelectItem>
-              <SelectItem value="em_andamento">Em Andamento</SelectItem>
-              <SelectItem value="planejada">Planejada</SelectItem>
-              <SelectItem value="cancelada">Cancelada</SelectItem>
-              <SelectItem value="sem_vinculo">Sem Vínculo</SelectItem>
+              <SelectItem value="all" className="text-base py-2">Todos os Status</SelectItem>
+              <SelectItem value="concluída" className="text-base py-2">Concluída</SelectItem>
+              <SelectItem value="em_andamento" className="text-base py-2">Em Andamento</SelectItem>
+              <SelectItem value="planejada" className="text-base py-2">Planejada</SelectItem>
+              <SelectItem value="cancelada" className="text-base py-2">Cancelada</SelectItem>
+              <SelectItem value="sem_vinculo" className="text-base py-2">Sem Vínculo</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -778,7 +778,7 @@ export default function Map() {
       {/* Plot List */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">
+          <CardTitle className="text-xl">
             Talhões ({filteredPlots.length})
           </CardTitle>
         </CardHeader>
