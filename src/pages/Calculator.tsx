@@ -490,40 +490,40 @@ export default function Calculator() {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
           Calculadora de Calda
         </h1>
-        <p className="text-lg text-muted-foreground">
-          Calcule a quantidade de produtos e volume necessários
+        <p className="text-base text-muted-foreground">
+          Calcule a quantidade de produtos e volume necessários para sua aplicação
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Input Form */}
-        <div className="space-y-3">
-          <Card className="p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-semibold text-foreground">
-                Parâmetros
+        <div className="space-y-4">
+          <Card className="p-4 sm:p-5 rounded-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-foreground">
+                Parâmetros da Aplicação
               </h2>
               {hasSavedParams && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={clearDefaultParams}
-                  className="gap-1 text-xs h-6 px-2 text-muted-foreground hover:text-destructive"
+                  className="gap-1 text-sm h-10 px-3 text-muted-foreground hover:text-destructive"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-4 w-4" />
                   Limpar
                 </Button>
               )}
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <Label htmlFor="area" className="text-sm">Área (ha) *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="area" className="text-base font-medium">Área (ha) *</Label>
                 <Input
                   id="area"
                   type="text"
@@ -536,13 +536,14 @@ export default function Calculator() {
                       setCalculated(false);
                     }
                   }}
-                  placeholder="0"
-                  className="h-8"
+                  placeholder="Ex: 10"
+                  className="h-14 text-base rounded-xl"
                   required
                 />
+                <p className="text-sm text-muted-foreground">Área total a ser aplicada</p>
               </div>
-              <div>
-                <Label htmlFor="flowRate" className="text-sm">Vazão (L/ha) *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="flowRate" className="text-base font-medium">Vazão (L/ha) *</Label>
                 <Input
                   id="flowRate"
                   type="text"
@@ -555,13 +556,14 @@ export default function Calculator() {
                       setCalculated(false);
                     }
                   }}
-                  placeholder="0"
-                  className="h-8"
+                  placeholder="Ex: 10"
+                  className="h-14 text-base rounded-xl"
                   required
                 />
+                <p className="text-sm text-muted-foreground">Litros por hectare</p>
               </div>
-              <div>
-                <Label htmlFor="tankVolume" className="text-sm">Tanque (L) *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="tankVolume" className="text-base font-medium">Tanque (L) *</Label>
                 <Input
                   id="tankVolume"
                   type="text"
@@ -574,29 +576,30 @@ export default function Calculator() {
                       setCalculated(false);
                     }
                   }}
-                  placeholder="0"
-                  className="h-8"
+                  placeholder="Ex: 20"
+                  className="h-14 text-base rounded-xl"
                   required
                 />
+                <p className="text-sm text-muted-foreground">Capacidade do tanque</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-3 sm:p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-foreground">
+          <Card className="p-4 sm:p-5 rounded-xl">
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h2 className="text-lg font-bold text-foreground">
                 Produtos
               </h2>
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 {recipes.length > 0 && (
                   <Select onValueChange={loadRecipe}>
-                    <SelectTrigger className="h-7 text-xs w-auto gap-1">
-                      <FileText className="h-3 w-3" />
-                      <span className="hidden sm:inline">Receituário</span>
+                    <SelectTrigger className="h-12 text-base w-auto min-w-[140px] gap-2 rounded-xl">
+                      <FileText className="h-5 w-5" />
+                      <span>Receituário</span>
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
                       {recipes.map((r) => (
-                        <SelectItem key={r.id} value={r.id} className="text-xs">
+                        <SelectItem key={r.id} value={r.id} className="text-base py-3">
                           {r.name}
                         </SelectItem>
                       ))}
@@ -605,30 +608,30 @@ export default function Calculator() {
                 )}
                 <ProductDialog 
                   trigger={
-                    <Button variant="ghost" size="sm" className="gap-1 text-xs h-7 px-2">
-                      <Package className="h-3 w-3" />
-                      Cadastrar
+                    <Button variant="outline" size="default" className="gap-2 text-base h-12 px-4 rounded-xl">
+                      <Package className="h-5 w-5" />
+                      <span className="hidden sm:inline">Cadastrar</span>
                     </Button>
                   }
                 />
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {products.map((product, index) => (
                 <div key={product.id}>
-                  <div className="rounded-lg border border-border p-2.5 space-y-2">
+                  <div className="rounded-xl border border-border p-4 space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-muted-foreground">
+                      <span className="text-base font-semibold text-muted-foreground">
                         Produto {index + 1}
                       </span>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5"
+                        className="h-10 w-10"
                         onClick={() => removeProduct(product.id)}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
 
@@ -642,9 +645,9 @@ export default function Calculator() {
                       placeholder="Buscar produto..."
                     />
                     
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label className="text-sm">Dose</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-base font-medium">Dose</Label>
                         <Input
                           type="text"
                           inputMode="decimal"
@@ -655,26 +658,26 @@ export default function Calculator() {
                               updateProduct(product.id, "dose", val);
                             }
                           }}
-                          placeholder="0.5"
-                          className="h-9"
+                          placeholder="Ex: 0.5"
+                          className="h-14 text-base rounded-xl"
                         />
                       </div>
-                      <div>
-                        <Label className="text-sm">Unidade</Label>
+                      <div className="space-y-2">
+                        <Label className="text-base font-medium">Unidade</Label>
                         <Select
                           value={product.unit}
                           onValueChange={(value) =>
                             updateProduct(product.id, "unit", value)
                           }
                         >
-                          <SelectTrigger className="h-9">
+                          <SelectTrigger className="h-14 text-base rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-popover">
-                            <SelectItem value="L/ha">L/ha</SelectItem>
-                            <SelectItem value="mL/ha">mL/ha</SelectItem>
-                            <SelectItem value="kg/ha">kg/ha</SelectItem>
-                            <SelectItem value="g/ha">g/ha</SelectItem>
+                            <SelectItem value="L/ha" className="text-base py-3">L/ha</SelectItem>
+                            <SelectItem value="mL/ha" className="text-base py-3">mL/ha</SelectItem>
+                            <SelectItem value="kg/ha" className="text-base py-3">kg/ha</SelectItem>
+                            <SelectItem value="g/ha" className="text-base py-3">g/ha</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -685,10 +688,10 @@ export default function Calculator() {
                     <Button 
                       onClick={addProduct} 
                       variant="outline" 
-                      size="sm" 
-                      className="w-full mt-2 gap-1 text-xs h-7"
+                      size="default" 
+                      className="w-full mt-3 gap-2 text-base h-12 rounded-xl"
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-5 w-5" />
                       Adicionar Produto
                     </Button>
                   )}
@@ -696,9 +699,9 @@ export default function Calculator() {
               ))}
             </div>
 
-            <div className="mt-3">
-              <Button onClick={calculate} className="w-full h-9" size="default">
-                <CalcIcon className="mr-2 h-4 w-4" />
+            <div className="mt-4">
+              <Button onClick={calculate} className="w-full h-14 text-lg rounded-xl" size="lg">
+                <CalcIcon className="mr-2 h-6 w-6" />
                 Calcular
               </Button>
             </div>
@@ -706,45 +709,45 @@ export default function Calculator() {
         </div>
 
         {/* Results Panel */}
-        <div className="space-y-3">
-          <Card className="p-4 sm:p-5">
-            <h2 className="mb-4 text-lg font-bold text-foreground">
+        <div className="space-y-4">
+          <Card className="p-4 sm:p-5 rounded-xl">
+            <h2 className="mb-4 text-xl font-bold text-foreground">
               Resultados
             </h2>
 
             {!calculated ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <CalcIcon className="mb-3 h-10 w-10 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground px-4">
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <CalcIcon className="mb-4 h-12 w-12 text-muted-foreground" />
+                <p className="text-base text-muted-foreground px-4">
                   Configure os parâmetros e clique em Calcular
                 </p>
               </div>
             ) : (
               results && (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {/* Resumo Geral */}
-                  <div className="space-y-3">
-                    <h3 className="text-base font-bold text-foreground border-l-4 border-primary pl-3">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-foreground border-l-4 border-primary pl-3">
                       Resumo Geral
                     </h3>
                     
-                    <div className="rounded-lg bg-primary/10 p-4">
-                      <p className="text-sm text-muted-foreground">Volume Total de Calda</p>
-                      <p className="text-2xl font-bold text-primary">
+                    <div className="rounded-xl bg-primary/10 p-5">
+                      <p className="text-base text-muted-foreground">Volume Total de Calda</p>
+                      <p className="text-3xl font-bold text-primary">
                         {Math.round(results.totalVolume)} L
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-lg bg-muted p-3">
-                        <p className="text-sm text-muted-foreground">Tanques</p>
-                        <p className="text-xl font-bold text-foreground">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-xl bg-muted p-4">
+                        <p className="text-base text-muted-foreground">Tanques</p>
+                        <p className="text-2xl font-bold text-foreground">
                           {results.tanks}
                         </p>
                       </div>
-                      <div className="rounded-lg bg-muted p-3">
-                        <p className="text-sm text-muted-foreground">Capacidade</p>
-                        <p className="text-xl font-bold text-foreground">
+                      <div className="rounded-xl bg-muted p-4">
+                        <p className="text-base text-muted-foreground">Capacidade</p>
+                        <p className="text-2xl font-bold text-foreground">
                           {results.volumePerTank.toFixed(0)} L
                         </p>
                       </div>
@@ -752,8 +755,8 @@ export default function Calculator() {
                   </div>
 
                   {/* Detalhamento por Tanque */}
-                  <div className="space-y-3">
-                    <h3 className="text-base font-bold text-foreground border-l-4 border-primary pl-3">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-foreground border-l-4 border-primary pl-3">
                       Receita por Tanque
                     </h3>
                     
@@ -767,27 +770,27 @@ export default function Calculator() {
                         <>
                           {/* Tanques cheios agrupados */}
                           {sampleFullTank && (
-                            <div className="rounded-lg border-2 border-border p-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <span className="text-base font-bold text-foreground">
+                            <div className="rounded-xl border-2 border-border p-5">
+                              <div className="flex items-center justify-between mb-4">
+                                <span className="text-lg font-bold text-foreground">
                                   {fullTankCount === 1 ? 'Tanque Cheio' : `${fullTankCount}x Tanque Cheio`}
                                 </span>
-                                <span className="text-lg font-bold text-primary">
+                                <span className="text-xl font-bold text-primary">
                                   {Math.round(sampleFullTank.volume)} L
                                 </span>
                               </div>
                               
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 <div className="flex justify-between text-base">
                                   <span className="text-muted-foreground">💧 Água</span>
-                                  <span className="font-bold text-foreground">
+                                  <span className="font-bold text-foreground text-lg">
                                     {Math.round(sampleFullTank.water)} L
                                   </span>
                                 </div>
                                 {sampleFullTank.products.map((p) => (
                                   <div key={p.id} className="flex justify-between text-base">
                                     <span className="text-muted-foreground truncate max-w-[55%]">🧪 {p.name}</span>
-                                    <span className="font-bold text-foreground">
+                                    <span className="font-bold text-foreground text-lg">
                                       {formatQuantity(p.quantity, p.unit)}
                                     </span>
                                   </div>
@@ -798,27 +801,27 @@ export default function Calculator() {
                           
                           {/* Tanque complemento */}
                           {complementTank && (
-                            <div className="rounded-lg border-2 border-warning bg-warning/5 p-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <span className="text-base font-bold text-warning">
+                            <div className="rounded-xl border-2 border-warning bg-warning/5 p-5">
+                              <div className="flex items-center justify-between mb-4">
+                                <span className="text-lg font-bold text-warning">
                                   ⚠️ Complemento
                                 </span>
-                                <span className="text-lg font-bold text-warning">
+                                <span className="text-xl font-bold text-warning">
                                   {Math.round(complementTank.volume)} L
                                 </span>
                               </div>
                               
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 <div className="flex justify-between text-base">
                                   <span className="text-muted-foreground">💧 Água</span>
-                                  <span className="font-bold text-foreground">
+                                  <span className="font-bold text-foreground text-lg">
                                     {Math.round(complementTank.water)} L
                                   </span>
                                 </div>
                                 {complementTank.products.map((p) => (
                                   <div key={p.id} className="flex justify-between text-base">
                                     <span className="text-muted-foreground truncate max-w-[55%]">🧪 {p.name}</span>
-                                    <span className="font-bold text-foreground">
+                                    <span className="font-bold text-foreground text-lg">
                                       {formatQuantity(p.quantity, p.unit)}
                                     </span>
                                   </div>
@@ -832,22 +835,22 @@ export default function Calculator() {
                   </div>
 
                   {/* Total Geral */}
-                  <div className="space-y-3">
-                    <h3 className="text-base font-bold text-foreground border-l-4 border-primary pl-3">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-foreground border-l-4 border-primary pl-3">
                       Total Geral
                     </h3>
                     
-                    <div className="rounded-lg border-2 border-border p-4 space-y-2">
+                    <div className="rounded-xl border-2 border-border p-5 space-y-3">
                       <div className="flex justify-between text-base">
                         <span className="text-muted-foreground">💧 Água Total</span>
-                        <span className="font-bold text-foreground">
+                        <span className="font-bold text-foreground text-lg">
                           {Math.round(results.totalWater)} L
                         </span>
                       </div>
                       {results.productPerTank.map((p) => (
                         <div key={p.id} className="flex justify-between text-base">
                           <span className="text-muted-foreground truncate max-w-[55%]">🧪 {p.name}</span>
-                          <span className="font-bold text-foreground">
+                          <span className="font-bold text-foreground text-lg">
                             {formatQuantity(p.totalQuantity, p.unit)}
                           </span>
                         </div>
@@ -856,30 +859,30 @@ export default function Calculator() {
                   </div>
 
                   {/* Teste de Compatibilidade */}
-                  <div className="space-y-3">
-                    <h3 className="text-base font-bold text-foreground border-l-4 border-warning pl-3">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-foreground border-l-4 border-warning pl-3">
                       Teste de Compatibilidade
                     </h3>
-                    <div className="rounded-lg bg-warning/10 border-2 border-warning/30 p-4 space-y-3">
-                      <p className="text-sm text-muted-foreground">
+                    <div className="rounded-xl bg-warning/10 border-2 border-warning/30 p-5 space-y-4">
+                      <p className="text-base text-muted-foreground">
                         Antes de preparar a calda completa, faça um teste em pequena escala:
                       </p>
                       {[2, 5].map((liters) => {
                         const ratio = liters / results.volumePerTank;
                         return (
-                          <div key={liters} className="rounded-lg bg-background/50 p-3">
-                            <p className="text-base font-bold text-foreground mb-2">
+                          <div key={liters} className="rounded-xl bg-background/50 p-4">
+                            <p className="text-lg font-bold text-foreground mb-3">
                               Receita para {liters}L:
                             </p>
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-sm">
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-base">
                                 <span className="text-muted-foreground">Água</span>
                                 <span className="font-semibold text-foreground">
                                   {(results.waterPerTank * ratio).toFixed(2)} L
                                 </span>
                               </div>
                               {results.productPerTank.map((p) => (
-                                <div key={p.id} className="flex justify-between text-sm">
+                                <div key={p.id} className="flex justify-between text-base">
                                   <span className="text-muted-foreground truncate max-w-[50%]">{p.name}</span>
                                   <span className="font-semibold text-foreground">
                                     {formatQuantity(p.quantityPerTank * ratio, p.unit)}
@@ -894,25 +897,25 @@ export default function Calculator() {
                   </div>
 
                   {/* Botões de Salvar */}
-                  <div className="space-y-3">
-                    <h3 className="text-base font-bold text-foreground border-l-4 border-primary pl-3">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-foreground border-l-4 border-primary pl-3">
                       Salvar Como
                     </h3>
                     <div className="flex gap-3">
                       <Button 
                         onClick={() => setSaveDialogOpen(true)} 
                         variant="outline" 
-                        className="flex-1 h-10 gap-2 text-sm"
+                        className="flex-1 h-14 gap-2 text-base rounded-xl"
                       >
-                        <Save className="h-4 w-4" />
+                        <Save className="h-5 w-5" />
                         Aplicação
                       </Button>
                       <Button 
                         onClick={() => setSaveRecipeDialogOpen(true)} 
                         variant="outline" 
-                        className="flex-1 h-10 gap-2 text-sm"
+                        className="flex-1 h-14 gap-2 text-base rounded-xl"
                       >
-                        <FileText className="h-4 w-4" />
+                        <FileText className="h-5 w-5" />
                         Receituário
                       </Button>
                     </div>
@@ -926,72 +929,74 @@ export default function Calculator() {
 
       {/* Dialog para salvar como aplicação */}
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-md rounded-xl">
           <DialogHeader>
-            <DialogTitle className="text-base">Salvar como Aplicação</DialogTitle>
+            <DialogTitle className="text-xl">Salvar como Aplicação</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">Nome da Aplicação</Label>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Nome da Aplicação</Label>
               <Input
                 value={saveAppName}
                 onChange={(e) => setSaveAppName(e.target.value)}
                 placeholder="Ex: Aplicação Talhão 5"
-                className="h-8 text-xs"
+                className="h-14 text-base rounded-xl"
               />
+              <p className="text-sm text-muted-foreground">Identificação desta aplicação</p>
             </div>
-            <div>
-              <Label className="text-xs">Propriedade *</Label>
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Propriedade *</Label>
               <Select value={savePropertyId} onValueChange={setSavePropertyId}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Selecione..." />
+                <SelectTrigger className="h-14 text-base rounded-xl">
+                  <SelectValue placeholder="Selecione a propriedade" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
                   {properties.map((p) => (
-                    <SelectItem key={p.id} value={p.id} className="text-xs">
+                    <SelectItem key={p.id} value={p.id} className="text-base py-3">
                       {p.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label className="text-xs">Talhão/Parcela</Label>
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Talhão/Parcela</Label>
               <Input
                 value={savePlotName}
                 onChange={(e) => setSavePlotName(e.target.value)}
                 placeholder="Ex: Talhão 1"
-                className="h-8 text-xs"
+                className="h-14 text-base rounded-xl"
               />
+              <p className="text-sm text-muted-foreground">Área específica dentro da propriedade</p>
             </div>
-            <div>
-              <Label className="text-xs">Data *</Label>
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Data *</Label>
               <Input
                 type="date"
                 value={saveDate}
                 onChange={(e) => setSaveDate(e.target.value)}
-                className="h-8 text-xs"
+                className="h-14 text-base rounded-xl"
               />
             </div>
-            <div>
-              <Label className="text-xs">Status</Label>
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Status</Label>
               <Select value={saveStatus} onValueChange={setSaveStatus}>
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-14 text-base rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
-                  <SelectItem value="planejada" className="text-xs">Planejada</SelectItem>
-                  <SelectItem value="em_andamento" className="text-xs">Em Andamento</SelectItem>
-                  <SelectItem value="concluída" className="text-xs">Concluída</SelectItem>
+                  <SelectItem value="planejada" className="text-base py-3">Planejada</SelectItem>
+                  <SelectItem value="em_andamento" className="text-base py-3">Em Andamento</SelectItem>
+                  <SelectItem value="concluída" className="text-base py-3">Concluída</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setSaveDialogOpen(false)} size="sm" className="text-xs">
+          <DialogFooter className="gap-3 pt-4">
+            <Button variant="outline" onClick={() => setSaveDialogOpen(false)} className="h-12 text-base rounded-xl flex-1">
               Cancelar
             </Button>
-            <Button onClick={handleSaveAsApplication} size="sm" className="text-xs">
+            <Button onClick={handleSaveAsApplication} className="h-12 text-base rounded-xl flex-1">
               Salvar
             </Button>
           </DialogFooter>
@@ -1000,44 +1005,45 @@ export default function Calculator() {
 
       {/* Dialog para salvar como receituário */}
       <Dialog open={saveRecipeDialogOpen} onOpenChange={setSaveRecipeDialogOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-md rounded-xl">
           <DialogHeader>
-            <DialogTitle className="text-base">Salvar como Receituário</DialogTitle>
+            <DialogTitle className="text-xl">Salvar como Receituário</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">Nome do Receituário *</Label>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Nome do Receituário *</Label>
               <Input
                 value={recipeName}
                 onChange={(e) => setRecipeName(e.target.value)}
                 placeholder="Ex: Controle de daninhas"
-                className="h-8 text-xs"
+                className="h-14 text-base rounded-xl"
               />
+              <p className="text-sm text-muted-foreground">Nome para identificar este receituário</p>
             </div>
-            <div>
-              <Label className="text-xs">Descrição</Label>
+            <div className="space-y-2">
+              <Label className="text-base font-medium">Descrição</Label>
               <Input
                 value={recipeDescription}
                 onChange={(e) => setRecipeDescription(e.target.value)}
                 placeholder="Descrição opcional"
-                className="h-8 text-xs"
+                className="h-14 text-base rounded-xl"
               />
             </div>
-            <div className="rounded-lg bg-muted p-2 space-y-1">
-              <p className="text-[10px] font-medium text-muted-foreground">Produtos incluídos:</p>
+            <div className="rounded-xl bg-muted p-4 space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Produtos incluídos:</p>
               {results?.productPerTank.map((p) => (
-                <div key={p.id} className="flex justify-between text-xs">
+                <div key={p.id} className="flex justify-between text-base">
                   <span className="text-muted-foreground truncate max-w-[60%]">{p.name}</span>
                   <span className="font-medium text-foreground">{p.dose} {p.unit}</span>
                 </div>
               ))}
             </div>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setSaveRecipeDialogOpen(false)} size="sm" className="text-xs">
+          <DialogFooter className="gap-3 pt-4">
+            <Button variant="outline" onClick={() => setSaveRecipeDialogOpen(false)} className="h-12 text-base rounded-xl flex-1">
               Cancelar
             </Button>
-            <Button onClick={handleSaveAsRecipe} size="sm" className="text-xs">
+            <Button onClick={handleSaveAsRecipe} className="h-12 text-base rounded-xl flex-1">
               Salvar
             </Button>
           </DialogFooter>
@@ -1046,25 +1052,25 @@ export default function Calculator() {
 
       {/* Dialog para salvar parâmetros */}
       <Dialog open={showSaveParamsDialog} onOpenChange={setShowSaveParamsDialog}>
-        <DialogContent className="max-w-xs">
+        <DialogContent className="max-w-sm rounded-xl">
           <DialogHeader>
-            <DialogTitle className="text-base flex items-center gap-2">
-              <Settings2 className="h-4 w-4" />
+            <DialogTitle className="text-lg flex items-center gap-2">
+              <Settings2 className="h-5 w-5" />
               Salvar Parâmetros?
             </DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Deseja salvar esses parâmetros como padrão para próximos cálculos?
           </p>
-          <div className="text-xs space-y-1 bg-muted p-2 rounded-md">
+          <div className="text-base space-y-2 bg-muted p-4 rounded-xl">
             <p><strong>Vazão:</strong> {flowRate} L/ha</p>
             <p><strong>Tanque:</strong> {tankVolume} L</p>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowSaveParamsDialog(false)} size="sm" className="text-xs">
+          <DialogFooter className="gap-3 pt-4">
+            <Button variant="outline" onClick={() => setShowSaveParamsDialog(false)} className="h-12 text-base rounded-xl flex-1">
               Não
             </Button>
-            <Button onClick={saveDefaultParams} size="sm" className="text-xs">
+            <Button onClick={saveDefaultParams} className="h-12 text-base rounded-xl flex-1">
               Sim, Salvar
             </Button>
           </DialogFooter>

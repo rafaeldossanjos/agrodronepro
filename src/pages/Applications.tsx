@@ -168,16 +168,16 @@ export default function Applications() {
   };
 
   const ApplicationCard = ({ app }: { app: any }) => (
-    <Card key={app.id} className="p-5 sm:p-6">
+    <Card key={app.id} className="p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1 space-y-3">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground">
                 {app.name || "Sem nome"}
               </h3>
               <StatusBadge app={app} />
-              <Badge variant="outline">
+              <Badge variant="outline" className="text-sm">
                 {typeConfig[app.application_type as keyof typeof typeConfig]}
               </Badge>
             </div>
@@ -188,21 +188,21 @@ export default function Applications() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <p className="text-sm sm:text-base text-muted-foreground">Data</p>
-              <p className="flex items-center gap-1.5 text-base sm:text-lg font-medium text-foreground">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+              <p className="text-sm text-muted-foreground">Data</p>
+              <p className="flex items-center gap-1.5 text-base font-semibold text-foreground">
+                <Calendar className="h-5 w-5" />
                 {format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
               </p>
             </div>
             <div>
-              <p className="text-sm sm:text-base text-muted-foreground">Área</p>
-              <p className="text-base sm:text-lg font-medium text-foreground">
+              <p className="text-sm text-muted-foreground">Área</p>
+              <p className="text-base font-semibold text-foreground">
                 {app.area_applied} ha
               </p>
             </div>
             <div>
-              <p className="text-sm sm:text-base text-muted-foreground">Produtos</p>
-              <p className="text-base sm:text-lg font-medium text-foreground">
+              <p className="text-sm text-muted-foreground">Produtos</p>
+              <p className="text-base font-semibold text-foreground">
                 {app.application_products?.length || 0} produto(s)
               </p>
             </div>
@@ -210,8 +210,8 @@ export default function Applications() {
 
           {app.notes && (
             <div className="pt-2">
-              <p className="text-sm sm:text-base text-muted-foreground">Observações:</p>
-              <p className="text-sm sm:text-base text-foreground mt-1">{app.notes}</p>
+              <p className="text-sm text-muted-foreground">Observações:</p>
+              <p className="text-base text-foreground mt-1">{app.notes}</p>
             </div>
           )}
         </div>
@@ -222,7 +222,7 @@ export default function Applications() {
               variant="outline"
               size="default"
               onClick={() => navigate('/map')}
-              className="flex-1 sm:flex-none h-11"
+              className="flex-1 sm:flex-none h-12 text-base"
               title="Ver no Mapa"
             >
               <Map className="h-5 w-5 sm:mr-2" />
@@ -233,7 +233,7 @@ export default function Applications() {
             variant="outline"
             size="default"
             onClick={() => handleEdit(app)}
-            className="flex-1 sm:flex-none h-11"
+            className="flex-1 sm:flex-none h-12 text-base"
           >
             <Edit className="h-5 w-5 sm:mr-2" />
             <span className="hidden sm:inline">Editar</span>
@@ -242,7 +242,7 @@ export default function Applications() {
             variant="outline"
             size="default"
             onClick={() => handleDelete(app.id)}
-            className="flex-1 sm:flex-none h-11 text-destructive hover:text-destructive"
+            className="flex-1 sm:flex-none h-12 text-base text-destructive hover:text-destructive"
           >
             <Trash2 className="h-5 w-5 sm:mr-2" />
             <span className="hidden sm:inline">Excluir</span>
@@ -253,17 +253,17 @@ export default function Applications() {
   );
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Histórico de Aplicações
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Registros de todas as pulverizações realizadas
           </p>
         </div>
-        <Button onClick={handleNew} className="gap-2 h-12 text-lg">
+        <Button onClick={handleNew} className="gap-2 h-14 text-lg px-6 w-full sm:w-auto">
           <Plus className="h-6 w-6" />
           Nova Aplicação
         </Button>
@@ -271,10 +271,10 @@ export default function Applications() {
 
       {applications.length === 0 ? (
         <Card className="p-6 text-center">
-          <p className="text-lg text-muted-foreground mb-3">
+          <p className="text-lg text-muted-foreground mb-4">
             Nenhuma aplicação cadastrada ainda
           </p>
-          <Button onClick={handleNew} className="h-12 text-lg">
+          <Button onClick={handleNew} className="h-14 text-lg px-6">
             <Plus className="h-6 w-6 mr-2" />
             Cadastrar Primeira Aplicação
           </Button>
