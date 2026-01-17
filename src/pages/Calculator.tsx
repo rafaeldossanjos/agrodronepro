@@ -493,10 +493,10 @@ export default function Calculator() {
     <div className="space-y-4">
       {/* Header */}
       <div>
-        <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
+        <h1 className="text-5xl sm:text-6xl font-bold text-foreground">
           Calculadora de Calda
         </h1>
-        <p className="text-xl text-muted-foreground">
+        <p className="text-2xl text-muted-foreground">
           Calcule a quantidade de produtos e volume necessários para sua aplicação
         </p>
       </div>

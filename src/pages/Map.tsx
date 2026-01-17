@@ -631,20 +631,20 @@ export default function Map() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold flex items-center gap-2">
-            <MapIcon className="h-8 w-8" />
+          <h1 className="text-4xl sm:text-5xl font-bold flex items-center gap-2">
+            <MapIcon className="h-10 w-10" />
             Mapa de Talhões
           </h1>
-          <p className="text-lg sm:text-xl text-muted-foreground">
+          <p className="text-xl sm:text-2xl text-muted-foreground">
             {filteredPlots.length} talhão(ões) • {totalArea.toFixed(1)} ha
           </p>
         </div>
         <Button
           size="lg"
           onClick={() => setIsFullscreen(true)}
-          className="gap-2"
+          className="gap-2 h-14 text-lg"
         >
-          <Maximize2 className="h-5 w-5" />
+          <Maximize2 className="h-6 w-6" />
           Abrir Mapa
         </Button>
       </div>
@@ -652,43 +652,43 @@ export default function Map() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="p-4">
-          <p className="text-base text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold">{totalArea.toFixed(1)} ha</p>
+          <p className="text-lg text-muted-foreground">Total</p>
+          <p className="text-3xl font-bold">{totalArea.toFixed(1)} ha</p>
         </Card>
         <Card className="p-4 bg-green-500/10">
-          <p className="text-base text-green-600">Concluído</p>
-          <p className="text-2xl font-bold text-green-700">{completedArea.toFixed(1)} ha</p>
+          <p className="text-lg text-green-600">Concluído</p>
+          <p className="text-3xl font-bold text-green-700">{completedArea.toFixed(1)} ha</p>
         </Card>
         <Card className="p-4 bg-amber-500/10">
-          <p className="text-base text-amber-600">Em Andamento</p>
-          <p className="text-2xl font-bold text-amber-700">{inProgressArea.toFixed(1)} ha</p>
+          <p className="text-lg text-amber-600">Em Andamento</p>
+          <p className="text-3xl font-bold text-amber-700">{inProgressArea.toFixed(1)} ha</p>
         </Card>
         <Card className="p-4 bg-blue-500/10">
-          <p className="text-base text-blue-600">Planejada</p>
-          <p className="text-2xl font-bold text-blue-700">{plannedArea.toFixed(1)} ha</p>
+          <p className="text-lg text-blue-600">Planejada</p>
+          <p className="text-3xl font-bold text-blue-700">{plannedArea.toFixed(1)} ha</p>
         </Card>
       </div>
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => { setIsFullscreen(true); setIsDrawing(true); }} className="gap-2">
-          <Plus className="h-4 w-4" />
+        <Button onClick={() => { setIsFullscreen(true); setIsDrawing(true); }} className="gap-2 h-12 text-lg">
+          <Plus className="h-5 w-5" />
           Desenhar Talhão
         </Button>
-        <Button variant="outline" onClick={() => setImportDialogOpen(true)} className="gap-2">
-          <Upload className="h-4 w-4" />
+        <Button variant="outline" onClick={() => setImportDialogOpen(true)} className="gap-2 h-12 text-lg">
+          <Upload className="h-5 w-5" />
           Importar KML
         </Button>
-        <Button variant="outline" onClick={exportToKML} disabled={filteredPlots.length === 0} className="gap-2">
-          <Download className="h-4 w-4" />
+        <Button variant="outline" onClick={exportToKML} disabled={filteredPlots.length === 0} className="gap-2 h-12 text-lg">
+          <Download className="h-5 w-5" />
           Exportar
         </Button>
         <Button 
           variant={isSelectMode ? "default" : "outline"} 
           onClick={toggleSelectMode} 
-          className="gap-2"
+          className="gap-2 h-12 text-lg"
         >
-          <CheckSquare className="h-4 w-4" />
+          <CheckSquare className="h-5 w-5" />
           Selecionar
         </Button>
       </div>

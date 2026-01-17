@@ -42,10 +42,10 @@ export default function Products() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
+          <h1 className="text-5xl sm:text-6xl font-bold text-foreground">
             Banco de Produtos
           </h1>
-          <p className="text-xl sm:text-2xl text-muted-foreground">
+          <p className="text-2xl sm:text-3xl text-muted-foreground">
             Gerencie defensivos, fertilizantes e adjuvantes
           </p>
         </div>
@@ -68,10 +68,10 @@ export default function Products() {
         <Card className="p-8">
           <div className="text-center">
             <Cylinder className="mx-auto h-14 w-14 text-muted-foreground mb-3" />
-            <h3 className="text-2xl font-semibold text-foreground mb-2">
+            <h3 className="text-3xl font-semibold text-foreground mb-2">
               Nenhum produto cadastrado
             </h3>
-            <p className="text-lg sm:text-xl text-muted-foreground mb-3">
+            <p className="text-xl sm:text-2xl text-muted-foreground mb-3">
               Comece criando seu primeiro produto
             </p>
             <ProductDialog />
@@ -81,10 +81,10 @@ export default function Products() {
         <Card className="p-8">
           <div className="text-center">
             <Search className="mx-auto h-14 w-14 text-muted-foreground mb-3" />
-            <h3 className="text-2xl font-semibold text-foreground mb-2">
+            <h3 className="text-3xl font-semibold text-foreground mb-2">
               Nenhum produto encontrado
             </h3>
-            <p className="text-lg sm:text-xl text-muted-foreground">
+            <p className="text-xl sm:text-2xl text-muted-foreground">
               Tente buscar por outro termo
             </p>
           </div>
@@ -99,11 +99,11 @@ export default function Products() {
                     <Cylinder className="h-7 w-7 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-xl sm:text-2xl text-foreground line-clamp-1">
+                    <h3 className="font-semibold text-2xl sm:text-3xl text-foreground line-clamp-1">
                       {product.name}
                     </h3>
                     {product.manufacturer && (
-                      <p className="text-lg text-muted-foreground truncate">
+                      <p className="text-xl text-muted-foreground truncate">
                         {product.manufacturer}
                       </p>
                     )}
@@ -121,16 +121,16 @@ export default function Products() {
 
               <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
                 <div>
-                  <p className="text-base sm:text-lg text-muted-foreground">Dose Recomendada</p>
-                  <p className="font-semibold text-xl sm:text-2xl text-foreground">
+                  <p className="text-lg sm:text-xl text-muted-foreground">Dose Recomendada</p>
+                  <p className="font-semibold text-2xl sm:text-3xl text-foreground">
                     {product.recommended_dose 
                       ? `${product.recommended_dose} ${product.recommended_dose_unit || product.unit}/ha`
                       : "Não informada"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-base sm:text-lg text-muted-foreground">Tamanho Embalagem</p>
-                  <p className="font-semibold text-xl sm:text-2xl text-foreground">
+                  <p className="text-lg sm:text-xl text-muted-foreground">Tamanho Embalagem</p>
+                  <p className="font-semibold text-2xl sm:text-3xl text-foreground">
                     {product.package_size 
                       ? `${product.package_size} ${product.unit}`
                       : "Não informado"}
