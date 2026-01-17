@@ -42,7 +42,7 @@ All colors MUST be HSL.
     --input: 210 20% 90%;
     --ring: 174 80% 35%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     
     --gradient-primary: linear-gradient(135deg, hsl(174 80% 35%), hsl(174 70% 45%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
@@ -50,19 +50,12 @@ All colors MUST be HSL.
     --shadow-glow: 0 0 30px hsl(174 80% 35% / 0.15);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -121,7 +114,7 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  /* Base font size - mobile first with larger sizes */
+  /* Base font size - mobile first with larger sizes for accessibility */
   html {
     font-size: 16px;
   }
@@ -129,7 +122,7 @@ All colors MUST be HSL.
   /* Much larger base fonts on mobile for better readability */
   @media (max-width: 640px) {
     html {
-      font-size: 18px;
+      font-size: 19px;
     }
   }
 
@@ -149,84 +142,148 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
   }
 
-  /* Mobile-friendly touch targets and font sizes */
+  /* Global mobile optimizations for accessibility */
   @media (max-width: 640px) {
-    /* Larger minimum touch targets */
+    /* Larger minimum touch targets - 54px minimum */
     button, 
     [role="button"],
-    a {
-      min-height: 48px;
+    a:not(.no-touch-target) {
+      min-height: 54px;
     }
 
-    /* Larger inputs */
+    /* Larger inputs with better padding */
     input,
     select,
     textarea {
-      min-height: 52px;
+      min-height: 56px;
       font-size: 1.1rem !important;
+      padding: 0.875rem 1rem;
     }
 
-    /* Larger base text */
+    /* Larger base text with better line height */
     p,
-    span {
-      font-size: 1.15rem;
-      line-height: 1.65;
+    span:not(.no-text-scale) {
+      font-size: 1.1rem;
+      line-height: 1.7;
     }
 
-    /* Larger headings */
+    /* Larger, bolder headings */
     h1 {
-      font-size: 2.25rem !important;
+      font-size: 2rem !important;
+      font-weight: 700 !important;
+      line-height: 1.2 !important;
     }
     h2 {
-      font-size: 1.85rem !important;
+      font-size: 1.75rem !important;
+      font-weight: 600 !important;
+      line-height: 1.3 !important;
     }
     h3 {
       font-size: 1.5rem !important;
+      font-weight: 600 !important;
+      line-height: 1.35 !important;
+    }
+    h4 {
+      font-size: 1.25rem !important;
+      font-weight: 600 !important;
     }
 
     /* Larger labels */
     label {
-      font-size: 1.1rem !important;
+      font-size: 1.05rem !important;
+      font-weight: 500 !important;
     }
 
-    /* Larger badges and small text */
+    /* Scaled text sizes for better mobile readability */
     .text-xs {
-      font-size: 0.95rem !important;
+      font-size: 0.9rem !important;
     }
     .text-sm {
-      font-size: 1.05rem !important;
+      font-size: 1rem !important;
     }
     .text-base {
-      font-size: 1.15rem !important;
+      font-size: 1.1rem !important;
     }
     .text-lg {
-      font-size: 1.25rem !important;
+      font-size: 1.2rem !important;
     }
     .text-xl {
-      font-size: 1.4rem !important;
+      font-size: 1.35rem !important;
     }
     .text-2xl {
-      font-size: 1.6rem !important;
+      font-size: 1.5rem !important;
+    }
+    .text-3xl {
+      font-size: 1.75rem !important;
+    }
+    .text-4xl {
+      font-size: 2rem !important;
     }
 
-    /* Cards and containers */
-    .card {
+    /* Cards with more padding */
+    .card,
+    [class*="Card"] {
       padding: 1.25rem;
+      border-radius: var(--radius);
     }
 
-    /* Buttons */
-    button,
-    [role="button"] {
+    /* Buttons with larger text and padding */
+    button:not(.icon-only),
+    [role="button"]:not(.icon-only) {
       font-size: 1.1rem !important;
-      padding: 0.75rem 1.25rem;
+      padding: 0.875rem 1.25rem;
+      font-weight: 500;
     }
 
-    /* Icons */
-    svg {
+    /* Larger icons for better visibility */
+    svg:not(.no-scale) {
       min-width: 1.25rem;
       min-height: 1.25rem;
+    }
+
+    /* Table cells with better readability */
+    td, th {
+      font-size: 1rem !important;
+      padding: 0.875rem 0.75rem !important;
+    }
+
+    /* Badge improvements */
+    .badge,
+    [class*="Badge"] {
+      font-size: 0.9rem !important;
+      padding: 0.375rem 0.75rem !important;
+    }
+
+    /* Dialog/Sheet content */
+    [role="dialog"] {
+      max-height: 95vh !important;
+    }
+
+    /* Better spacing between form elements */
+    .space-y-2 > * + * {
+      margin-top: 0.75rem !important;
+    }
+    .space-y-3 > * + * {
+      margin-top: 1rem !important;
+    }
+    .space-y-4 > * + * {
+      margin-top: 1.25rem !important;
+    }
+
+    /* Gap adjustments */
+    .gap-2 {
+      gap: 0.75rem !important;
+    }
+    .gap-3 {
+      gap: 1rem !important;
+    }
+    .gap-4 {
+      gap: 1.25rem !important;
     }
   }
 }
@@ -235,39 +292,39 @@ All colors MUST be HSL.
 .leaflet-control-zoom a,
 .leaflet-control-layers-toggle,
 .leaflet-bar a {
-  width: 40px !important;
-  height: 40px !important;
-  line-height: 40px !important;
-  font-size: 18px !important;
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  font-size: 20px !important;
 }
 
 .leaflet-control-layers-toggle {
-  background-size: 24px 24px !important;
+  background-size: 26px 26px !important;
 }
 
 @media (max-width: 640px) {
   .leaflet-control-zoom a,
   .leaflet-control-layers-toggle,
   .leaflet-bar a {
-    width: 48px !important;
-    height: 48px !important;
-    line-height: 48px !important;
-    font-size: 22px !important;
+    width: 52px !important;
+    height: 52px !important;
+    line-height: 52px !important;
+    font-size: 24px !important;
   }
   
   .leaflet-control-layers-toggle {
-    background-size: 28px 28px !important;
+    background-size: 30px 30px !important;
   }
 
   /* Prevent zoom on input focus - iOS Safari */
   input,
   select,
   textarea {
-    font-size: 1rem;
+    font-size: 16px;
   }
 }
 
-/* CRITICAL: Prevent ALL zoom gestures on mobile - must be outside @media */
+/* CRITICAL: Prevent ALL zoom gestures on mobile */
 html {
   touch-action: pan-x pan-y;
   -ms-touch-action: pan-x pan-y;
@@ -288,4 +345,108 @@ body {
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+/* Custom scrollbar for better mobile UX */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+/* Improved focus states for accessibility */
+*:focus-visible {
+  outline: 3px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Better active states for touch feedback */
+@media (max-width: 640px) {
+  button:active,
+  [role="button"]:active,
+  a:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+[role="button"],
+a,
+input,
+select,
+textarea {
+  transition: all 0.15s ease-in-out;
+}
+
+/* Dialog mobile optimizations */
+@media (max-width: 640px) {
+  [data-radix-dialog-content] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    max-height: 95vh !important;
+  }
+  
+  [data-radix-select-content] {
+    max-height: 60vh !important;
+  }
+  
+  /* Sheet/Drawer from bottom on mobile */
+  [data-state="open"][data-vaul-drawer] {
+    max-height: 90vh !important;
+  }
+}
+
+/* Utility classes for mobile-first design */
+@layer utilities {
+  .touch-target {
+    min-height: 54px;
+    min-width: 54px;
+  }
+  
+  .mobile-card {
+    @apply p-4 sm:p-6 rounded-xl;
+  }
+  
+  .mobile-heading {
+    @apply text-2xl sm:text-3xl font-bold;
+  }
+  
+  .mobile-subheading {
+    @apply text-lg sm:text-xl text-muted-foreground;
+  }
+  
+  .mobile-text {
+    @apply text-base sm:text-lg;
+  }
+  
+  .mobile-button {
+    @apply h-14 px-6 text-lg font-medium;
+  }
+  
+  .mobile-input {
+    @apply h-14 text-lg px-4;
+  }
+  
+  .mobile-label {
+    @apply text-base font-medium;
+  }
 }
