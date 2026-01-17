@@ -186,12 +186,12 @@ export default function Stock() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">Saída de Estoque</h1>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Saída de Estoque</h1>
+          <p className="text-base text-muted-foreground">
             Registre retiradas de produtos por propriedade
           </p>
         </div>
@@ -200,11 +200,11 @@ export default function Stock() {
 
       {/* Low Stock Alerts */}
       {lowStockItems.length > 0 && (
-        <Card className="border-orange-500/50 bg-orange-500/10">
-          <CardContent className="py-2">
-            <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+        <Card className="border-orange-500/50 bg-orange-500/10 rounded-xl">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3 text-orange-600 dark:text-orange-400">
               <AlertTriangle className="h-7 w-7" />
-              <span className="font-medium text-lg sm:text-xl">
+              <span className="font-semibold text-lg">
                 {lowStockItems.length} produto(s) com estoque baixo
               </span>
             </div>
@@ -213,26 +213,26 @@ export default function Stock() {
       )}
 
       {/* Filters */}
-      <Card>
-        <CardContent className="py-2">
-          <div className="flex gap-2">
+      <Card className="rounded-xl">
+        <CardContent className="py-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
               <Input
                 placeholder="Buscar produto..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-14 text-lg sm:text-xl"
+                className="pl-14 h-14 text-base rounded-xl"
               />
             </div>
             <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-              <SelectTrigger className="w-40 sm:w-52 h-14 text-base sm:text-lg">
+              <SelectTrigger className="w-full sm:w-auto sm:min-w-[200px] h-14 text-base rounded-xl">
                 <SelectValue placeholder="Propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all" className="text-base sm:text-lg">Todas</SelectItem>
+                <SelectItem value="all" className="text-base py-3">Todas as propriedades</SelectItem>
                 {properties.map((prop) => (
-                  <SelectItem key={prop.id} value={prop.id} className="text-base sm:text-lg">{prop.name}</SelectItem>
+                  <SelectItem key={prop.id} value={prop.id} className="text-base py-3">{prop.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -240,47 +240,47 @@ export default function Stock() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="movements" className="space-y-2">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="movements" className="text-lg sm:text-xl py-3">Movimentações</TabsTrigger>
-          <TabsTrigger value="report" className="text-lg sm:text-xl py-3">Relatório</TabsTrigger>
+      <Tabs defaultValue="movements" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2 h-14">
+          <TabsTrigger value="movements" className="text-base sm:text-lg py-3 rounded-xl">Movimentações</TabsTrigger>
+          <TabsTrigger value="report" className="text-base sm:text-lg py-3 rounded-xl">Relatório</TabsTrigger>
         </TabsList>
 
         {/* Movimentações Tab */}
-        <TabsContent value="movements" className="space-y-3">
-          <Card>
-            <CardContent className="py-3">
-              <div className="flex flex-col sm:flex-row gap-2">
+        <TabsContent value="movements" className="space-y-4">
+          <Card className="rounded-xl">
+            <CardContent className="py-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <Select value={movementTypeFilter} onValueChange={setMovementTypeFilter}>
-                  <SelectTrigger className="w-full sm:w-44 h-12 text-base sm:text-lg">
+                  <SelectTrigger className="w-full sm:w-auto sm:min-w-[160px] h-14 text-base rounded-xl">
                     <SelectValue placeholder="Tipo" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    <SelectItem value="all" className="text-base sm:text-lg">Todos tipos</SelectItem>
-                    <SelectItem value="saida" className="text-base sm:text-lg">Saídas</SelectItem>
-                    <SelectItem value="ajuste" className="text-base sm:text-lg">Ajustes</SelectItem>
+                    <SelectItem value="all" className="text-base py-3">Todos os tipos</SelectItem>
+                    <SelectItem value="saida" className="text-base py-3">Saídas</SelectItem>
+                    <SelectItem value="ajuste" className="text-base py-3">Ajustes</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="flex flex-col w-full sm:w-44">
-                  <label className="text-sm sm:text-base text-muted-foreground mb-1 font-medium">
+                <div className="flex flex-col w-full sm:w-auto sm:min-w-[160px]">
+                  <label className="text-sm text-muted-foreground mb-2 font-medium">
                     Data inicial
                   </label>
                   <Input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full h-12 text-base sm:text-lg"
+                    className="w-full h-14 text-base rounded-xl"
                   />
                 </div>
-                <div className="flex flex-col w-full sm:w-44">
-                  <label className="text-sm sm:text-base text-muted-foreground mb-1 font-medium">
+                <div className="flex flex-col w-full sm:w-auto sm:min-w-[160px]">
+                  <label className="text-sm text-muted-foreground mb-2 font-medium">
                     Data final
                   </label>
                   <Input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full h-12 text-base sm:text-lg"
+                    className="w-full h-14 text-base rounded-xl"
                   />
                 </div>
               </div>
@@ -288,24 +288,24 @@ export default function Stock() {
           </Card>
 
           {filteredMovements.length === 0 ? (
-            <Card>
-              <CardContent className="py-6 text-center">
-                <RefreshCw className="h-14 w-14 mx-auto text-muted-foreground mb-2" />
-                <p className="text-lg sm:text-xl text-muted-foreground">Nenhuma movimentação encontrada</p>
+            <Card className="rounded-xl">
+              <CardContent className="py-8 text-center">
+                <RefreshCw className="h-14 w-14 mx-auto text-muted-foreground mb-3" />
+                <p className="text-lg text-muted-foreground">Nenhuma movimentação encontrada</p>
               </CardContent>
             </Card>
           ) : (
-            <Card>
+            <Card className="rounded-xl">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Data</TableHead>
-                      <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Produto</TableHead>
-                      <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Propriedade</TableHead>
-                      <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Quantidade</TableHead>
-                      <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Motivo</TableHead>
-                      <TableHead className="text-base sm:text-lg md:text-xl font-semibold w-20">Ações</TableHead>
+                      <TableHead className="text-base font-semibold">Data</TableHead>
+                      <TableHead className="text-base font-semibold">Produto</TableHead>
+                      <TableHead className="text-base font-semibold">Propriedade</TableHead>
+                      <TableHead className="text-base font-semibold">Quantidade</TableHead>
+                      <TableHead className="text-base font-semibold">Motivo</TableHead>
+                      <TableHead className="text-base font-semibold w-20">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -314,30 +314,30 @@ export default function Stock() {
                       const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null, movement.unit);
                       return (
                         <TableRow key={movement.id}>
-                          <TableCell className="text-base sm:text-lg md:text-xl">
+                          <TableCell className="text-base">
                             {format(new Date(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
                           </TableCell>
-                          <TableCell className="font-medium text-base sm:text-lg md:text-xl">{movement.product?.name}</TableCell>
-                          <TableCell className="text-base sm:text-lg md:text-xl">{movement.property?.name}</TableCell>
+                          <TableCell className="font-semibold text-base">{movement.product?.name}</TableCell>
+                          <TableCell className="text-base">{movement.property?.name}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <span className="font-bold text-base sm:text-lg md:text-xl">
+                              <span className="font-bold text-base">
                                 {Number(movement.quantity).toFixed(2)} {movement.unit}
                               </span>
                               {packageQty && (
-                                <span className="text-sm sm:text-base text-muted-foreground">
+                                <span className="text-sm text-muted-foreground">
                                   ({packageQty})
                                 </span>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-base sm:text-lg md:text-xl">{getReasonLabel(movement.reason)}</TableCell>
+                          <TableCell className="text-base">{getReasonLabel(movement.reason)}</TableCell>
                           <TableCell>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEditMovement(movement)}
-                              className="h-12 w-12 p-0"
+                              className="h-12 w-12 p-0 rounded-xl"
                             >
                               <Pencil className="h-5 w-5" />
                             </Button>
@@ -361,13 +361,13 @@ export default function Stock() {
         </TabsContent>
 
         {/* Relatório Tab */}
-        <TabsContent value="report" className="space-y-2">
-          <Card>
-            <CardHeader className="py-3">
-              <div className="flex items-center justify-between">
+        <TabsContent value="report" className="space-y-4">
+          <Card className="rounded-xl">
+            <CardHeader className="py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl sm:text-2xl">Relatório de Saídas</CardTitle>
-                  <p className="text-base sm:text-lg text-muted-foreground">
+                  <CardTitle className="text-xl">Relatório de Saídas</CardTitle>
+                  <p className="text-base text-muted-foreground">
                     {dateFrom && dateTo 
                       ? `${format(new Date(dateFrom), "dd/MM/yyyy")} a ${format(new Date(dateTo), "dd/MM/yyyy")}`
                       : "Selecione um período nos filtros"
@@ -376,7 +376,7 @@ export default function Stock() {
                 </div>
                 <Button 
                   onClick={generatePDF} 
-                  className="h-12 px-4 text-base sm:text-lg gap-2"
+                  className="h-14 px-6 text-base gap-2 rounded-xl"
                   disabled={filteredMovements.length === 0}
                 >
                   <FileText className="h-5 w-5" />
@@ -386,7 +386,7 @@ export default function Stock() {
             </CardHeader>
             <CardContent className="pt-0">
               {filteredMovements.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4 text-lg sm:text-xl">
+                <p className="text-center text-muted-foreground py-6 text-lg">
                   Nenhum dado para o período selecionado
                 </p>
               ) : (
@@ -394,11 +394,11 @@ export default function Stock() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Data</TableHead>
-                        <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Produto</TableHead>
-                        <TableHead className="text-base sm:text-lg md:text-xl font-semibold">Propriedade</TableHead>
-                        <TableHead className="text-right text-base sm:text-lg md:text-xl font-semibold">Quantidade</TableHead>
-                        <TableHead className="text-right text-base sm:text-lg md:text-xl font-semibold">Volume</TableHead>
+                        <TableHead className="text-base font-semibold">Data</TableHead>
+                        <TableHead className="text-base font-semibold">Produto</TableHead>
+                        <TableHead className="text-base font-semibold">Propriedade</TableHead>
+                        <TableHead className="text-right text-base font-semibold">Quantidade</TableHead>
+                        <TableHead className="text-right text-base font-semibold">Volume</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -411,15 +411,15 @@ export default function Stock() {
                         const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null, mov.unit);
                         return (
                           <TableRow key={mov.id}>
-                            <TableCell className="text-base sm:text-lg md:text-xl">
+                            <TableCell className="text-base">
                               {format(new Date(mov.movement_date), "dd/MM/yyyy", { locale: ptBR })}
                             </TableCell>
-                            <TableCell className="font-medium text-base sm:text-lg md:text-xl">{mov.product?.name}</TableCell>
-                            <TableCell className="text-base sm:text-lg md:text-xl">{mov.property?.name}</TableCell>
-                            <TableCell className="text-right font-bold text-base sm:text-lg md:text-xl">
+                            <TableCell className="font-semibold text-base">{mov.product?.name}</TableCell>
+                            <TableCell className="text-base">{mov.property?.name}</TableCell>
+                            <TableCell className="text-right font-bold text-base">
                               {packageQty || "-"}
                             </TableCell>
-                            <TableCell className="text-right text-base sm:text-lg md:text-xl">
+                            <TableCell className="text-right text-base">
                               {Number(mov.quantity).toFixed(2)} {mov.unit}
                             </TableCell>
                           </TableRow>

@@ -1026,110 +1026,110 @@ export default function Reports() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Relatórios e Análises
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             Visão analítica das suas operações e custos
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button onClick={exportToCSV} variant="outline" className="gap-2 w-full sm:w-auto h-12 text-base sm:text-lg" disabled={filteredApplications.length === 0}>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button onClick={exportToCSV} variant="outline" className="gap-2 w-full sm:w-auto h-14 text-base rounded-xl" disabled={filteredApplications.length === 0}>
             <Download className="h-5 w-5" />
-            CSV
+            Exportar CSV
           </Button>
-          <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto h-12 text-base sm:text-lg" disabled={filteredApplications.length === 0}>
+          <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto h-14 text-base rounded-xl" disabled={filteredApplications.length === 0}>
             <FileText className="h-5 w-5" />
-            PDF
+            Gerar PDF
           </Button>
         </div>
       </div>
 
       {/* Filters */}
-      <Card className="p-4 sm:p-6">
+      <Card className="p-4 sm:p-5 rounded-xl">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 sm:h-6 sm:w-6" />
-            <h2 className="font-semibold text-lg sm:text-xl">Filtros</h2>
+          <div className="flex items-center gap-3">
+            <Filter className="h-6 w-6" />
+            <h2 className="font-bold text-lg">Filtros</h2>
           </div>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground hover:text-foreground text-base sm:text-lg">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2 text-muted-foreground hover:text-foreground text-base h-12 px-4 rounded-xl">
               <X className="h-5 w-5" />
-              Limpar filtros
+              Limpar
             </Button>
           )}
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-4">
           {/* Linha 1: Propriedade, Talhão, Receituário */}
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             <Select value={selectedProperty} onValueChange={(v) => { setSelectedProperty(v); setSelectedPlot("all"); }}>
-              <SelectTrigger className="h-12 text-base sm:text-lg">
+              <SelectTrigger className="h-14 text-base rounded-xl">
                 <SelectValue placeholder="Propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all" className="text-base sm:text-lg">Todas Propriedades</SelectItem>
+                <SelectItem value="all" className="text-base py-3">Todas Propriedades</SelectItem>
                 {properties.map((prop: any) => (
-                  <SelectItem key={prop.id} value={prop.id} className="text-base sm:text-lg">{prop.name}</SelectItem>
+                  <SelectItem key={prop.id} value={prop.id} className="text-base py-3">{prop.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
             <Select value={selectedPlot} onValueChange={setSelectedPlot}>
-              <SelectTrigger className="h-12 text-base sm:text-lg">
-                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <SelectTrigger className="h-14 text-base rounded-xl">
+                <MapPin className="h-5 w-5 mr-2" />
                 <SelectValue placeholder="Talhão" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all" className="text-base sm:text-lg">Todos Talhões</SelectItem>
+                <SelectItem value="all" className="text-base py-3">Todos Talhões</SelectItem>
                 {filteredPlots.map((plot) => (
-                  <SelectItem key={plot.id} value={plot.id} className="text-base sm:text-lg">{plot.name}</SelectItem>
+                  <SelectItem key={plot.id} value={plot.id} className="text-base py-3">{plot.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
             <Select value={selectedRecipe} onValueChange={setSelectedRecipe}>
-              <SelectTrigger className="h-12 text-base sm:text-lg">
-                <FlaskConical className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <SelectTrigger className="h-14 text-base rounded-xl">
+                <FlaskConical className="h-5 w-5 mr-2" />
                 <SelectValue placeholder="Receituário" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all" className="text-base sm:text-lg">Todos Receituários</SelectItem>
+                <SelectItem value="all" className="text-base py-3">Todos Receituários</SelectItem>
                 {recipes.map((recipe) => (
-                  <SelectItem key={recipe.id} value={recipe.id} className="text-base sm:text-lg">{recipe.name}</SelectItem>
+                  <SelectItem key={recipe.id} value={recipe.id} className="text-base py-3">{recipe.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           {/* Linha 2: Status, Tipo, Produtos múltiplos */}
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="h-12 text-base sm:text-lg">
+              <SelectTrigger className="h-14 text-base rounded-xl">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all" className="text-base sm:text-lg">Todos Status</SelectItem>
-                <SelectItem value="planejada" className="text-base sm:text-lg">Planejada</SelectItem>
-                <SelectItem value="em_andamento" className="text-base sm:text-lg">Em Andamento</SelectItem>
-                <SelectItem value="concluída" className="text-base sm:text-lg">Concluída</SelectItem>
-                <SelectItem value="cancelada" className="text-base sm:text-lg">Cancelada</SelectItem>
+                <SelectItem value="all" className="text-base py-3">Todos Status</SelectItem>
+                <SelectItem value="planejada" className="text-base py-3">Planejada</SelectItem>
+                <SelectItem value="em_andamento" className="text-base py-3">Em Andamento</SelectItem>
+                <SelectItem value="concluída" className="text-base py-3">Concluída</SelectItem>
+                <SelectItem value="cancelada" className="text-base py-3">Cancelada</SelectItem>
               </SelectContent>
             </Select>
             
             <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="h-12 text-base sm:text-lg">
+              <SelectTrigger className="h-14 text-base rounded-xl">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
-                <SelectItem value="all" className="text-base sm:text-lg">Todos Tipos</SelectItem>
-                <SelectItem value="pulverização" className="text-base sm:text-lg">Pulverização</SelectItem>
-                <SelectItem value="adubação" className="text-base sm:text-lg">Adubação</SelectItem>
-                <SelectItem value="semeadura" className="text-base sm:text-lg">Semeadura</SelectItem>
-                <SelectItem value="outro" className="text-base sm:text-lg">Outro</SelectItem>
+                <SelectItem value="all" className="text-base py-3">Todos Tipos</SelectItem>
+                <SelectItem value="pulverização" className="text-base py-3">Pulverização</SelectItem>
+                <SelectItem value="adubação" className="text-base py-3">Adubação</SelectItem>
+                <SelectItem value="semeadura" className="text-base py-3">Semeadura</SelectItem>
+                <SelectItem value="outro" className="text-base py-3">Outro</SelectItem>
               </SelectContent>
             </Select>
 
@@ -1137,24 +1137,24 @@ export default function Reports() {
             <div className="relative">
               <Button 
                 variant="outline" 
-                className="h-12 w-full justify-start text-base sm:text-lg font-normal"
+                className="h-14 w-full justify-start text-base font-normal rounded-xl"
                 onClick={() => setShowProductsDropdown(!showProductsDropdown)}
               >
                 {selectedProducts.length > 0 
-                  ? `${selectedProducts.length} produto(s)` 
+                  ? `${selectedProducts.length} produto(s) selecionado(s)` 
                   : 'Selecionar produtos'}
               </Button>
               {showProductsDropdown && (
-                <div className="absolute top-14 left-0 right-0 z-50 bg-popover border rounded-md shadow-lg max-h-64 overflow-y-auto p-3">
+                <div className="absolute top-16 left-0 right-0 z-50 bg-popover border rounded-xl shadow-lg max-h-64 overflow-y-auto p-4">
                   {products.map((product: any) => (
-                    <div key={product.id} className="flex items-center space-x-3 py-2">
+                    <div key={product.id} className="flex items-center space-x-3 py-3">
                       <Checkbox
                         id={`product-${product.id}`}
                         checked={selectedProducts.includes(product.id)}
                         onCheckedChange={() => handleProductToggle(product.id)}
-                        className="h-5 w-5"
+                        className="h-6 w-6"
                       />
-                      <Label htmlFor={`product-${product.id}`} className="text-base sm:text-lg cursor-pointer">
+                      <Label htmlFor={`product-${product.id}`} className="text-base cursor-pointer">
                         {product.name}
                       </Label>
                     </div>
@@ -1162,7 +1162,7 @@ export default function Reports() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-full mt-2 text-base sm:text-lg h-10"
+                    className="w-full mt-3 text-base h-12 rounded-xl"
                     onClick={() => setShowProductsDropdown(false)}
                   >
                     Fechar
@@ -1174,178 +1174,178 @@ export default function Reports() {
 
           {/* Linha 3: Período */}
           <div className="flex flex-wrap gap-3 items-center">
-            <span className="text-base sm:text-lg text-muted-foreground">Período:</span>
+            <span className="text-base text-muted-foreground font-medium">Período:</span>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 key="all"
                 variant={selectedPeriod === "all" && selectedMonth === "all" && !dateFrom && !dateTo ? "default" : "outline"}
                 size="sm"
                 onClick={() => handlePeriodChange("all")}
-                className="h-10 px-4 text-base sm:text-lg"
+                className="h-12 px-5 text-base rounded-xl"
               >
                 Todos
               </Button>
               {[
-                { value: "7", label: "7d" },
-                { value: "15", label: "15d" },
-                { value: "30", label: "30d" },
+                { value: "7", label: "7 dias" },
+                { value: "15", label: "15 dias" },
+                { value: "30", label: "30 dias" },
               ].map(({ value, label }) => (
                 <Button
                   key={value}
                   variant={selectedPeriod === value && selectedMonth === "all" && !dateFrom && !dateTo ? "default" : "outline"}
                   size="sm"
                   onClick={() => handlePeriodChange(value)}
-                  className="h-10 px-4 text-base sm:text-lg"
+                  className="h-12 px-5 text-base rounded-xl"
                 >
                   {label}
                 </Button>
               ))}
             </div>
 
-            <span className="text-base sm:text-lg text-muted-foreground mx-2">ou</span>
+            <span className="text-base text-muted-foreground mx-2">ou</span>
 
             <Select value={selectedMonth} onValueChange={handleMonthChange}>
-              <SelectTrigger className="h-10 w-[160px] text-base sm:text-lg">
+              <SelectTrigger className="h-12 w-auto min-w-[180px] text-base rounded-xl">
                 <SelectValue placeholder="Por mês" />
               </SelectTrigger>
               <SelectContent className="bg-popover max-h-[200px]">
-                <SelectItem value="all" className="text-base sm:text-lg">Todos os meses</SelectItem>
+                <SelectItem value="all" className="text-base py-3">Todos os meses</SelectItem>
                 {availableMonths.map((month) => (
-                  <SelectItem key={month} value={month} className="capitalize text-base sm:text-lg">
+                  <SelectItem key={month} value={month} className="capitalize text-base py-3">
                     {getMonthLabel(month)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <span className="text-base sm:text-lg text-muted-foreground mx-2">ou</span>
+            <span className="text-base text-muted-foreground mx-2">ou</span>
 
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-3 items-center flex-wrap">
               <Input 
                 type="date" 
                 value={dateFrom} 
                 onChange={(e) => handleDateChange(e.target.value, dateTo)}
-                className="h-10 w-[140px] text-base sm:text-lg"
+                className="h-12 w-auto min-w-[150px] text-base rounded-xl"
               />
-              <span className="text-base sm:text-lg text-muted-foreground">-</span>
+              <span className="text-base text-muted-foreground">até</span>
               <Input 
                 type="date" 
                 value={dateTo} 
                 onChange={(e) => handleDateChange(dateFrom, e.target.value)}
-                className="h-10 w-[140px] text-base sm:text-lg"
+                className="h-12 w-auto min-w-[150px] text-base rounded-xl"
               />
             </div>
           </div>
 
           {/* Linha 4: Comparativo e opções de PDF */}
-          <div className="flex flex-wrap gap-4 items-center pt-3 border-t">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap gap-4 items-center pt-4 border-t">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="comparison"
                 checked={showComparison}
                 onCheckedChange={(checked) => setShowComparison(!!checked)}
-                className="h-5 w-5"
+                className="h-6 w-6"
               />
-              <Label htmlFor="comparison" className="text-base sm:text-lg cursor-pointer">
+              <Label htmlFor="comparison" className="text-base cursor-pointer">
                 Comparar com período anterior
               </Label>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="pdfNotes"
                 checked={pdfIncludeNotes}
                 onCheckedChange={(checked) => setPdfIncludeNotes(!!checked)}
-                className="h-5 w-5"
+                className="h-6 w-6"
               />
-              <Label htmlFor="pdfNotes" className="text-base sm:text-lg cursor-pointer">
+              <Label htmlFor="pdfNotes" className="text-base cursor-pointer">
                 Incluir observações no PDF
               </Label>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="pdfPlotHistory"
                 checked={pdfIncludePlotHistory}
                 onCheckedChange={(checked) => setPdfIncludePlotHistory(!!checked)}
-                className="h-5 w-5"
+                className="h-6 w-6"
               />
-              <Label htmlFor="pdfPlotHistory" className="text-base sm:text-lg cursor-pointer">
-                Histórico por talhão no PDF
+              <Label htmlFor="pdfPlotHistory" className="text-base cursor-pointer">
+                Histórico por talhão
               </Label>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="pdfExecutive"
                 checked={pdfIncludeExecutiveSummary}
                 onCheckedChange={(checked) => setPdfIncludeExecutiveSummary(!!checked)}
-                className="h-5 w-5"
+                className="h-6 w-6"
               />
-              <Label htmlFor="pdfExecutive" className="text-base sm:text-lg cursor-pointer">
-                Resumo executivo no PDF
+              <Label htmlFor="pdfExecutive" className="text-base cursor-pointer">
+                Resumo executivo
               </Label>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <Checkbox
                 id="pdfProductCosts"
                 checked={pdfIncludeProductCosts}
                 onCheckedChange={(checked) => setPdfIncludeProductCosts(!!checked)}
-                className="h-5 w-5"
+                className="h-6 w-6"
               />
-              <Label htmlFor="pdfProductCosts" className="text-base sm:text-lg cursor-pointer">
-                Custos por produto no PDF
+              <Label htmlFor="pdfProductCosts" className="text-base cursor-pointer">
+                Custos por produto
               </Label>
             </div>
           </div>
 
           {/* Rodapé personalizado */}
-          <div className="flex items-center gap-3 pt-3">
-            <Label htmlFor="customFooter" className="text-base sm:text-lg whitespace-nowrap">
-              Rodapé PDF:
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-4">
+            <Label htmlFor="customFooter" className="text-base font-medium whitespace-nowrap">
+              Rodapé do PDF:
             </Label>
             <Input
               id="customFooter"
               value={pdfCustomFooter}
               onChange={(e) => setPdfCustomFooter(e.target.value)}
               placeholder={profile?.company || "Nome da empresa, contato..."}
-              className="h-10 text-base sm:text-lg flex-1"
+              className="h-14 text-base flex-1 rounded-xl"
             />
           </div>
         </div>
       </Card>
 
       {/* Stats Overview */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4 sm:p-5">
-          <div className="mb-2 flex items-center gap-2">
-            <Target className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <p className="text-sm sm:text-base text-muted-foreground">Área Total</p>
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <Card className="p-5 rounded-xl">
+          <div className="mb-3 flex items-center gap-3">
+            <Target className="h-6 w-6 text-primary" />
+            <p className="text-base text-muted-foreground">Área Total</p>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-foreground">
             {stats.totalArea.toFixed(1)} ha
           </p>
-          <p className="text-sm sm:text-base text-muted-foreground">
+          <p className="text-base text-muted-foreground mt-1">
             {filteredApplications.length} aplicações
           </p>
           {showComparison && previousStats && (
-            <p className={`text-sm mt-1 ${stats.totalArea >= previousStats.totalArea ? 'text-green-600' : 'text-red-500'}`}>
+            <p className={`text-base mt-2 font-medium ${stats.totalArea >= previousStats.totalArea ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
               {stats.totalArea >= previousStats.totalArea ? '↑' : '↓'} {Math.abs(stats.totalArea - previousStats.totalArea).toFixed(1)} ha vs anterior
             </p>
           )}
         </Card>
 
-        <Card className="p-4 sm:p-5">
-          <div className="mb-2 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-            <p className="text-sm sm:text-base text-muted-foreground">Eficiência</p>
+        <Card className="p-5 rounded-xl">
+          <div className="mb-3 flex items-center gap-3">
+            <BarChart3 className="h-6 w-6 text-blue-500" />
+            <p className="text-base text-muted-foreground">Eficiência</p>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-foreground">
             {stats.efficiency.toFixed(0)}%
           </p>
-          <p className="text-sm sm:text-base text-muted-foreground">
+          <p className="text-base text-muted-foreground mt-1">
             {statusStats.concluída} concluídas
           </p>
         </Card>
@@ -1354,27 +1354,27 @@ export default function Reports() {
 
       {/* Gráfico de barras por propriedade */}
       {propertyChartData.length > 0 && (
-        <Card className="p-4 sm:p-6">
-          <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
+        <Card className="p-5 rounded-xl">
+          <h2 className="mb-4 text-lg font-bold text-foreground flex items-center gap-3">
             <BarChart3 className="h-6 w-6" />
             Área por Propriedade
           </h2>
-          <div className="h-[250px] sm:h-[300px]">
+          <div className="h-[280px] sm:h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={propertyChartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis 
                   dataKey="name" 
-                  tick={{ fontSize: 12 }} 
+                  tick={{ fontSize: 14 }} 
                   angle={-45} 
                   textAnchor="end"
                   height={60}
                   className="fill-muted-foreground"
                 />
                 <YAxis 
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 14 }}
                   className="fill-muted-foreground"
-                  label={{ value: 'Hectares', angle: -90, position: 'insideLeft', fontSize: 12 }}
+                  label={{ value: 'Hectares', angle: -90, position: 'insideLeft', fontSize: 14 }}
                 />
                 <Tooltip 
                   formatter={(value: number, name: string) => [
@@ -1382,7 +1382,7 @@ export default function Reports() {
                     name === 'area' ? 'Área' : 'Aplicações'
                   ]}
                   labelFormatter={(label) => propertyChartData.find(d => d.name === label)?.fullName || label}
-                  contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '14px' }}
+                  contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', fontSize: '16px' }}
                 />
                 <Bar dataKey="area" name="area" radius={[4, 4, 0, 0]}>
                   {propertyChartData.map((_, index) => (
@@ -1397,7 +1397,7 @@ export default function Reports() {
 
       {/* Status e Tipo breakdown */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="p-4 sm:p-5">
+        <Card className="p-5 rounded-xl">
           <h3 className="font-semibold mb-4 text-lg sm:text-xl">Por Status</h3>
           <div className="space-y-3">
             <div className="flex justify-between text-base sm:text-lg">
