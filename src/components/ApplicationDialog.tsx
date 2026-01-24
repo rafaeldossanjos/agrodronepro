@@ -165,18 +165,18 @@ function ProductAutocomplete({
         }}
         onKeyDown={handleKeyDown}
         placeholder="Digite para buscar produto..."
-        className="h-9 sm:h-10 text-xs sm:text-sm"
+        className="h-14 text-lg"
       />
       {isOpen && filteredProducts.length > 0 && (
         <div 
           ref={listRef}
-          className="absolute z-50 mt-1 w-full max-h-48 overflow-auto rounded-md border bg-popover shadow-lg"
+          className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-xl border bg-popover shadow-lg"
         >
           {filteredProducts.map((product, index) => (
             <div
               key={product.id}
               className={cn(
-                "flex items-center justify-between px-3 py-2 cursor-pointer text-xs sm:text-sm",
+                "flex items-center justify-between px-4 py-3 cursor-pointer text-lg min-h-[52px]",
                 index === highlightedIndex && "bg-accent",
                 product.id === selectedProductId && "bg-primary/10"
               )}
@@ -187,22 +187,22 @@ function ProductAutocomplete({
               }}
             >
               <div className="flex flex-col">
-                <span className="font-medium">{product.name}</span>
-                <span className="text-muted-foreground text-xs">
+                <span className="font-medium text-lg">{product.name}</span>
+                <span className="text-muted-foreground text-base">
                   R$ {product.unit_price.toFixed(2)}/{product.unit}
                   {product.manufacturer && ` • ${product.manufacturer}`}
                 </span>
               </div>
               {product.id === selectedProductId && (
-                <Check className="h-4 w-4 text-primary" />
+                <Check className="h-5 w-5 text-primary" />
               )}
             </div>
           ))}
         </div>
       )}
       {isOpen && filteredProducts.length === 0 && inputValue && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-3 shadow-lg">
-          <p className="text-xs sm:text-sm text-muted-foreground">
+        <div className="absolute z-50 mt-1 w-full rounded-xl border bg-popover p-4 shadow-lg">
+          <p className="text-lg text-muted-foreground">
             Nenhum produto encontrado
           </p>
         </div>
@@ -454,45 +454,45 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col p-0 gap-0 rounded-xl">
-        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b shrink-0">
-          <DialogTitle className="text-xl sm:text-2xl">
+        <DialogHeader className="px-5 sm:px-8 pt-5 sm:pt-8 pb-5 border-b shrink-0">
+          <DialogTitle>
             {application ? "Editar Aplicação" : "Nova Aplicação"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-scroll px-4 sm:px-6 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <form id="application-form" onSubmit={handleSubmit} className="space-y-5 py-4 pb-6">
+        <div className="flex-1 overflow-y-scroll px-5 sm:px-8 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <form id="application-form" onSubmit={handleSubmit} className="space-y-6 py-5 pb-8">
             {/* Receituário (apenas para nova aplicação) */}
             {!application && recipes.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs sm:text-sm flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
                   Carregar Receituário
                 </Label>
                 <Select value={selectedRecipeId} onValueChange={loadRecipe}>
-                  <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
+                  <SelectTrigger>
                     <SelectValue placeholder="Selecione um receituário (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
                     {recipes.map((recipe) => (
-                      <SelectItem key={recipe.id} value={recipe.id} className="text-xs sm:text-sm">
+                      <SelectItem key={recipe.id} value={recipe.id}>
                         {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-base text-muted-foreground">
                   Ao selecionar, os produtos serão preenchidos automaticamente
                 </p>
               </div>
             )}
 
             {/* Informações Básicas */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-foreground">Informações Básicas</h3>
-              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="property_id" className="text-xs sm:text-sm">Propriedade *</Label>
+            <div className="space-y-5">
+              <h3 className="text-xl font-semibold text-foreground">Informações Básicas</h3>
+              <div className="grid gap-4 sm:gap-5 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <Label htmlFor="property_id">Propriedade *</Label>
                   <Select
                     value={formData.property_id}
                     onValueChange={(value) =>
@@ -502,28 +502,28 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }))
                     }
                   >
-                    <SelectTrigger className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.property_id ? "border-destructive" : ""}`}>
+                    <SelectTrigger className={errors.property_id ? "border-destructive" : ""}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {properties.map((prop) => (
-                        <SelectItem key={prop.id} value={prop.id} className="text-xs sm:text-sm">
+                        <SelectItem key={prop.id} value={prop.id}>
                           {prop.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {errors.property_id && (
-                    <p className="text-xs text-destructive">{errors.property_id}</p>
+                    <p className="text-base text-destructive">{errors.property_id}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="plot_id" className="text-xs sm:text-sm flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
+                <div className="space-y-3">
+                  <Label htmlFor="plot_id" className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
                     Talhão
                   </Label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <Select
                       value={formData.plot_id || "none"}
                       onValueChange={(value) => {
@@ -540,7 +540,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }}
                       disabled={!formData.property_id}
                     >
-                      <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm flex-1">
+                      <SelectTrigger className="flex-1">
                         <SelectValue placeholder={
                           !formData.property_id 
                             ? "Selecione a propriedade primeiro" 
@@ -552,7 +552,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       <SelectContent className="max-h-60 overflow-y-auto">
                         <SelectItem value="none">Nenhum (digitar manualmente)</SelectItem>
                         {availablePlots.map((plot) => (
-                          <SelectItem key={plot.id} value={plot.id} className="text-xs sm:text-sm">
+                          <SelectItem key={plot.id} value={plot.id}>
                             {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
                           </SelectItem>
                         ))}
@@ -563,61 +563,60 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         type="button"
                         variant="outline"
                         size="icon"
-                        className="h-9 sm:h-10 w-9 sm:w-10 shrink-0"
                         onClick={() => {
                           onOpenChange(false);
                           navigate('/map');
                         }}
                         title="Ver no Mapa"
                       >
-                        <MapIcon className="h-4 w-4" />
+                        <MapIcon className="h-5 w-5" />
                       </Button>
                     )}
                   </div>
                   {availablePlots.length === 0 && formData.property_id && !plotsLoading && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-base text-muted-foreground">
                       Nenhum talhão cadastrado. <button type="button" className="text-primary underline" onClick={() => { onOpenChange(false); navigate('/map'); }}>Criar talhão no mapa</button>
                     </p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-xs sm:text-sm">Nome da Aplicação *</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="name">Nome da Aplicação *</Label>
                   <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.name ? "border-destructive" : ""}`}
+                    className={errors.name ? "border-destructive" : ""}
                     placeholder="Ex: Aplicação de herbicida - Safra 2024"
                     required
                   />
                   {errors.name && (
-                    <p className="text-xs text-destructive">{errors.name}</p>
+                    <p className="text-base text-destructive">{errors.name}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="application_date" className="text-xs sm:text-sm">Data *</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="application_date">Data *</Label>
                   <Input
                     id="application_date"
                     type="date"
                     value={formData.application_date}
                     onChange={(e) => setFormData({ ...formData, application_date: e.target.value })}
-                    className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.application_date ? "border-destructive" : ""}`}
+                    className={errors.application_date ? "border-destructive" : ""}
                   />
                   {errors.application_date && (
-                    <p className="text-xs text-destructive">{errors.application_date}</p>
+                    <p className="text-base text-destructive">{errors.application_date}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="application_type" className="text-xs sm:text-sm">Tipo *</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="application_type">Tipo *</Label>
                   <Select
                     value={formData.application_type}
                     onValueChange={(value: any) => setFormData({ ...formData, application_type: value })}
                   >
-                    <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -629,13 +628,13 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="status" className="text-xs sm:text-sm">Status *</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="status">Status *</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value: any) => setFormData({ ...formData, status: value })}
                   >
-                    <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -647,8 +646,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="area_applied" className="text-xs sm:text-sm">Área Aplicada (ha) *</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="area_applied">Área Aplicada (ha) *</Label>
                   <Input
                     id="area_applied"
                     type="text"
@@ -661,11 +660,11 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         handleAreaChange(parseDecimalInput(val));
                       }
                     }}
-                    className={`h-9 sm:h-10 text-xs sm:text-sm ${errors.area_applied ? "border-destructive" : ""}`}
+                    className={errors.area_applied ? "border-destructive" : ""}
                     placeholder="Ex: 10,5"
                   />
                   {errors.area_applied && (
-                    <p className="text-xs text-destructive">{errors.area_applied}</p>
+                    <p className="text-base text-destructive">{errors.area_applied}</p>
                   )}
                 </div>
 
@@ -673,21 +672,21 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
             </div>
 
             {/* Produtos */}
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-foreground">Produtos Aplicados *</h3>
+                <h3 className="text-xl font-semibold text-foreground">Produtos Aplicados *</h3>
               </div>
 
               {errors.products && (
-                <p className="text-xs text-destructive">{errors.products}</p>
+                <p className="text-base text-destructive">{errors.products}</p>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {formData.products.map((productItem, index) => (
-                  <Card key={index} className="p-3 sm:p-4 bg-muted/30">
-                    <div className="space-y-3">
+                  <Card key={index} className="p-4 sm:p-5 bg-muted/30">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs sm:text-sm font-medium text-muted-foreground">
+                        <span className="text-lg font-medium text-muted-foreground">
                           Produto {index + 1}
                         </span>
                         {formData.products.length > 1 && (
@@ -696,16 +695,16 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                             variant="ghost"
                             size="sm"
                             onClick={() => removeProduct(index)}
-                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                            className="h-12 w-12 p-0 text-destructive hover:text-destructive"
                           >
-                            <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <X className="h-5 w-5" />
                           </Button>
                         )}
                       </div>
 
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="space-y-2 sm:col-span-2">
-                          <Label className="text-xs sm:text-sm">Produto *</Label>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-3 sm:col-span-2">
+                          <Label>Produto *</Label>
                           <ProductAutocomplete
                             products={products.filter(p => p.active)}
                             selectedProductId={productItem.product_id}
@@ -713,9 +712,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           />
                         </div>
 
-                        <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm">Dose Recomendada (por ha) *</Label>
-                          <div className="flex gap-2">
+                        <div className="space-y-3">
+                          <Label>Dose Recomendada (por ha) *</Label>
+                          <div className="flex gap-3">
                             <Input
                               type="text"
                               inputMode="decimal"
@@ -727,19 +726,19 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                                   updateProductCalculations(index, { dose_input: value.replace(',', '.') });
                                 }
                               }}
-                              className="h-9 sm:h-10 text-xs sm:text-sm flex-1"
+                              className="flex-1"
                               placeholder="Ex: 0.5"
                             />
                             <Select
                               value={productItem.dose_unit}
                               onValueChange={(value) => updateProductCalculations(index, { dose_unit: value })}
                             >
-                              <SelectTrigger className="h-9 sm:h-10 w-20 text-xs sm:text-sm">
+                              <SelectTrigger className="w-24">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-popover">
                                 {availableUnits.map((unit) => (
-                                  <SelectItem key={unit} value={unit} className="text-xs sm:text-sm">
+                                  <SelectItem key={unit} value={unit}>
                                     {unit}
                                   </SelectItem>
                                 ))}
@@ -748,8 +747,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label className="text-xs sm:text-sm">
+                        <div className="space-y-3">
+                          <Label>
                             Quantidade Total
                             {productItem.product_id && (
                               <span className="text-muted-foreground ml-1">
@@ -760,7 +759,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           <Input
                             type="text"
                             value={productItem.total_amount.toFixed(2)}
-                            className="h-9 sm:h-10 text-xs sm:text-sm bg-muted"
+                            className="bg-muted"
                             readOnly
                           />
                         </div>
@@ -774,36 +773,34 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 onClick={addProduct}
-                className="gap-1 h-8 text-xs sm:text-sm w-full"
+                className="gap-2 w-full"
               >
-                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Plus className="h-5 w-5" />
                 Adicionar Produto
               </Button>
             </div>
 
 
             {/* Observações */}
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-xs sm:text-sm">Observações</Label>
+            <div className="space-y-3">
+              <Label htmlFor="notes">Observações</Label>
               <Textarea
                 id="notes"
                 value={formData.notes || ""}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
-                className="text-xs sm:text-sm"
                 placeholder="Adicione informações adicionais sobre esta aplicação..."
               />
             </div>
           </form>
         </div>
 
-        <div className="flex justify-end gap-3 px-4 sm:px-6 py-4 border-t bg-background shrink-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="text-base h-12 px-6 rounded-xl">
+        <div className="flex justify-end gap-4 px-5 sm:px-8 py-5 border-t bg-background shrink-0">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button type="submit" form="application-form" className="text-base h-12 px-6 rounded-xl">
+          <Button type="submit" form="application-form">
             Salvar Aplicação
           </Button>
         </div>

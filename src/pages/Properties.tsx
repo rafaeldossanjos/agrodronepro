@@ -20,12 +20,12 @@ export default function Properties() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Propriedades</h1>
-          <p className="text-lg text-muted-foreground">
+          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">Propriedades</h1>
+          <p className="text-xl sm:text-2xl text-muted-foreground">
             Gerencie suas fazendas e talhões
           </p>
         </div>
@@ -34,39 +34,39 @@ export default function Properties() {
 
       {/* Properties Grid */}
       {properties.length === 0 ? (
-        <Card className="p-8">
+        <Card className="p-10">
           <div className="text-center">
-            <MapPin className="mx-auto h-14 w-14 text-muted-foreground mb-3" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">
+            <MapPin className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-2xl font-semibold text-foreground mb-3">
               Nenhuma propriedade cadastrada
             </h3>
-            <p className="text-lg text-muted-foreground mb-3">
+            <p className="text-xl text-muted-foreground mb-4">
               Comece criando sua primeira propriedade
             </p>
             <PropertyDialog />
           </div>
         </Card>
       ) : (
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => (
-            <Card key={property.id} className="p-4 transition-all hover:shadow-lg">
-              <div className="mb-2 flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <MapPin className="h-7 w-7 text-primary" />
+            <Card key={property.id} className="p-5 transition-all hover:shadow-lg">
+              <div className="mb-3 flex items-start justify-between">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+                  <MapPin className="h-8 w-8 text-primary" />
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-2">
                   <PropertyDialog 
                     property={property}
                     trigger={
-                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
-                        <Edit className="h-5 w-5" />
+                      <Button variant="ghost" size="sm" className="h-12 w-12 p-0">
+                        <Edit className="h-6 w-6" />
                       </Button>
                     }
                   />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0">
-                        <Trash2 className="h-5 w-5" />
+                      <Button variant="ghost" size="sm" className="h-12 w-12 p-0">
+                        <Trash2 className="h-6 w-6" />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -90,30 +90,30 @@ export default function Properties() {
                 </div>
               </div>
 
-              <h3 className="mb-1 text-2xl font-semibold text-foreground line-clamp-1">
+              <h3 className="mb-2 text-2xl sm:text-3xl font-semibold text-foreground line-clamp-1">
                 {property.name}
               </h3>
-              <p className="mb-2 text-base text-muted-foreground line-clamp-1">
+              <p className="mb-3 text-lg text-muted-foreground line-clamp-1">
                 {property.location}
               </p>
 
-              <div className="space-y-1 border-t border-border pt-2">
-                <div className="flex justify-between text-base">
+              <div className="space-y-2 border-t border-border pt-3">
+                <div className="flex justify-between text-lg">
                   <span className="text-muted-foreground">Área Total</span>
-                  <span className="font-semibold text-xl text-foreground">
+                  <span className="font-semibold text-2xl text-foreground">
                     {property.total_area} ha
                   </span>
                 </div>
-                <div className="flex justify-between text-base">
+                <div className="flex justify-between text-lg">
                   <span className="text-muted-foreground">Talhões</span>
-                  <span className="font-semibold text-xl text-foreground">
+                  <span className="font-semibold text-2xl text-foreground">
                     {property.plot_count}
                   </span>
                 </div>
               </div>
 
               {property.notes && (
-                <div className="mt-2 text-base text-muted-foreground border-t border-border pt-2 line-clamp-2">
+                <div className="mt-3 text-lg text-muted-foreground border-t border-border pt-3 line-clamp-2">
                   {property.notes}
                 </div>
               )}
