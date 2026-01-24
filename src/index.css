@@ -397,24 +397,79 @@ textarea {
   transition: all 0.15s ease-in-out;
 }
 
-/* Dialog mobile optimizations */
+/* Dialog mobile optimizations - iOS safe area support */
 @media (max-width: 640px) {
   [data-radix-dialog-content] {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
     border-radius: 1.25rem 1.25rem 0 0 !important;
-    max-height: 95vh !important;
-    padding: 1.5rem !important;
+    /* Use dvh for iOS compatibility, fallback to vh */
+    max-height: 85vh !important;
+    max-height: 85dvh !important;
+    padding: 1.25rem !important;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)) !important;
   }
   
   [data-radix-select-content] {
-    max-height: 65vh !important;
+    max-height: 50vh !important;
+    max-height: 50dvh !important;
   }
   
   /* Sheet/Drawer from bottom on mobile */
   [data-state="open"][data-vaul-drawer] {
-    max-height: 92vh !important;
+    max-height: 85vh !important;
+    max-height: 85dvh !important;
+  }
+}
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific styles */
+  @media (max-width: 640px) {
+    [data-radix-dialog-content] {
+      max-height: calc(85vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+      padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)) !important;
+    }
+    
+    /* Reduce icon sizes on iOS to prevent overflow */
+    svg:not(.no-scale) {
+      max-width: 1.5rem;
+      max-height: 1.5rem;
+    }
+    
+    /* Tighter spacing on iOS */
+    .space-y-5 > * + * {
+      margin-top: 1rem !important;
+    }
+    
+    /* Smaller text on iOS dialogs */
+    [data-radix-dialog-content] h2,
+    [data-radix-dialog-content] [class*="DialogTitle"] {
+      font-size: 1.5rem !important;
+    }
+    
+    [data-radix-dialog-content] p {
+      font-size: 0.95rem !important;
+    }
+    
+    [data-radix-dialog-content] label {
+      font-size: 1rem !important;
+    }
+    
+    [data-radix-dialog-content] input,
+    [data-radix-dialog-content] select,
+    [data-radix-dialog-content] textarea,
+    [data-radix-dialog-content] button {
+      font-size: 1rem !important;
+      min-height: 48px !important;
+      height: 48px !important;
+    }
+    
+    [data-radix-dialog-content] textarea {
+      height: auto !important;
+      min-height: 80px !important;
+    }
   }
 }
 

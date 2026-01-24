@@ -453,32 +453,32 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] sm:max-h-[85vh] flex flex-col p-0 gap-0 rounded-t-3xl sm:rounded-xl">
-        <DialogHeader className="px-5 sm:px-8 pt-4 sm:pt-6 pb-4 border-b shrink-0">
-          <DialogTitle className="text-2xl sm:text-3xl font-bold">
+      <DialogContent className="max-w-4xl max-h-[80vh] max-h-[80dvh] flex flex-col p-0 gap-0 rounded-t-2xl sm:rounded-xl">
+        <DialogHeader className="px-4 sm:px-6 pt-3 sm:pt-4 pb-3 border-b shrink-0">
+          <DialogTitle className="text-xl sm:text-2xl font-bold">
             {application ? "Editar Aplicação" : "Nova Aplicação"}
           </DialogTitle>
-          <p className="text-lg text-muted-foreground mt-1">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             {application ? "Atualize os dados da aplicação" : "Registre uma nova aplicação agrícola"}
           </p>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-scroll px-5 sm:px-8 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <form id="application-form" onSubmit={handleSubmit} className="space-y-5 py-4 pb-6">
+        <div className="flex-1 overflow-y-scroll px-4 sm:px-6 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <form id="application-form" onSubmit={handleSubmit} className="space-y-4 py-3 pb-4">
             {/* Receituário (apenas para nova aplicação) */}
             {!application && recipes.length > 0 && (
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-lg font-medium">
-                  <BookOpen className="h-5 w-5" />
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
                   Carregar Receituário
                 </Label>
                 <Select value={selectedRecipeId} onValueChange={loadRecipe}>
-                  <SelectTrigger className="h-14 text-lg rounded-xl">
+                  <SelectTrigger>
                     <SelectValue placeholder="Selecione um receituário (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
                     {recipes.map((recipe) => (
-                      <SelectItem key={recipe.id} value={recipe.id} className="text-lg py-3">
+                      <SelectItem key={recipe.id} value={recipe.id}>
                         {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
                       </SelectItem>
                     ))}
@@ -488,11 +488,11 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
             )}
 
             {/* Informações Básicas */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-foreground">Informações Básicas</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="property_id" className="text-lg font-medium">Propriedade *</Label>
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-foreground">Informações Básicas</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="property_id">Propriedade *</Label>
                   <Select
                     value={formData.property_id}
                     onValueChange={(value) =>
@@ -502,25 +502,25 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }))
                     }
                   >
-                    <SelectTrigger className={`h-14 text-lg rounded-xl ${errors.property_id ? "border-destructive" : ""}`}>
+                    <SelectTrigger className={errors.property_id ? "border-destructive" : ""}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {properties.map((prop) => (
-                        <SelectItem key={prop.id} value={prop.id} className="text-lg py-3">
+                        <SelectItem key={prop.id} value={prop.id}>
                           {prop.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {errors.property_id && (
-                    <p className="text-base text-destructive">{errors.property_id}</p>
+                    <p className="text-sm text-destructive">{errors.property_id}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="plot_id" className="flex items-center gap-2 text-lg font-medium">
-                    <MapPin className="h-5 w-5" />
+                <div className="space-y-1.5">
+                  <Label htmlFor="plot_id" className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
                     Talhão
                   </Label>
                   <div className="flex gap-2">
@@ -539,7 +539,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }}
                       disabled={!formData.property_id}
                     >
-                      <SelectTrigger className="flex-1 h-14 text-lg rounded-xl">
+                      <SelectTrigger className="flex-1">
                         <SelectValue placeholder={
                           !formData.property_id 
                             ? "Selecione a propriedade" 
@@ -549,9 +549,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         } />
                       </SelectTrigger>
                       <SelectContent className="max-h-60 overflow-y-auto">
-                        <SelectItem value="none" className="text-lg py-3">Nenhum</SelectItem>
+                        <SelectItem value="none">Nenhum</SelectItem>
                         {availablePlots.map((plot) => (
-                          <SelectItem key={plot.id} value={plot.id} className="text-lg py-3">
+                          <SelectItem key={plot.id} value={plot.id}>
                             {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
                           </SelectItem>
                         ))}
@@ -567,32 +567,31 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           navigate('/map');
                         }}
                         title="Ver no Mapa"
-                        className="h-14 w-14 rounded-xl shrink-0"
                       >
-                        <MapIcon className="h-6 w-6" />
+                        <MapIcon className="h-5 w-5" />
                       </Button>
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-lg font-medium">Nome da Aplicação *</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="name">Nome da Aplicação *</Label>
                   <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={`h-14 text-lg rounded-xl ${errors.name ? "border-destructive" : ""}`}
+                    className={errors.name ? "border-destructive" : ""}
                     placeholder="Ex: Dessecação Talhão Norte"
                     required
                   />
                   {errors.name && (
-                    <p className="text-base text-destructive">{errors.name}</p>
+                    <p className="text-sm text-destructive">{errors.name}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="application_date" className="text-lg font-medium">Data *</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="application_date">Data *</Label>
                   <Input
                     id="application_date"
                     type="date"
@@ -718,19 +717,19 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                                   updateProductCalculations(index, { dose_input: value.replace(',', '.') });
                                 }
                               }}
-                              className="flex-1 h-14 text-lg rounded-xl"
+                              className="flex-1"
                               placeholder="0.5"
                             />
                             <Select
                               value={productItem.dose_unit}
                               onValueChange={(value) => updateProductCalculations(index, { dose_unit: value })}
                             >
-                              <SelectTrigger className="w-20 h-14 text-lg rounded-xl">
+                              <SelectTrigger className="w-20">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-popover">
                                 {availableUnits.map((unit) => (
-                                  <SelectItem key={unit} value={unit} className="text-lg py-3">
+                                  <SelectItem key={unit} value={unit}>
                                     {unit}
                                   </SelectItem>
                                 ))}
@@ -739,8 +738,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label className="text-lg font-medium">
+                        <div className="space-y-1.5">
+                          <Label>
                             Total
                             {productItem.product_id && (
                               <span className="text-muted-foreground ml-1">
@@ -751,7 +750,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           <Input
                             type="text"
                             value={productItem.total_amount.toFixed(2)}
-                            className="bg-muted h-14 text-lg rounded-xl font-medium"
+                            className="bg-muted font-medium"
                             readOnly
                           />
                         </div>
@@ -766,33 +765,32 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 type="button"
                 variant="outline"
                 onClick={addProduct}
-                className="gap-2 w-full h-14 text-lg rounded-xl"
+                className="gap-2 w-full"
               >
-                <Plus className="h-6 w-6" />
+                <Plus className="h-4 w-4" />
                 Adicionar Produto
               </Button>
             </div>
 
             {/* Observações */}
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-lg font-medium">Observações</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="notes">Observações</Label>
               <Textarea
                 id="notes"
                 value={formData.notes || ""}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={2}
                 placeholder="Informações adicionais..."
-                className="text-lg rounded-xl"
               />
             </div>
           </form>
         </div>
 
-        <div className="flex gap-3 px-5 sm:px-8 py-4 border-t bg-background shrink-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-14 text-lg rounded-xl">
+        <div className="flex gap-3 px-4 sm:px-6 py-3 border-t bg-background shrink-0">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
             Cancelar
           </Button>
-          <Button type="submit" form="application-form" className="flex-1 h-14 text-lg rounded-xl">
+          <Button type="submit" form="application-form" className="flex-1">
             Salvar
           </Button>
         </div>
