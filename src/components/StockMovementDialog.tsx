@@ -339,47 +339,47 @@ export function StockMovementDialog({
       {!isEditing && (
         <DialogTrigger asChild>
           {trigger || (
-            <Button className="gap-3 h-14 text-lg px-6 rounded-xl">
-              <Plus className="h-6 w-6" />
+            <Button className="gap-2">
+              <Plus className="h-5 w-5" />
               Registrar Saída
             </Button>
           )}
         </DialogTrigger>
       )}
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-2xl sm:text-3xl font-bold">
+          <DialogTitle className="flex items-center gap-2">
             {isEditing ? (
               <>
-                <Pencil className="h-7 w-7 text-primary" />
+                <Pencil className="h-5 w-5 text-primary" />
                 Editar Movimentação
               </>
             ) : (
               <>
-                <ArrowUpCircle className="h-7 w-7 text-red-500" />
+                <ArrowUpCircle className="h-5 w-5 text-red-500" />
                 Registrar Saída de Estoque
               </>
             )}
           </DialogTitle>
-          <p className="text-base sm:text-lg text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {isEditing ? 'Atualize os dados da movimentação' : 'Registre a retirada de produtos do estoque'}
           </p>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-3">
 
-          <div className="space-y-2">
-            <Label className="text-lg font-medium">Propriedade *</Label>
+          <div className="space-y-1.5">
+            <Label>Propriedade *</Label>
             <Select
               value={formData.property_id}
               onValueChange={(value) => setFormData({ ...formData, property_id: value })}
             >
-              <SelectTrigger className="h-14 text-lg">
+              <SelectTrigger>
                 <SelectValue placeholder="Selecione a propriedade" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
                 {properties.map((property) => (
-                  <SelectItem key={property.id} value={property.id} className="text-base py-3">
+                  <SelectItem key={property.id} value={property.id}>
                     {property.name}
                   </SelectItem>
                 ))}
@@ -388,21 +388,21 @@ export function StockMovementDialog({
           </div>
 
           {!isEditing && (
-            <div className="space-y-2">
-              <Label className="text-lg font-medium flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
+            <div className="space-y-1.5">
+              <Label className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
                 Carregar do Receituário
               </Label>
               <Select
                 value={formData.recipe_id}
                 onValueChange={handleRecipeChange}
               >
-                <SelectTrigger className="h-14 text-lg">
+                <SelectTrigger>
                   <SelectValue placeholder="Selecione um receituário (opcional)" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover max-h-60">
                   {recipes.map((recipe) => (
-                    <SelectItem key={recipe.id} value={recipe.id} className="text-base py-3">
+                    <SelectItem key={recipe.id} value={recipe.id}>
                       {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
                     </SelectItem>
                   ))}
@@ -411,17 +411,17 @@ export function StockMovementDialog({
             </div>
           )}
 
-          <div className="space-y-3">
-            <Label className="text-lg font-semibold">Produtos</Label>
+          <div className="space-y-2">
+            <Label className="font-semibold">Produtos</Label>
             
             {productItems.length === 0 ? (
-              <p className="text-muted-foreground text-base py-3">
+              <p className="text-muted-foreground text-sm py-2">
                 Selecione um receituário ou adicione produtos manualmente
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {productItems.map((item, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-3">
+                  <div key={index} className="border rounded-lg p-3 space-y-2">
                     {!item.product_id ? (
                       <ProductAutocompleteInput
                         products={products.filter(p => p.active)}
@@ -440,25 +440,25 @@ export function StockMovementDialog({
                       />
                     ) : (
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-lg">{item.product_name}</span>
+                        <span className="font-medium">{item.product_name}</span>
                         {!isEditing && (
                           <Button 
                             type="button" 
                             variant="ghost" 
                             size="sm"
                             onClick={() => removeProduct(index)}
-                            className="h-10 w-10 p-0 text-destructive"
+                            className="h-8 w-8 p-0 text-destructive"
                           >
-                            <Trash2 className="h-5 w-5" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
                     )}
                     
                     {item.product_id && (
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <Label className="text-sm font-medium">Embalagens</Label>
+                          <Label className="text-xs">Embalagens</Label>
                           <Input
                             type="number"
                             step="0.5"
@@ -466,26 +466,25 @@ export function StockMovementDialog({
                             value={item.quantity_units}
                             onChange={(e) => updateProductQuantity(index, e.target.value)}
                             placeholder="Qtd"
-                            className="h-14 text-lg"
                           />
                         </div>
                         <div>
-                          <Label className="text-sm font-medium">Tamanho</Label>
+                          <Label className="text-xs">Tamanho</Label>
                           <Input
                             value={`${item.package_size} ${item.unit}`}
                             readOnly
-                            className="bg-muted h-14 text-lg"
+                            className="bg-muted"
                           />
                         </div>
                         <div>
-                          <Label className="text-sm font-medium">Total</Label>
+                          <Label className="text-xs">Total</Label>
                           <Input
                             value={item.quantity_units ? 
                               `${(Number(item.quantity_units) * item.package_size).toFixed(1)} ${item.unit}` : 
                               '-'
                             }
                             readOnly
-                            className="bg-muted h-14 text-lg font-medium text-primary"
+                            className="bg-muted font-medium text-primary"
                           />
                         </div>
                       </div>
@@ -496,38 +495,37 @@ export function StockMovementDialog({
             )}
             
             {!isEditing && (
-              <Button type="button" variant="outline" onClick={addProduct} className="w-full h-14 gap-2 text-lg">
-                <Plus className="h-5 w-5" />
+              <Button type="button" variant="outline" onClick={addProduct} className="w-full gap-2">
+                <Plus className="h-4 w-4" />
                 Adicionar Produto
               </Button>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-lg font-medium">Data da Movimentação</Label>
+          <div className="space-y-1.5">
+            <Label>Data da Movimentação</Label>
             <Input
               type="date"
               value={formData.movement_date}
               onChange={(e) => setFormData({ ...formData, movement_date: e.target.value })}
-              className="h-14 text-lg px-4 rounded-xl"
             />
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Data em que a retirada foi realizada
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-lg font-medium">Motivo da Saída</Label>
+          <div className="space-y-1.5">
+            <Label>Motivo da Saída</Label>
             <Select
               value={formData.reason}
               onValueChange={(value) => setFormData({ ...formData, reason: value })}
             >
-              <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
+              <SelectTrigger>
                 <SelectValue placeholder="Selecione o motivo" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
                 {reasons.saida.map((reason) => (
-                  <SelectItem key={reason.value} value={reason.value} className="text-lg py-3">
+                  <SelectItem key={reason.value} value={reason.value}>
                     {reason.label}
                   </SelectItem>
                 ))}
@@ -535,30 +533,29 @@ export function StockMovementDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-lg font-medium">Observações</Label>
+          <div className="space-y-1.5">
+            <Label>Observações</Label>
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Informações adicionais sobre a movimentação..."
-              rows={3}
-              className="text-lg px-4 py-3 rounded-xl resize-none"
+              rows={2}
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-3">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => setDialogOpen(false)} 
-              className="flex-1 h-14 text-lg rounded-xl"
+              className="flex-1"
             >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               disabled={isSubmitting || !formData.property_id || !hasValidProducts} 
-              className="flex-1 h-14 text-lg rounded-xl"
+              className="flex-1"
             >
               {isSubmitting ? 'Salvando...' : isEditing ? 'Atualizar' : 'Salvar Saída'}
             </Button>
