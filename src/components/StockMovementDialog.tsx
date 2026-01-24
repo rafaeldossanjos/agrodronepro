@@ -164,7 +164,7 @@ export function StockMovementDialog({
   const [formData, setFormData] = useState({
     property_id: defaultPropertyId || '',
     recipe_id: '',
-    reason: '',
+    reason: 'aplicacao', // Pré-selecionado como "Aplicação"
     notes: '',
     movement_date: new Date().toISOString().split('T')[0],
   });
@@ -199,7 +199,7 @@ export function StockMovementDialog({
         setFormData({
           property_id: defaultPropertyId || '',
           recipe_id: '',
-          reason: '',
+          reason: 'aplicacao', // Pré-selecionado como "Aplicação"
           notes: '',
           movement_date: new Date().toISOString().split('T')[0],
         });

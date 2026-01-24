@@ -262,7 +262,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     plot_id: null,
     plot_name: "",
     name: "",
-    application_date: "",
+    application_date: new Date().toISOString().split('T')[0], // Data atual pré-preenchida
     application_type: "pulverização",
     status: "planejada",
     area_applied: 0,
@@ -324,7 +324,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         plot_id: null,
         plot_name: "",
         name: "",
-        application_date: "",
+        application_date: new Date().toISOString().split('T')[0], // Data atual pré-preenchida
         application_type: "pulverização",
         status: "planejada",
         area_applied: 0,
@@ -453,46 +453,46 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col p-0 gap-0 rounded-xl">
-        <DialogHeader className="px-5 sm:px-8 pt-5 sm:pt-8 pb-5 border-b shrink-0">
-          <DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] sm:max-h-[85vh] flex flex-col p-0 gap-0 rounded-t-3xl sm:rounded-xl">
+        <DialogHeader className="px-5 sm:px-8 pt-4 sm:pt-6 pb-4 border-b shrink-0">
+          <DialogTitle className="text-2xl sm:text-3xl font-bold">
             {application ? "Editar Aplicação" : "Nova Aplicação"}
           </DialogTitle>
+          <p className="text-lg text-muted-foreground mt-1">
+            {application ? "Atualize os dados da aplicação" : "Registre uma nova aplicação agrícola"}
+          </p>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-scroll px-5 sm:px-8 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <form id="application-form" onSubmit={handleSubmit} className="space-y-6 py-5 pb-8">
+          <form id="application-form" onSubmit={handleSubmit} className="space-y-5 py-4 pb-6">
             {/* Receituário (apenas para nova aplicação) */}
             {!application && recipes.length > 0 && (
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-lg font-medium">
                   <BookOpen className="h-5 w-5" />
                   Carregar Receituário
                 </Label>
                 <Select value={selectedRecipeId} onValueChange={loadRecipe}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-14 text-lg rounded-xl">
                     <SelectValue placeholder="Selecione um receituário (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
                     {recipes.map((recipe) => (
-                      <SelectItem key={recipe.id} value={recipe.id}>
+                      <SelectItem key={recipe.id} value={recipe.id} className="text-lg py-3">
                         {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-base text-muted-foreground">
-                  Ao selecionar, os produtos serão preenchidos automaticamente
-                </p>
               </div>
             )}
 
             {/* Informações Básicas */}
-            <div className="space-y-5">
+            <div className="space-y-4">
               <h3 className="text-xl font-semibold text-foreground">Informações Básicas</h3>
-              <div className="grid gap-4 sm:gap-5 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <Label htmlFor="property_id">Propriedade *</Label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="property_id" className="text-lg font-medium">Propriedade *</Label>
                   <Select
                     value={formData.property_id}
                     onValueChange={(value) =>
@@ -502,12 +502,12 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }))
                     }
                   >
-                    <SelectTrigger className={errors.property_id ? "border-destructive" : ""}>
+                    <SelectTrigger className={`h-14 text-lg rounded-xl ${errors.property_id ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {properties.map((prop) => (
-                        <SelectItem key={prop.id} value={prop.id}>
+                        <SelectItem key={prop.id} value={prop.id} className="text-lg py-3">
                           {prop.name}
                         </SelectItem>
                       ))}
@@ -518,12 +518,12 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="plot_id" className="flex items-center gap-2">
+                <div className="space-y-2">
+                  <Label htmlFor="plot_id" className="flex items-center gap-2 text-lg font-medium">
                     <MapPin className="h-5 w-5" />
                     Talhão
                   </Label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <Select
                       value={formData.plot_id || "none"}
                       onValueChange={(value) => {
@@ -531,7 +531,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         const newPlotId = value === "none" ? null : value;
                         const newPlotName = selectedPlot?.name || (value === "none" ? "" : formData.plot_name);
                         
-                        // Only update plot_id and plot_name, do NOT auto-fill area
                         setFormData(prev => ({ 
                           ...prev, 
                           plot_id: newPlotId,
@@ -540,19 +539,19 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }}
                       disabled={!formData.property_id}
                     >
-                      <SelectTrigger className="flex-1">
+                      <SelectTrigger className="flex-1 h-14 text-lg rounded-xl">
                         <SelectValue placeholder={
                           !formData.property_id 
-                            ? "Selecione a propriedade primeiro" 
+                            ? "Selecione a propriedade" 
                             : plotsLoading 
-                              ? "Carregando talhões..." 
+                              ? "Carregando..." 
                               : "Selecione um talhão"
                         } />
                       </SelectTrigger>
                       <SelectContent className="max-h-60 overflow-y-auto">
-                        <SelectItem value="none">Nenhum (digitar manualmente)</SelectItem>
+                        <SelectItem value="none" className="text-lg py-3">Nenhum</SelectItem>
                         {availablePlots.map((plot) => (
-                          <SelectItem key={plot.id} value={plot.id}>
+                          <SelectItem key={plot.id} value={plot.id} className="text-lg py-3">
                             {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
                           </SelectItem>
                         ))}
@@ -568,27 +567,23 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           navigate('/map');
                         }}
                         title="Ver no Mapa"
+                        className="h-14 w-14 rounded-xl shrink-0"
                       >
-                        <MapIcon className="h-5 w-5" />
+                        <MapIcon className="h-6 w-6" />
                       </Button>
                     )}
                   </div>
-                  {availablePlots.length === 0 && formData.property_id && !plotsLoading && (
-                    <p className="text-base text-muted-foreground">
-                      Nenhum talhão cadastrado. <button type="button" className="text-primary underline" onClick={() => { onOpenChange(false); navigate('/map'); }}>Criar talhão no mapa</button>
-                    </p>
-                  )}
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="name">Nome da Aplicação *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-lg font-medium">Nome da Aplicação *</Label>
                   <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={errors.name ? "border-destructive" : ""}
-                    placeholder="Ex: Aplicação de herbicida - Safra 2024"
+                    className={`h-14 text-lg rounded-xl ${errors.name ? "border-destructive" : ""}`}
+                    placeholder="Ex: Dessecação Talhão Norte"
                     required
                   />
                   {errors.name && (
@@ -596,58 +591,58 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="application_date">Data *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="application_date" className="text-lg font-medium">Data *</Label>
                   <Input
                     id="application_date"
                     type="date"
                     value={formData.application_date}
                     onChange={(e) => setFormData({ ...formData, application_date: e.target.value })}
-                    className={errors.application_date ? "border-destructive" : ""}
+                    className={`h-14 text-lg rounded-xl ${errors.application_date ? "border-destructive" : ""}`}
                   />
                   {errors.application_date && (
                     <p className="text-base text-destructive">{errors.application_date}</p>
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="application_type">Tipo *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="application_type" className="text-lg font-medium">Tipo *</Label>
                   <Select
                     value={formData.application_type}
                     onValueChange={(value: any) => setFormData({ ...formData, application_type: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-14 text-lg rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pulverização">Pulverização</SelectItem>
-                      <SelectItem value="adubação">Adubação</SelectItem>
-                      <SelectItem value="semeadura">Semeadura</SelectItem>
-                      <SelectItem value="outro">Outro</SelectItem>
+                      <SelectItem value="pulverização" className="text-lg py-3">Pulverização</SelectItem>
+                      <SelectItem value="adubação" className="text-lg py-3">Adubação</SelectItem>
+                      <SelectItem value="semeadura" className="text-lg py-3">Semeadura</SelectItem>
+                      <SelectItem value="outro" className="text-lg py-3">Outro</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="status">Status *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="status" className="text-lg font-medium">Status *</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value: any) => setFormData({ ...formData, status: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-14 text-lg rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="planejada">Planejada</SelectItem>
-                      <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                      <SelectItem value="concluída">Concluída</SelectItem>
-                      <SelectItem value="cancelada">Cancelada</SelectItem>
+                      <SelectItem value="planejada" className="text-lg py-3">Planejada</SelectItem>
+                      <SelectItem value="em_andamento" className="text-lg py-3">Em Andamento</SelectItem>
+                      <SelectItem value="concluída" className="text-lg py-3">Concluída</SelectItem>
+                      <SelectItem value="cancelada" className="text-lg py-3">Cancelada</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="area_applied">Área Aplicada (ha) *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="area_applied" className="text-lg font-medium">Área (ha) *</Label>
                   <Input
                     id="area_applied"
                     type="text"
@@ -660,7 +655,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         handleAreaChange(parseDecimalInput(val));
                       }
                     }}
-                    className={errors.area_applied ? "border-destructive" : ""}
+                    className={`h-14 text-lg rounded-xl ${errors.area_applied ? "border-destructive" : ""}`}
                     placeholder="Ex: 10,5"
                   />
                   {errors.area_applied && (
@@ -672,19 +667,17 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
             </div>
 
             {/* Produtos */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-foreground">Produtos Aplicados *</h3>
-              </div>
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold text-foreground">Produtos Aplicados *</h3>
 
               {errors.products && (
                 <p className="text-base text-destructive">{errors.products}</p>
               )}
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {formData.products.map((productItem, index) => (
-                  <Card key={index} className="p-4 sm:p-5 bg-muted/30">
-                    <div className="space-y-4">
+                  <Card key={index} className="p-4 bg-muted/30 rounded-xl">
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-medium text-muted-foreground">
                           Produto {index + 1}
@@ -697,14 +690,14 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                             onClick={() => removeProduct(index)}
                             className="h-12 w-12 p-0 text-destructive hover:text-destructive"
                           >
-                            <X className="h-5 w-5" />
+                            <X className="h-6 w-6" />
                           </Button>
                         )}
                       </div>
 
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-3 sm:col-span-2">
-                          <Label>Produto *</Label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-2 sm:col-span-2">
+                          <Label className="text-lg font-medium">Produto *</Label>
                           <ProductAutocomplete
                             products={products.filter(p => p.active)}
                             selectedProductId={productItem.product_id}
@@ -712,33 +705,32 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           />
                         </div>
 
-                        <div className="space-y-3">
-                          <Label>Dose Recomendada (por ha) *</Label>
-                          <div className="flex gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-lg font-medium">Dose/ha *</Label>
+                          <div className="flex gap-2">
                             <Input
                               type="text"
                               inputMode="decimal"
                               value={productItem.dose_input}
                               onChange={(e) => {
                                 const value = e.target.value;
-                                // Permitir apenas números, ponto e vírgula
                                 if (value === '' || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
                                   updateProductCalculations(index, { dose_input: value.replace(',', '.') });
                                 }
                               }}
-                              className="flex-1"
-                              placeholder="Ex: 0.5"
+                              className="flex-1 h-14 text-lg rounded-xl"
+                              placeholder="0.5"
                             />
                             <Select
                               value={productItem.dose_unit}
                               onValueChange={(value) => updateProductCalculations(index, { dose_unit: value })}
                             >
-                              <SelectTrigger className="w-24">
+                              <SelectTrigger className="w-20 h-14 text-lg rounded-xl">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-popover">
                                 {availableUnits.map((unit) => (
-                                  <SelectItem key={unit} value={unit}>
+                                  <SelectItem key={unit} value={unit} className="text-lg py-3">
                                     {unit}
                                   </SelectItem>
                                 ))}
@@ -747,9 +739,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           </div>
                         </div>
 
-                        <div className="space-y-3">
-                          <Label>
-                            Quantidade Total
+                        <div className="space-y-2">
+                          <Label className="text-lg font-medium">
+                            Total
                             {productItem.product_id && (
                               <span className="text-muted-foreground ml-1">
                                 ({products.find(p => p.id === productItem.product_id)?.unit || 'L'})
@@ -759,7 +751,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           <Input
                             type="text"
                             value={productItem.total_amount.toFixed(2)}
-                            className="bg-muted"
+                            className="bg-muted h-14 text-lg rounded-xl font-medium"
                             readOnly
                           />
                         </div>
@@ -774,34 +766,34 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 type="button"
                 variant="outline"
                 onClick={addProduct}
-                className="gap-2 w-full"
+                className="gap-2 w-full h-14 text-lg rounded-xl"
               >
-                <Plus className="h-5 w-5" />
+                <Plus className="h-6 w-6" />
                 Adicionar Produto
               </Button>
             </div>
 
-
             {/* Observações */}
-            <div className="space-y-3">
-              <Label htmlFor="notes">Observações</Label>
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-lg font-medium">Observações</Label>
               <Textarea
                 id="notes"
                 value={formData.notes || ""}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-                placeholder="Adicione informações adicionais sobre esta aplicação..."
+                rows={2}
+                placeholder="Informações adicionais..."
+                className="text-lg rounded-xl"
               />
             </div>
           </form>
         </div>
 
-        <div className="flex justify-end gap-4 px-5 sm:px-8 py-5 border-t bg-background shrink-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="flex gap-3 px-5 sm:px-8 py-4 border-t bg-background shrink-0">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-14 text-lg rounded-xl">
             Cancelar
           </Button>
-          <Button type="submit" form="application-form">
-            Salvar Aplicação
+          <Button type="submit" form="application-form" className="flex-1 h-14 text-lg rounded-xl">
+            Salvar
           </Button>
         </div>
       </DialogContent>
