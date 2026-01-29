@@ -699,7 +699,7 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Detalhes das Aplicações - Agrupado por Talhão
+    // Detalhes das Aplicações - Listagem individual agrupada por Talhão
     if (filteredApplications.length > 0) {
       if (yPosition > 200) {
         doc.addPage();
@@ -709,103 +709,119 @@ export default function Reports() {
       doc.setTextColor(34, 139, 34);
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Detalhes das Aplicações por Talhão', 14, yPosition);
+      doc.text('Detalhes das Aplicações', 14, yPosition);
       yPosition += 4;
 
-      // Agrupar aplicações por talhão
+      // Agrupar aplicações por talhão para organizar a listagem
       const appsByPlot: Record<string, {
         plotName: string;
-        propertyName: string;
-        apps: typeof filteredApplications;
-        totalArea: number;
-        products: Map<string, { amount: number; unit: string }>;
+        plotId: string | null;
+        plotAreaHectares: number | null;
+        apps: any[];
       }> = {};
 
       filteredApplications.forEach((app: any) => {
         const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
         const plotName = app.plot_name || 'Sem talhão';
         
+        // Buscar área do talhão cadastrado
+        const plotData = plots.find(p => p.id === app.plot_id);
+        const plotAreaHectares = plotData?.area_hectares || null;
+        
         if (!appsByPlot[plotKey]) {
           appsByPlot[plotKey] = {
             plotName,
-            propertyName: app.properties?.name || 'N/A',
+            plotId: app.plot_id,
+            plotAreaHectares,
             apps: [],
-            totalArea: 0,
-            products: new Map(),
           };
         }
         
         appsByPlot[plotKey].apps.push(app);
-        appsByPlot[plotKey].totalArea += Number(app.area_applied);
+      });
+
+      // Criar linhas para a tabela - cada aplicação é uma linha separada
+      const tableRows: any[] = [];
+      
+      // Ordenar talhões por nome
+      const sortedPlots = Object.values(appsByPlot).sort((a, b) => 
+        a.plotName.localeCompare(b.plotName)
+      );
+      
+      sortedPlots.forEach((plotGroup, plotIndex) => {
+        // Para cada aplicação do talhão, criar uma linha
+        plotGroup.apps.forEach((app: any, appIndex: number) => {
+          const appName = app.name || `Aplicação ${format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}`;
+          const appArea = Number(app.area_applied).toFixed(2);
+          
+          // Produtos da aplicação
+          const productsText = app.application_products && app.application_products.length > 0
+            ? app.application_products
+                .map((p: any) => `${p.products?.name || 'Produto'}: ${Number(p.total_amount).toFixed(2)} ${p.products?.unit || ''}`)
+                .join('\n')
+            : '-';
+          
+          // Talhão - mostrar nome e área apenas na primeira aplicação do grupo
+          const plotInfo = appIndex === 0 
+            ? plotGroup.plotName + (plotGroup.plotAreaHectares ? ` (${Number(plotGroup.plotAreaHectares).toFixed(2)} ha)` : '')
+            : '';
+          
+          const row = [
+            appName,
+            `${appArea} ha`,
+            productsText,
+            plotInfo,
+          ];
+          
+          if (pdfIncludeNotes) {
+            row.push(app.notes || '-');
+          }
+          
+          tableRows.push(row);
+        });
         
-        // Somar produtos
-        if (app.application_products) {
-          app.application_products.forEach((p: any) => {
-            const productName = p.products?.name || 'Produto';
-            const productUnit = p.products?.unit || '';
-            const existing = appsByPlot[plotKey].products.get(productName) || { amount: 0, unit: productUnit };
-            existing.amount += Number(p.total_amount || 0);
-            appsByPlot[plotKey].products.set(productName, existing);
-          });
+        // Adicionar linha separadora entre talhões (exceto no último)
+        if (plotIndex < sortedPlots.length - 1 && plotGroup.apps.length > 0) {
+          // Linha vazia para separar grupos (será estilizada diferente)
+          const separatorRow = pdfIncludeNotes ? ['', '', '', '', ''] : ['', '', '', ''];
+          tableRows.push(separatorRow);
         }
       });
 
-      const plotRows = Object.values(appsByPlot).map((plotData) => {
-        // Nomes das aplicações
-        const appNames = plotData.apps
-          .map((app: any) => app.name || `Aplicação ${format(new Date(app.application_date + 'T00:00:00'), "dd/MM", { locale: ptBR })}`)
-          .join(', ');
-        
-        // Produtos somados
-        const productsText = Array.from(plotData.products.entries())
-          .map(([name, data]) => `${name}: ${data.amount.toFixed(2)} ${data.unit}`)
-          .join('\n');
-        
-        // Observações (se habilitado)
-        const notesText = plotData.apps
-          .filter((app: any) => app.notes)
-          .map((app: any) => app.notes)
-          .join('; ');
-        
-        const row = [
-          plotData.plotName,
-          `${plotData.apps.length} aplicação(ões)`,
-          appNames.length > 50 ? appNames.substring(0, 47) + '...' : appNames,
-          `${plotData.totalArea.toFixed(2)} ha`,
-          productsText || '-',
-        ];
-        
-        if (pdfIncludeNotes) {
-          row.push(notesText || '-');
-        }
-        
-        return row;
-      });
-
-      const headers = ['Talhão', 'Qtd', 'Aplicações', 'Área Total', 'Produtos (Total)'];
+      const headers = ['Aplicação', 'Área', 'Produtos', 'Talhão'];
       if (pdfIncludeNotes) headers.push('Observações');
 
       autoTable(doc, {
         startY: yPosition,
         head: [headers],
-        body: plotRows,
+        body: tableRows,
         theme: 'striped',
         headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
-        styles: { fontSize: 8, cellPadding: 2 },
+        styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
         alternateRowStyles: { fillColor: [245, 250, 245] },
         columnStyles: pdfIncludeNotes ? {
-          0: { cellWidth: 28 },
-          1: { cellWidth: 20 },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 18 },
-          4: { cellWidth: 45 },
-          5: { cellWidth: 30 },
+          0: { cellWidth: 40 },  // Aplicação - nome completo
+          1: { cellWidth: 20 },  // Área
+          2: { cellWidth: 50 },  // Produtos
+          3: { cellWidth: 35 },  // Talhão
+          4: { cellWidth: 35 },  // Observações
         } : {
-          0: { cellWidth: 35 },
-          1: { cellWidth: 25 },
-          2: { cellWidth: 45 },
-          3: { cellWidth: 22 },
-          4: { cellWidth: 55 },
+          0: { cellWidth: 50 },  // Aplicação
+          1: { cellWidth: 22 },  // Área
+          2: { cellWidth: 60 },  // Produtos
+          3: { cellWidth: 50 },  // Talhão
+        },
+        didParseCell: function(data) {
+          // Destacar linha do talhão (primeira aplicação do grupo)
+          if (data.column.index === 3 && data.cell.raw && String(data.cell.raw).length > 0) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [230, 245, 230];
+          }
+          // Linhas separadoras vazias - menor altura
+          if (data.row.raw && Array.isArray(data.row.raw) && data.row.raw.every((cell: any) => cell === '')) {
+            data.cell.styles.minCellHeight = 2;
+            data.cell.styles.fillColor = [255, 255, 255];
+          }
         },
       });
     }
