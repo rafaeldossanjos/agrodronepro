@@ -1591,62 +1591,107 @@ export default function Reports() {
         </Card>
       )}
 
-      {/* Lista de Aplicações Detalhada */}
+      {/* Lista de Aplicações Detalhada - Agrupada por Talhão */}
       <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground">
-          Detalhes das Aplicações
+        <h2 className="mb-4 text-xl sm:text-2xl font-semibold text-foreground">
+          Lista de Aplicações
         </h2>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {filteredApplications.length === 0 ? (
-            <p className="text-center text-base sm:text-lg text-muted-foreground py-8">
+            <p className="text-center text-lg sm:text-xl text-muted-foreground py-8">
               Nenhuma aplicação encontrada para os filtros selecionados
             </p>
           ) : (
-            filteredApplications.map((app: any) => (
-              <div key={app.id} className="border border-border rounded-lg p-4">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
-                  <div>
-                    <p className="font-medium text-foreground text-base sm:text-lg">
-                      {app.properties?.name || 'Propriedade'}
-                      {app.plot_name && ` - ${app.plot_name}`}
-                    </p>
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      {format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })} • {app.application_type} • {app.area_applied} ha
-                    </p>
-                    <span className={`inline-block mt-1 text-sm sm:text-base px-3 py-1 rounded-full ${
-                      app.status === 'concluída' ? 'bg-green-100 text-green-800' :
-                      app.status === 'em_andamento' ? 'bg-blue-100 text-blue-800' :
-                      app.status === 'cancelada' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {formatStatusLabel(app.status)}
-                    </span>
-                  </div>
-                </div>
+            // Agrupar aplicações por talhão
+            (() => {
+              const appsByPlot: Record<string, { plotName: string; propertyName: string; apps: typeof filteredApplications }> = {};
+              
+              filteredApplications.forEach((app: any) => {
+                const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
+                const plotName = app.plot_name || 'Sem Talhão';
                 
-                {app.application_products && app.application_products.length > 0 && (
-                  <div className="bg-muted/30 rounded p-3">
-                    <p className="text-sm sm:text-base font-medium text-muted-foreground mb-2">Produtos:</p>
-                    <div className="space-y-2">
-                      {app.application_products.map((p: any, idx: number) => (
-                        <div key={idx} className="flex justify-between text-base sm:text-lg">
-                          <span className="text-foreground">{p.products?.name || 'Produto'}</span>
-                          <span className="text-muted-foreground">
-                            {Number(p.total_amount).toFixed(2)} {p.products?.unit || ''}
-                          </span>
+                if (!appsByPlot[plotKey]) {
+                  appsByPlot[plotKey] = {
+                    plotName,
+                    propertyName: app.properties?.name || 'N/A',
+                    apps: [],
+                  };
+                }
+                appsByPlot[plotKey].apps.push(app);
+              });
+
+              return Object.entries(appsByPlot)
+                .sort(([, a], [, b]) => a.plotName.localeCompare(b.plotName, 'pt-BR'))
+                .map(([plotKey, plotData]) => (
+                  <div key={plotKey} className="border border-border rounded-xl p-4 sm:p-5">
+                    {/* Header do talhão */}
+                    <div className="flex items-center gap-3 mb-4 pb-3 border-b border-border">
+                      <MapPin className="h-6 w-6 text-primary flex-shrink-0" />
+                      <div>
+                        <p className="font-bold text-xl sm:text-2xl text-foreground">
+                          {plotData.plotName}
+                        </p>
+                        <p className="text-base sm:text-lg text-muted-foreground">
+                          {plotData.propertyName} • {plotData.apps.length} aplicação(ões)
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Lista de aplicações do talhão */}
+                    <div className="space-y-3">
+                      {plotData.apps.map((app: any) => (
+                        <div key={app.id} className="bg-muted/20 rounded-lg p-4">
+                          <div className="flex flex-col gap-2">
+                            {/* Nome da aplicação em destaque */}
+                            <p className="font-semibold text-lg sm:text-xl text-foreground">
+                              {app.name || 'Aplicação sem nome'}
+                            </p>
+                            
+                            {/* Informações da aplicação */}
+                            <div className="flex flex-wrap gap-3 items-center text-base sm:text-lg text-muted-foreground">
+                              <span>{format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}</span>
+                              <span>•</span>
+                              <span>{app.application_type}</span>
+                              <span>•</span>
+                              <span>{app.area_applied} ha</span>
+                              <span className={`inline-block px-3 py-1 rounded-full text-sm sm:text-base ${
+                                app.status === 'concluída' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                                app.status === 'em_andamento' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+                                app.status === 'cancelada' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              }`}>
+                                {formatStatusLabel(app.status)}
+                              </span>
+                            </div>
+                            
+                            {/* Produtos */}
+                            {app.application_products && app.application_products.length > 0 && (
+                              <div className="mt-2 text-base sm:text-lg">
+                                <span className="font-medium text-muted-foreground">Produtos: </span>
+                                <span className="text-foreground">
+                                  {app.application_products.map((p: any, idx: number) => (
+                                    <span key={idx}>
+                                      {p.products?.name || 'Produto'} ({Number(p.total_amount).toFixed(2)} {p.products?.unit || ''})
+                                      {idx < app.application_products.length - 1 ? ', ' : ''}
+                                    </span>
+                                  ))}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {/* Observações */}
+                            {app.notes && (
+                              <p className="text-base text-muted-foreground italic mt-1">
+                                Obs: {app.notes}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
-
-                {app.notes && (
-                  <div className="mt-2 p-3 bg-muted/20 rounded text-sm sm:text-base text-muted-foreground">
-                    <span className="font-medium">Obs:</span> {app.notes}
-                  </div>
-                )}
-              </div>
-            ))
+                ));
+            })()
           )}
         </div>
       </Card>

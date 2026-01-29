@@ -94,12 +94,11 @@ export default function Stock() {
     return labels[reason || ''] || reason || '-';
   };
 
-  // Função para calcular quantidade em unidades/baldes
-  const formatPackageQuantity = (quantity: number, packageSize: number | null, unit: string) => {
+  // Função para calcular quantidade em unidades
+  const formatPackageQuantity = (quantity: number, packageSize: number | null) => {
     if (!packageSize || packageSize <= 0) return null;
     const packages = quantity / packageSize;
-    const unitLabel = unit.toLowerCase().includes('kg') || unit.toLowerCase().includes('l') ? 'balde(s)' : 'unidade(s)';
-    return `${packages.toFixed(2)} ${unitLabel}`;
+    return packages.toFixed(2);
   };
 
   const handleEditMovement = (movement: StockMovement) => {
@@ -141,32 +140,97 @@ export default function Stock() {
       doc.text(`Propriedade: ${propName}`, pageWidth / 2, 38, { align: "center" });
     }
 
-    // Ordenar movimentações por nome do produto (alfabético)
-    const sortedMovements = [...filteredMovements].sort((a, b) => {
-      const nameA = a.product?.name?.toLowerCase() || "";
-      const nameB = b.product?.name?.toLowerCase() || "";
-      return nameA.localeCompare(nameB, 'pt-BR');
+    // Agrupar movimentações por produto + data + motivo
+    const groupedMovements: Record<string, {
+      date: string;
+      productName: string;
+      propertyName: string;
+      packageQty: number;
+      totalQty: number;
+      unit: string;
+      reason: string;
+      packageSize: number;
+    }> = {};
+
+    filteredMovements.forEach((mov) => {
+      const product = products.find(p => p.id === mov.product_id);
+      const dateKey = format(new Date(mov.movement_date + 'T00:00:00'), "yyyy-MM-dd");
+      const key = `${mov.product_id}_${dateKey}_${mov.reason || 'outro'}`;
+      
+      if (!groupedMovements[key]) {
+        groupedMovements[key] = {
+          date: mov.movement_date,
+          productName: mov.product?.name || "",
+          propertyName: mov.property?.name || "",
+          packageQty: 0,
+          totalQty: 0,
+          unit: mov.unit,
+          reason: mov.reason || '',
+          packageSize: product?.package_size || 1,
+        };
+      }
+      groupedMovements[key].totalQty += Number(mov.quantity);
     });
 
-    // Tabela de movimentações detalhadas
-    const tableData = sortedMovements.map((mov) => {
-      const product = products.find(p => p.id === mov.product_id);
-      const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null, mov.unit);
-      return [
-        format(new Date(mov.movement_date), "dd/MM/yyyy", { locale: ptBR }),
-        mov.product?.name || "",
-        mov.property?.name || "",
-        packageQty || "-",
-        `${Number(mov.quantity).toFixed(2)} ${mov.unit}`,
-        getReasonLabel(mov.reason)
-      ];
-    });
+    // Calcular embalagens e ordenar
+    const sortedMovements = Object.values(groupedMovements)
+      .map(mov => ({
+        ...mov,
+        packageQty: mov.packageSize > 0 ? mov.totalQty / mov.packageSize : 0,
+      }))
+      .sort((a, b) => a.productName.toLowerCase().localeCompare(b.productName.toLowerCase(), 'pt-BR'));
+
+    // Tabela de movimentações
+    const tableData = sortedMovements.map((mov) => [
+      format(new Date(mov.date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }),
+      mov.productName,
+      mov.propertyName,
+      mov.packageQty > 0 ? mov.packageQty.toFixed(2) : "-",
+      `${mov.totalQty.toFixed(2)} ${mov.unit}`,
+      getReasonLabel(mov.reason)
+    ]);
 
     autoTable(doc, {
       startY: selectedProperty !== "all" ? 45 : 38,
-      head: [["Data", "Produto", "Propriedade", "Quantidade", "Volume", "Motivo"]],
+      head: [["Data", "Produto", "Propriedade", "Unidades", "Volume Total", "Motivo"]],
       body: tableData,
       styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+    });
+
+    // Somatório por produto
+    let yPos = (doc as any).lastAutoTable.finalY + 10;
+    
+    if (yPos > 250) {
+      doc.addPage();
+      yPos = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Somatório por Produto", 14, yPos);
+    yPos += 4;
+
+    // Agrupar totais por produto
+    const productTotals: Record<string, { name: string; totalQty: number; totalUnits: number; unit: string }> = {};
+    sortedMovements.forEach(mov => {
+      if (!productTotals[mov.productName]) {
+        productTotals[mov.productName] = { name: mov.productName, totalQty: 0, totalUnits: 0, unit: mov.unit };
+      }
+      productTotals[mov.productName].totalQty += mov.totalQty;
+      productTotals[mov.productName].totalUnits += mov.packageQty;
+    });
+
+    const summaryData = Object.values(productTotals)
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+      .map(p => [p.name, p.totalUnits.toFixed(2), `${p.totalQty.toFixed(2)} ${p.unit}`]);
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [["Produto", "Total Unidades", "Volume Total"]],
+      body: summaryData,
+      styles: { fontSize: 10, cellPadding: 3 },
       headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [245, 245, 245] },
     });
@@ -311,11 +375,11 @@ export default function Stock() {
                   <TableBody>
                     {filteredMovements.map((movement) => {
                       const product = products.find(p => p.id === movement.product_id);
-                      const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null, movement.unit);
+                      const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null);
                       return (
                         <TableRow key={movement.id}>
                           <TableCell className="text-xl">
-                            {format(new Date(movement.movement_date), "dd/MM/yyyy", { locale: ptBR })}
+                            {format(new Date(movement.movement_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                           </TableCell>
                           <TableCell className="font-semibold text-xl">{movement.product?.name}</TableCell>
                           <TableCell className="text-xl">{movement.property?.name}</TableCell>
@@ -326,7 +390,7 @@ export default function Stock() {
                               </span>
                               {packageQty && (
                                 <span className="text-lg text-muted-foreground">
-                                  ({packageQty})
+                                  ({packageQty} unid.)
                                 </span>
                               )}
                             </div>
@@ -408,18 +472,18 @@ export default function Stock() {
                         return nameA.localeCompare(nameB, 'pt-BR');
                       }).map((mov) => {
                         const product = products.find(p => p.id === mov.product_id);
-                        const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null, mov.unit);
+                        const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null);
                         return (
                           <TableRow key={mov.id}>
-                            <TableCell className="text-base">
-                              {format(new Date(mov.movement_date), "dd/MM/yyyy", { locale: ptBR })}
+                            <TableCell className="text-lg">
+                              {format(new Date(mov.movement_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                             </TableCell>
-                            <TableCell className="font-semibold text-base">{mov.product?.name}</TableCell>
-                            <TableCell className="text-base">{mov.property?.name}</TableCell>
-                            <TableCell className="text-right font-bold text-base">
+                            <TableCell className="font-semibold text-lg">{mov.product?.name}</TableCell>
+                            <TableCell className="text-lg">{mov.property?.name}</TableCell>
+                            <TableCell className="text-right font-bold text-lg">
                               {packageQty || "-"}
                             </TableCell>
-                            <TableCell className="text-right text-base">
+                            <TableCell className="text-right text-lg">
                               {Number(mov.quantity).toFixed(2)} {mov.unit}
                             </TableCell>
                           </TableRow>
