@@ -170,44 +170,39 @@ export const useTeam = () => {
     },
   });
 
-  // Adicionar membro (por email - precisa buscar user_id)
+  // Adicionar membro (via edge function segura)
   const addMember = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: TeamRole }) => {
       if (!team) throw new Error('Time não encontrado');
 
-      // Buscar usuário pelo email na tabela profiles
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
+      // Usar edge function para adicionar membro de forma segura
+      // Isso evita expor emails de usuários via RLS
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Usuário não autenticado');
 
-      if (profileError) throw profileError;
-      if (!profileData) throw new Error('Usuário não encontrado. Verifique se o email está correto.');
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-team-member`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            role: role,
+            teamId: team.id,
+          }),
+        }
+      );
 
-      // Verificar se já é membro
-      const { data: existingMember } = await supabase
-        .from('team_members')
-        .select('id')
-        .eq('team_id', team.id)
-        .eq('user_id', profileData.id)
-        .maybeSingle();
+      const result = await response.json();
 
-      if (existingMember) throw new Error('Este usuário já faz parte da equipe.');
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao adicionar membro');
+      }
 
-      // Adicionar como membro
-      const { data, error } = await supabase
-        .from('team_members')
-        .insert({
-          team_id: team.id,
-          user_id: profileData.id,
-          role: role
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return result.member;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
