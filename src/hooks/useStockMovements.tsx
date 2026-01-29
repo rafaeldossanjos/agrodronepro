@@ -70,12 +70,13 @@ export const useStockMovements = () => {
 
   const loadMovements = useCallback(async () => {
     if (!user?.id) {
+      setMovements([]);
       setIsLoading(false);
       return;
     }
-    setIsLoading(true);
 
     try {
+      setIsLoading(true);
       if (isOnline) {
         const { data, error } = await supabase
           .from('stock_movements')
@@ -93,7 +94,7 @@ export const useStockMovements = () => {
           movement_type: d.movement_type as MovementType
         })));
       } else {
-        // Offline: manter dados existentes
+        // Offline: manter dados existentes ou vazio
         setMovements([]);
       }
     } catch (error) {
@@ -105,7 +106,10 @@ export const useStockMovements = () => {
   }, [user?.id, isOnline]);
 
   const loadBalances = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setBalances([]);
+      return;
+    }
 
     try {
       if (isOnline) {
@@ -121,7 +125,7 @@ export const useStockMovements = () => {
         if (error) throw error;
         setBalances(data || []);
       } else {
-        // Offline: manter dados existentes
+        // Offline: manter dados existentes ou vazio
         setBalances([]);
       }
     } catch (error) {
