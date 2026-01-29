@@ -69,7 +69,10 @@ export const useStockMovements = () => {
   }, [user?.id]);
 
   const loadMovements = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
 
     try {
@@ -89,9 +92,13 @@ export const useStockMovements = () => {
           ...d,
           movement_type: d.movement_type as MovementType
         })));
+      } else {
+        // Offline: manter dados existentes
+        setMovements([]);
       }
     } catch (error) {
       console.error('Erro ao carregar movimentações:', error);
+      setMovements([]);
     } finally {
       setIsLoading(false);
     }
@@ -113,9 +120,13 @@ export const useStockMovements = () => {
 
         if (error) throw error;
         setBalances(data || []);
+      } else {
+        // Offline: manter dados existentes
+        setBalances([]);
       }
     } catch (error) {
       console.error('Erro ao carregar saldos:', error);
+      setBalances([]);
     }
   }, [user?.id, isOnline]);
 
