@@ -660,7 +660,7 @@ export default function Reports() {
     }
 
     // HISTÓRICO POR TALHÃO
-    if (pdfIncludePlotHistory && plotStats.length > 0) {
+    if (pdfIncludePlotHistory && filteredApplications.length > 0) {
       if (yPosition > 180) {
         doc.addPage();
         yPosition = 20;
@@ -672,27 +672,68 @@ export default function Reports() {
       doc.text('Histórico por Talhão', 14, yPosition);
       yPosition += 4;
 
-      const plotRows = plotStats.map((p: any) => {
-        const productsText = p.products.map((pr: any) => `${pr.name}: ${pr.amount.toFixed(2)} ${pr.unit}`).join(', ');
-        return [
-          p.name,
-          p.propertyName,
-          `${p.area.toFixed(1)} ha`,
-          p.apps.toString(),
-          productsText || '-'
-        ];
+      // Agrupar aplicações por talhão
+      const appsByPlot: Record<string, { plotName: string; plotAreaHectares: number | null; apps: any[] }> = {};
+      
+      filteredApplications.forEach((app: any) => {
+        const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
+        const plotName = app.plot_name || 'Sem Talhão';
+        const plotData = plots.find(p => p.id === app.plot_id);
+        
+        if (!appsByPlot[plotKey]) {
+          appsByPlot[plotKey] = {
+            plotName,
+            plotAreaHectares: plotData?.area_hectares || null,
+            apps: [],
+          };
+        }
+        appsByPlot[plotKey].apps.push(app);
       });
+
+      // Criar linhas para a tabela
+      const plotRows: any[] = [];
+      
+      Object.values(appsByPlot)
+        .sort((a, b) => a.plotName.localeCompare(b.plotName, 'pt-BR'))
+        .forEach((plotGroup, plotIndex) => {
+          plotGroup.apps.forEach((app: any, appIndex: number) => {
+            const appName = app.name || 'Aplicação sem nome';
+            const appArea = Number(app.area_applied).toFixed(2);
+            const productsText = app.application_products && app.application_products.length > 0
+              ? app.application_products.map((p: any) => 
+                  `${p.products?.name || 'Produto'}: ${Number(p.total_amount).toFixed(2)} ${p.products?.unit || ''}`
+                ).join('\n')
+              : '-';
+            
+            // Mostrar talhão só na primeira linha do grupo
+            const plotInfo = appIndex === 0 
+              ? plotGroup.plotName + (plotGroup.plotAreaHectares ? ` (${Number(plotGroup.plotAreaHectares).toFixed(2)} ha)` : '')
+              : '';
+            
+            plotRows.push([appName, `${appArea} ha`, productsText, plotInfo]);
+          });
+        });
 
       autoTable(doc, {
         startY: yPosition,
-        head: [['Talhão', 'Propriedade', 'Área Total', 'Aplicações', 'Produtos Aplicados']],
+        head: [['Aplicação', 'Área', 'Produtos', 'Talhão (Área)']],
         body: plotRows,
         theme: 'striped',
         headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
-        styles: { fontSize: 8, cellPadding: 2 },
+        styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
         alternateRowStyles: { fillColor: [245, 250, 245] },
         columnStyles: {
-          4: { cellWidth: 60 },
+          0: { cellWidth: 45 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 60 },
+          3: { cellWidth: 55 },
+        },
+        didParseCell: function(data) {
+          // Destacar linha com talhão
+          if (data.column.index === 3 && data.cell.raw && String(data.cell.raw).length > 0) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [230, 245, 230];
+          }
         },
       });
 
@@ -1546,90 +1587,33 @@ export default function Reports() {
         </div>
       </Card>
 
-      {/* Resumo por Talhão */}
-      {plotStats.length > 0 && (
+      {/* Resumo por Talhão - Listagem individual de aplicações */}
+      {filteredApplications.length > 0 && (
         <Card className="p-4 sm:p-6">
           <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
             <MapPin className="h-6 w-6" />
             Resumo por Talhão
           </h2>
-          <div className="space-y-4">
-            {plotStats.map((plot: any) => (
-              <div key={plot.id} className="border border-border rounded-lg p-4">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
-                  <div>
-                    <p className="font-medium text-foreground text-lg sm:text-xl">
-                      {plot.name}
-                    </p>
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      {plot.propertyName}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                  <div className="bg-muted/30 rounded p-3">
-                    <p className="text-sm sm:text-base text-muted-foreground">Área do Talhão</p>
-                    <p className="font-medium text-foreground text-base sm:text-lg">
-                      {plot.plotAreaHectares ? `${Number(plot.plotAreaHectares).toFixed(2)} ha` : 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-muted/30 rounded p-3">
-                    <p className="text-sm sm:text-base text-muted-foreground">Área Aplicada</p>
-                    <p className="font-medium text-foreground text-base sm:text-lg">
-                      {plot.areaApplied.toFixed(2)} ha
-                    </p>
-                  </div>
-                  <div className="bg-muted/30 rounded p-3">
-                    <p className="text-sm sm:text-base text-muted-foreground">Aplicações</p>
-                    <p className="font-medium text-foreground text-base sm:text-lg">{plot.apps}</p>
-                  </div>
-                </div>
-                
-                {plot.products.length > 0 && (
-                  <div className="bg-muted/30 rounded p-3">
-                    <p className="text-sm sm:text-base font-medium text-muted-foreground mb-2">Produtos Consumidos (Total):</p>
-                    <div className="space-y-2">
-                      {plot.products.map((p: any, idx: number) => (
-                        <div key={idx} className="flex justify-between text-base sm:text-lg">
-                          <span className="text-foreground">{p.name}</span>
-                          <span className="text-muted-foreground">
-                            {Number(p.amount).toFixed(2)} {p.unit}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Lista de Aplicações Detalhada - Agrupada por Talhão */}
-      <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 text-xl sm:text-2xl font-semibold text-foreground">
-          Lista de Aplicações
-        </h2>
-        <div className="space-y-6">
-          {filteredApplications.length === 0 ? (
-            <p className="text-center text-lg sm:text-xl text-muted-foreground py-8">
-              Nenhuma aplicação encontrada para os filtros selecionados
-            </p>
-          ) : (
-            // Agrupar aplicações por talhão
-            (() => {
-              const appsByPlot: Record<string, { plotName: string; propertyName: string; apps: typeof filteredApplications }> = {};
+          <div className="space-y-6">
+            {(() => {
+              // Agrupar aplicações por talhão
+              const appsByPlot: Record<string, { 
+                plotName: string; 
+                plotId: string | null;
+                plotAreaHectares: number | null;
+                apps: any[] 
+              }> = {};
               
               filteredApplications.forEach((app: any) => {
                 const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
                 const plotName = app.plot_name || 'Sem Talhão';
+                const plotData = plots.find(p => p.id === app.plot_id);
                 
                 if (!appsByPlot[plotKey]) {
                   appsByPlot[plotKey] = {
                     plotName,
-                    propertyName: app.properties?.name || 'N/A',
+                    plotId: app.plot_id,
+                    plotAreaHectares: plotData?.area_hectares || null,
                     apps: [],
                   };
                 }
@@ -1638,79 +1622,77 @@ export default function Reports() {
 
               return Object.entries(appsByPlot)
                 .sort(([, a], [, b]) => a.plotName.localeCompare(b.plotName, 'pt-BR'))
-                .map(([plotKey, plotData]) => (
-                  <div key={plotKey} className="border border-border rounded-xl p-4 sm:p-5">
-                    {/* Header do talhão */}
-                    <div className="flex items-center gap-3 mb-4 pb-3 border-b border-border">
-                      <MapPin className="h-6 w-6 text-primary flex-shrink-0" />
-                      <div>
-                        <p className="font-bold text-xl sm:text-2xl text-foreground">
-                          {plotData.plotName}
-                        </p>
-                        <p className="text-base sm:text-lg text-muted-foreground">
-                          {plotData.propertyName} • {plotData.apps.length} aplicação(ões)
-                        </p>
+                .map(([plotKey, plotGroup]) => (
+                  <div key={plotKey} className="border border-border rounded-xl overflow-hidden">
+                    {/* Header do Talhão */}
+                    <div className="bg-primary/10 p-4 border-b border-border">
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-6 w-6 text-primary flex-shrink-0" />
+                        <div>
+                          <p className="font-bold text-xl sm:text-2xl text-foreground">
+                            {plotGroup.plotName}
+                          </p>
+                          <p className="text-base sm:text-lg text-muted-foreground">
+                            {plotGroup.plotAreaHectares 
+                              ? `Área do talhão: ${Number(plotGroup.plotAreaHectares).toFixed(2)} ha`
+                              : 'Área não cadastrada'} 
+                            {' • '}{plotGroup.apps.length} aplicação(ões)
+                          </p>
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Lista de aplicações do talhão */}
-                    <div className="space-y-3">
-                      {plotData.apps.map((app: any) => (
-                        <div key={app.id} className="bg-muted/20 rounded-lg p-4">
-                          <div className="flex flex-col gap-2">
-                            {/* Nome da aplicação em destaque */}
-                            <p className="font-semibold text-lg sm:text-xl text-foreground">
-                              {app.name || 'Aplicação sem nome'}
-                            </p>
-                            
-                            {/* Informações da aplicação */}
-                            <div className="flex flex-wrap gap-3 items-center text-base sm:text-lg text-muted-foreground">
-                              <span>{format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}</span>
-                              <span>•</span>
-                              <span>{app.application_type}</span>
-                              <span>•</span>
-                              <span>{app.area_applied} ha</span>
-                              <span className={`inline-block px-3 py-1 rounded-full text-sm sm:text-base ${
-                                app.status === 'concluída' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                                app.status === 'em_andamento' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-                                app.status === 'cancelada' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                              }`}>
-                                {formatStatusLabel(app.status)}
-                              </span>
-                            </div>
-                            
-                            {/* Produtos */}
-                            {app.application_products && app.application_products.length > 0 && (
-                              <div className="mt-2 text-base sm:text-lg">
-                                <span className="font-medium text-muted-foreground">Produtos: </span>
-                                <span className="text-foreground">
-                                  {app.application_products.map((p: any, idx: number) => (
-                                    <span key={idx}>
-                                      {p.products?.name || 'Produto'} ({Number(p.total_amount).toFixed(2)} {p.products?.unit || ''})
-                                      {idx < app.application_products.length - 1 ? ', ' : ''}
-                                    </span>
-                                  ))}
-                                </span>
-                              </div>
-                            )}
-                            
-                            {/* Observações */}
-                            {app.notes && (
-                              <p className="text-base text-muted-foreground italic mt-1">
-                                Obs: {app.notes}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                    {/* Tabela de aplicações do talhão */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-muted/30">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-base font-medium text-muted-foreground">Aplicação</th>
+                            <th className="px-4 py-3 text-left text-base font-medium text-muted-foreground">Área (ha)</th>
+                            <th className="px-4 py-3 text-left text-base font-medium text-muted-foreground">Produtos e Quantidades</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {plotGroup.apps.map((app: any) => (
+                            <tr key={app.id} className="hover:bg-muted/20">
+                              <td className="px-4 py-4">
+                                <p className="font-semibold text-lg text-foreground">
+                                  {app.name || 'Aplicação sem nome'}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
+                                </p>
+                              </td>
+                              <td className="px-4 py-4 text-lg text-foreground">
+                                {Number(app.area_applied).toFixed(2)} ha
+                              </td>
+                              <td className="px-4 py-4">
+                                {app.application_products && app.application_products.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {app.application_products.map((p: any, idx: number) => (
+                                      <p key={idx} className="text-base text-foreground">
+                                        <span className="font-medium">{p.products?.name || 'Produto'}</span>
+                                        <span className="text-muted-foreground ml-2">
+                                          {Number(p.total_amount).toFixed(2)} {p.products?.unit || ''}
+                                        </span>
+                                      </p>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 ));
-            })()
-          )}
-        </div>
-      </Card>
+            })()}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
