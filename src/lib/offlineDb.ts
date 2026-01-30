@@ -13,7 +13,7 @@ export interface SyncQueueItem {
 
 const DB_NAME = 'agrodrone_offline';
 // Incrementar a versão sempre que adicionar/alterar object stores
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let db: IDBDatabase | null = null;
 
@@ -41,7 +41,9 @@ export const initOfflineDb = (): Promise<IDBDatabase> => {
 
       const stores = [
         'properties', 'products', 'applications', 'application_products',
-        'recipes', 'recipe_products', 'equipment', 'flight_planning', 'plots'
+        'recipes', 'recipe_products', 'equipment', 'flight_planning', 'plots',
+        // Estoque
+        'stock_movements', 'stock_balances'
       ];
 
       stores.forEach(storeName => {

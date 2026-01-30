@@ -43,16 +43,24 @@ export default function Stock() {
 
   // Filter balances
   const filteredBalances = balances.filter((balance) => {
-    const matchesSearch = 
-      balance.product?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const productName = (
+      balance.product?.name ??
+      products.find(p => p.id === balance.product_id)?.name ??
+      ''
+    ).toLowerCase();
+    const matchesSearch = productName.includes(searchTerm.toLowerCase());
     const matchesProperty = selectedProperty === "all" || balance.property_id === selectedProperty;
     return matchesSearch && matchesProperty;
   });
 
   // Filter movements
   const filteredMovements = movements.filter((movement) => {
-    const matchesSearch = 
-      movement.product?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const productName = (
+      movement.product?.name ??
+      products.find(p => p.id === movement.product_id)?.name ??
+      ''
+    ).toLowerCase();
+    const matchesSearch = productName.includes(searchTerm.toLowerCase());
     const matchesProperty = selectedProperty === "all" || movement.property_id === selectedProperty;
     const matchesType = movementTypeFilter === "all" || movement.movement_type === movementTypeFilter;
     
@@ -68,9 +76,11 @@ export default function Stock() {
   });
 
   // Low stock alerts
-  const lowStockItems = balances.filter(b => 
-    b.min_quantity > 0 && b.current_quantity <= b.min_quantity
-  );
+  const lowStockItems = balances.filter(b => {
+    const min = Number((b as any).min_quantity ?? 0);
+    const cur = Number((b as any).current_quantity ?? 0);
+    return min > 0 && cur <= min;
+  });
 
   const getMovementIcon = (type: string) => {
     switch (type) {
@@ -156,12 +166,14 @@ export default function Stock() {
       const product = products.find(p => p.id === mov.product_id);
       const dateKey = format(new Date(mov.movement_date + 'T00:00:00'), "yyyy-MM-dd");
       const key = `${mov.product_id}_${dateKey}_${mov.reason || 'outro'}`;
+      const productName = mov.product?.name || product?.name || '';
+      const propertyName = mov.property?.name || properties.find(p => p.id === mov.property_id)?.name || '';
       
       if (!groupedMovements[key]) {
         groupedMovements[key] = {
           date: mov.movement_date,
-          productName: mov.product?.name || "",
-          propertyName: mov.property?.name || "",
+          productName,
+          propertyName,
           packageQty: 0,
           totalQty: 0,
           unit: mov.unit,
@@ -376,13 +388,15 @@ export default function Stock() {
                     {filteredMovements.map((movement) => {
                       const product = products.find(p => p.id === movement.product_id);
                       const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null);
+                      const productName = movement.product?.name || product?.name || '-';
+                      const propertyName = movement.property?.name || properties.find(p => p.id === movement.property_id)?.name || '-';
                       return (
                         <TableRow key={movement.id}>
                           <TableCell className="text-xl">
                             {format(new Date(movement.movement_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                           </TableCell>
-                          <TableCell className="font-semibold text-xl">{movement.product?.name}</TableCell>
-                          <TableCell className="text-xl">{movement.property?.name}</TableCell>
+                          <TableCell className="font-semibold text-xl">{productName}</TableCell>
+                          <TableCell className="text-xl">{propertyName}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="font-bold text-xl">
@@ -473,13 +487,15 @@ export default function Stock() {
                       }).map((mov) => {
                         const product = products.find(p => p.id === mov.product_id);
                         const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null);
+                        const productName = mov.product?.name || product?.name || '-';
+                        const propertyName = mov.property?.name || properties.find(p => p.id === mov.property_id)?.name || '-';
                         return (
                           <TableRow key={mov.id}>
                             <TableCell className="text-lg">
                               {format(new Date(mov.movement_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                             </TableCell>
-                            <TableCell className="font-semibold text-lg">{mov.product?.name}</TableCell>
-                            <TableCell className="text-lg">{mov.property?.name}</TableCell>
+                            <TableCell className="font-semibold text-lg">{productName}</TableCell>
+                            <TableCell className="text-lg">{propertyName}</TableCell>
                             <TableCell className="text-right font-bold text-lg">
                               {packageQty || "-"}
                             </TableCell>

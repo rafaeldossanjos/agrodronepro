@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useOnlineStatus } from './useOnlineStatus';
 import { supabase } from '@/integrations/supabase/client';
+import { getByIndex, put } from '@/lib/offlineDb';
 import { toast } from 'sonner';
 
 export type MovementType = 'entrada' | 'saida' | 'ajuste';
@@ -42,6 +43,43 @@ export interface StockBalance {
   product?: { name: string; manufacturer?: string };
   property?: { name: string };
 }
+
+const computeBalancesFromMovements = (rows: Array<Record<string, any>>): StockBalance[] => {
+  const now = new Date().toISOString();
+  const map = new Map<string, StockBalance>();
+
+  for (const m of rows) {
+    const key = `${m.product_id}__${m.property_id}`;
+    const qty = Number(m.quantity || 0);
+    const delta =
+      m.movement_type === 'entrada'
+        ? qty
+        : m.movement_type === 'saida'
+          ? -qty
+          : qty;
+
+    const prev = map.get(key);
+    if (!prev) {
+      map.set(key, {
+        id: `local_${key}`,
+        user_id: m.user_id,
+        team_id: m.team_id ?? null,
+        product_id: m.product_id,
+        property_id: m.property_id,
+        current_quantity: delta,
+        unit: m.unit,
+        min_quantity: 0,
+        created_at: m.created_at ?? now,
+        updated_at: m.updated_at ?? now,
+      });
+    } else {
+      prev.current_quantity = Number(prev.current_quantity) + delta;
+      prev.updated_at = now;
+    }
+  }
+
+  return Array.from(map.values());
+};
 
 export const useStockMovements = () => {
   const { user } = useAuth();
@@ -89,17 +127,40 @@ export const useStockMovements = () => {
           .order('movement_date', { ascending: false });
 
         if (error) throw error;
-        setMovements((data || []).map(d => ({
+
+        // Cache local (sem joins) para funcionar offline e evitar erros no sync
+        await Promise.all(
+          (data || []).map((d: any) => {
+            const { product, property, application, ...row } = d;
+            return put('stock_movements', { ...row, synced: true });
+          })
+        );
+
+        setMovements((data || []).map((d: any) => ({
           ...d,
-          movement_type: d.movement_type as MovementType
+          movement_type: d.movement_type as MovementType,
         })));
       } else {
-        // Offline: manter dados existentes ou vazio
-        setMovements([]);
+        const localData = await getByIndex('stock_movements', 'user_id', user.id);
+        const sorted = [...(localData || [])].sort((a: any, b: any) =>
+          new Date(b.movement_date).getTime() - new Date(a.movement_date).getTime()
+        );
+        setMovements(sorted.map((d: any) => ({
+          ...d,
+          movement_type: d.movement_type as MovementType,
+        })));
       }
     } catch (error) {
       console.error('Erro ao carregar movimentações:', error);
-      setMovements([]);
+      try {
+        const localData = await getByIndex('stock_movements', 'user_id', user.id);
+        setMovements((localData || []).map((d: any) => ({
+          ...d,
+          movement_type: d.movement_type as MovementType,
+        })));
+      } catch {
+        setMovements([]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -123,14 +184,38 @@ export const useStockMovements = () => {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
+
+        // Cache local (sem joins)
+        await Promise.all(
+          (data || []).map((d: any) => {
+            const { product, property, ...row } = d;
+            return put('stock_balances', { ...row, synced: true });
+          })
+        );
+
         setBalances(data || []);
       } else {
-        // Offline: manter dados existentes ou vazio
-        setBalances([]);
+        const localBalances = await getByIndex('stock_balances', 'user_id', user.id);
+        if (localBalances && localBalances.length > 0) {
+          setBalances(localBalances);
+        } else {
+          const localMovements = await getByIndex('stock_movements', 'user_id', user.id);
+          setBalances(computeBalancesFromMovements(localMovements || []));
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar saldos:', error);
-      setBalances([]);
+      try {
+        const localBalances = await getByIndex('stock_balances', 'user_id', user.id);
+        if (localBalances && localBalances.length > 0) {
+          setBalances(localBalances);
+        } else {
+          const localMovements = await getByIndex('stock_movements', 'user_id', user.id);
+          setBalances(computeBalancesFromMovements(localMovements || []));
+        }
+      } catch {
+        setBalances([]);
+      }
     }
   }, [user?.id, isOnline]);
 
@@ -143,6 +228,24 @@ export const useStockMovements = () => {
     if (!user?.id) throw new Error('Usuário não autenticado');
 
     try {
+      // Offline-first: salva localmente e sincroniza automaticamente ao reconectar
+      if (!isOnline) {
+        const now = new Date().toISOString();
+        const localRecord = await put('stock_movements', {
+          ...movement,
+          user_id: user.id,
+          team_id: userTeamId,
+          created_at: now,
+          updated_at: now,
+          synced: false,
+        });
+
+        await loadMovements();
+        await loadBalances();
+        toast.success('Movimentação salva offline. Será sincronizada ao reconectar.');
+        return localRecord;
+      }
+
       const { data, error } = await supabase
         .from('stock_movements')
         .insert([{

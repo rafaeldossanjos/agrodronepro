@@ -11,11 +11,24 @@ import {
 } from './offlineDb';
 import { toast } from 'sonner';
 
-type TableName = 'properties' | 'products' | 'applications' | 'application_products' | 'recipes' | 'recipe_products' | 'equipment' | 'flight_planning' | 'plots';
+type TableName =
+  | 'properties'
+  | 'products'
+  | 'applications'
+  | 'application_products'
+  | 'recipes'
+  | 'recipe_products'
+  | 'equipment'
+  | 'flight_planning'
+  | 'plots'
+  | 'stock_movements'
+  | 'stock_balances';
 
 const SYNC_TABLES_WITH_USER: TableName[] = [
   'properties',
   'products',
+  'stock_movements',
+  'stock_balances',
   'applications',
   'recipes',
   'equipment',
