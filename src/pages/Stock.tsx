@@ -32,6 +32,14 @@ export default function Stock() {
   const { movements, balances, isLoading } = useStockMovements();
   const { properties } = useProperties();
   const { products } = useProducts();
+
+  // movement_date pode vir como timestamp ISO (ex: 2026-01-30T12:34:56Z)
+  // ou como date-only (ex: 2026-01-30). Isso evita RangeError no date-fns/format.
+  const parseMovementDate = (value: string) => {
+    const v = String(value || "");
+    const d = v.includes("T") ? new Date(v) : new Date(`${v}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
@@ -164,7 +172,8 @@ export default function Stock() {
 
     filteredMovements.forEach((mov) => {
       const product = products.find(p => p.id === mov.product_id);
-      const dateKey = format(new Date(mov.movement_date + 'T00:00:00'), "yyyy-MM-dd");
+       const parsedKeyDate = parseMovementDate(mov.movement_date);
+       const dateKey = format(parsedKeyDate ?? new Date(), "yyyy-MM-dd");
       const key = `${mov.product_id}_${dateKey}_${mov.reason || 'outro'}`;
       const productName = mov.product?.name || product?.name || '';
       const propertyName = mov.property?.name || properties.find(p => p.id === mov.property_id)?.name || '';
@@ -193,14 +202,17 @@ export default function Stock() {
       .sort((a, b) => a.productName.toLowerCase().localeCompare(b.productName.toLowerCase(), 'pt-BR'));
 
     // Tabela de movimentações
-    const tableData = sortedMovements.map((mov) => [
-      format(new Date(mov.date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }),
+     const tableData = sortedMovements.map((mov) => {
+       const parsed = parseMovementDate(mov.date);
+       return [
+       parsed ? format(parsed, "dd/MM/yyyy", { locale: ptBR }) : "-",
       mov.productName,
       mov.propertyName,
       mov.packageQty > 0 ? mov.packageQty.toFixed(2) : "-",
       `${mov.totalQty.toFixed(2)} ${mov.unit}`,
       getReasonLabel(mov.reason)
-    ]);
+     ];
+     });
 
     autoTable(doc, {
       startY: selectedProperty !== "all" ? 45 : 38,
@@ -393,7 +405,10 @@ export default function Stock() {
                       return (
                         <TableRow key={movement.id}>
                           <TableCell className="text-xl">
-                            {format(new Date(movement.movement_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
+                             {(() => {
+                               const d = parseMovementDate(movement.movement_date);
+                               return d ? format(d, "dd/MM/yyyy", { locale: ptBR }) : "-";
+                             })()}
                           </TableCell>
                           <TableCell className="font-semibold text-xl">{productName}</TableCell>
                           <TableCell className="text-xl">{propertyName}</TableCell>
@@ -492,7 +507,10 @@ export default function Stock() {
                         return (
                           <TableRow key={mov.id}>
                             <TableCell className="text-lg">
-                              {format(new Date(mov.movement_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
+                               {(() => {
+                                 const d = parseMovementDate(mov.movement_date);
+                                 return d ? format(d, "dd/MM/yyyy", { locale: ptBR }) : "-";
+                               })()}
                             </TableCell>
                             <TableCell className="font-semibold text-lg">{productName}</TableCell>
                             <TableCell className="text-lg">{propertyName}</TableCell>
