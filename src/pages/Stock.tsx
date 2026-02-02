@@ -267,6 +267,7 @@ export default function Stock() {
       unit: string;
       reason: string;
       packageSize: number;
+      notes: string;
     }> = {};
 
     filteredMovements.forEach((mov) => {
@@ -287,9 +288,16 @@ export default function Stock() {
           unit: mov.unit,
           reason: mov.reason || '',
           packageSize: product?.package_size || 1,
+          notes: mov.notes || '',
         };
       }
       groupedMovements[key].totalQty += Number(mov.quantity);
+      // Concatenar observações se houver múltiplas
+      if (mov.notes && !groupedMovements[key].notes.includes(mov.notes)) {
+        groupedMovements[key].notes = groupedMovements[key].notes 
+          ? `${groupedMovements[key].notes}; ${mov.notes}` 
+          : mov.notes;
+      }
     });
 
     // Calcular embalagens e ordenar
@@ -309,17 +317,19 @@ export default function Stock() {
       mov.propertyName,
       mov.packageQty > 0 ? mov.packageQty.toFixed(2) : "-",
       `${mov.totalQty.toFixed(2)} ${mov.unit}`,
-      getReasonLabel(mov.reason)
+      getReasonLabel(mov.reason),
+      mov.notes || "-"
      ];
      });
 
     autoTable(doc, {
       startY: selectedProperty !== "all" ? 45 : 38,
-      head: [["Data", "Produto", "Propriedade", "Unidades", "Volume Total", "Motivo"]],
+      head: [["Data", "Produto", "Propriedade", "Unidades", "Volume Total", "Motivo", "Observação"]],
       body: tableData,
-      styles: { fontSize: 9, cellPadding: 3 },
+      styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [245, 245, 245] },
+      columnStyles: { 6: { cellWidth: 40 } }, // Coluna de observação mais larga
     });
 
     // Somatório por produto
@@ -362,7 +372,7 @@ export default function Stock() {
 
     const summaryData = Object.values(productTotals)
       .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
-      .map(p => [p.name, p.totalUnits.toFixed(2), `${p.totalQtyNormalized.toFixed(2)} ${p.baseUnit}`]);
+      .map(p => [p.name, p.totalUnits.toFixed(2), `${p.totalQtyNormalized.toFixed(3)} ${p.baseUnit}`]);
 
     autoTable(doc, {
       startY: yPos,
