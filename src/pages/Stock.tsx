@@ -64,6 +64,9 @@ export default function Stock() {
   const [deletingMovement, setDeletingMovement] = useState<StockMovement | null>(null);
   const [sortField, setSortField] = useState<"date" | "name" | "quantity">("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  // Ordenação separada para aba Relatório
+  const [reportSortField, setReportSortField] = useState<"date" | "name" | "quantity">("name");
+  const [reportSortDirection, setReportSortDirection] = useState<"asc" | "desc">("asc");
 
   // Filter balances
   const filteredBalances = balances.filter((balance) => {
@@ -164,25 +167,39 @@ export default function Stock() {
     }
   };
 
-  // Ordenar movimentações filtradas
-  const sortedMovements = [...filteredMovements].sort((a, b) => {
-    const dir = sortDirection === "asc" ? 1 : -1;
-    
-    switch (sortField) {
-      case "date":
-        const dateA = parseMovementDate(a.movement_date)?.getTime() || 0;
-        const dateB = parseMovementDate(b.movement_date)?.getTime() || 0;
-        return (dateA - dateB) * dir;
-      case "name":
-        const nameA = (a.product?.name || products.find(p => p.id === a.product_id)?.name || "").toLowerCase();
-        const nameB = (b.product?.name || products.find(p => p.id === b.product_id)?.name || "").toLowerCase();
-        return nameA.localeCompare(nameB, 'pt-BR') * dir;
-      case "quantity":
-        return (Number(a.quantity) - Number(b.quantity)) * dir;
-      default:
-        return 0;
+  const toggleReportSort = (field: "date" | "name" | "quantity") => {
+    if (reportSortField === field) {
+      setReportSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setReportSortField(field);
+      setReportSortDirection(field === "date" ? "desc" : "asc");
     }
-  });
+  };
+
+  // Função de ordenação reutilizável
+  const sortMovements = (data: typeof filteredMovements, field: "date" | "name" | "quantity", direction: "asc" | "desc") => {
+    const dir = direction === "asc" ? 1 : -1;
+    return [...data].sort((a, b) => {
+      switch (field) {
+        case "date":
+          const dateA = parseMovementDate(a.movement_date)?.getTime() || 0;
+          const dateB = parseMovementDate(b.movement_date)?.getTime() || 0;
+          return (dateA - dateB) * dir;
+        case "name":
+          const nameA = (a.product?.name || products.find(p => p.id === a.product_id)?.name || "").toLowerCase();
+          const nameB = (b.product?.name || products.find(p => p.id === b.product_id)?.name || "").toLowerCase();
+          return nameA.localeCompare(nameB, 'pt-BR') * dir;
+        case "quantity":
+          return (Number(a.quantity) - Number(b.quantity)) * dir;
+        default:
+          return 0;
+      }
+    });
+  };
+
+  // Ordenar movimentações filtradas
+  const sortedMovements = sortMovements(filteredMovements, sortField, sortDirection);
+  const sortedReportMovements = sortMovements(filteredMovements, reportSortField, reportSortDirection);
 
   // Função para gerar PDF do relatório
   const generatePDF = () => {
@@ -576,19 +593,39 @@ export default function Stock() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-xl font-semibold">Data</TableHead>
-                        <TableHead className="text-xl font-semibold">Produto</TableHead>
+                        <TableHead 
+                          className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                          onClick={() => toggleReportSort("date")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Data
+                            <ArrowUpDown className={`h-4 w-4 ${reportSortField === "date" ? "text-primary" : "text-muted-foreground"}`} />
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                          onClick={() => toggleReportSort("name")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Produto
+                            <ArrowUpDown className={`h-4 w-4 ${reportSortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                          </div>
+                        </TableHead>
                         <TableHead className="text-xl font-semibold">Propriedade</TableHead>
-                        <TableHead className="text-right text-xl font-semibold">Quantidade</TableHead>
+                        <TableHead 
+                          className="text-right text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                          onClick={() => toggleReportSort("quantity")}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            Quantidade
+                            <ArrowUpDown className={`h-4 w-4 ${reportSortField === "quantity" ? "text-primary" : "text-muted-foreground"}`} />
+                          </div>
+                        </TableHead>
                         <TableHead className="text-right text-xl font-semibold">Volume</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {[...filteredMovements].sort((a, b) => {
-                        const nameA = a.product?.name?.toLowerCase() || "";
-                        const nameB = b.product?.name?.toLowerCase() || "";
-                        return nameA.localeCompare(nameB, 'pt-BR');
-                      }).map((mov) => {
+                      {sortedReportMovements.map((mov) => {
                         const product = products.find(p => p.id === mov.product_id);
                         const packageQty = formatPackageQuantity(Number(mov.quantity), product?.package_size || null);
                         const productName = mov.product?.name || product?.name || '-';

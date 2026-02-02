@@ -439,19 +439,42 @@ export function StockMovementDialog({
                         placeholder="Digite para buscar produto..."
                       />
                     ) : (
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{item.product_name}</span>
-                        {!isEditing && (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium flex-1">{item.product_name}</span>
+                        <div className="flex items-center gap-1">
                           <Button 
                             type="button" 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => removeProduct(index)}
-                            className="h-8 w-8 p-0 text-destructive"
+                            onClick={() => {
+                              // Limpar o produto para permitir trocar
+                              setProductItems(prev => prev.map((it, i) => 
+                                i === index ? {
+                                  ...it,
+                                  product_id: '',
+                                  product_name: '',
+                                  unit: '',
+                                  package_size: 1,
+                                } : it
+                              ));
+                            }}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+                            title="Trocar produto"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        )}
+                          {!isEditing && (
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => removeProduct(index)}
+                              className="h-8 w-8 p-0 text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     )}
                     
