@@ -24,8 +24,8 @@ export default function Properties() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">Propriedades</h1>
-          <p className="text-xl sm:text-2xl text-muted-foreground">
+          <h1 className="text-5xl sm:text-6xl font-bold text-foreground">Propriedades</h1>
+          <p className="text-2xl sm:text-3xl text-muted-foreground">
             Gerencie suas fazendas e talhões
           </p>
         </div>
