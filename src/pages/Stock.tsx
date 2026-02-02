@@ -131,6 +131,33 @@ export default function Stock() {
     return labels[reason || ''] || reason || '-';
   };
 
+  // Função para converter quantidade para unidade base (L para líquidos, kg para sólidos)
+  const convertToBaseUnit = (quantity: number, unit: string): { value: number; baseUnit: string } => {
+    const unitLower = unit.toLowerCase().trim();
+    
+    // Líquidos - converter para L
+    if (unitLower === 'ml' || unitLower === 'mililitro' || unitLower === 'mililitros') {
+      return { value: quantity / 1000, baseUnit: 'L' };
+    }
+    if (unitLower === 'l' || unitLower === 'litro' || unitLower === 'litros') {
+      return { value: quantity, baseUnit: 'L' };
+    }
+    
+    // Sólidos - converter para kg
+    if (unitLower === 'g' || unitLower === 'grama' || unitLower === 'gramas') {
+      return { value: quantity / 1000, baseUnit: 'kg' };
+    }
+    if (unitLower === 'kg' || unitLower === 'quilo' || unitLower === 'quilos' || unitLower === 'quilograma' || unitLower === 'quilogramas') {
+      return { value: quantity, baseUnit: 'kg' };
+    }
+    if (unitLower === 'mg' || unitLower === 'miligrama' || unitLower === 'miligramas') {
+      return { value: quantity / 1000000, baseUnit: 'kg' };
+    }
+    
+    // Unidade desconhecida - manter como está
+    return { value: quantity, baseUnit: unit };
+  };
+
   // Função para calcular quantidade em unidades
   const formatPackageQuantity = (quantity: number, packageSize: number | null) => {
     if (!packageSize || packageSize <= 0) return null;
@@ -308,19 +335,34 @@ export default function Stock() {
     doc.text("Somatório por Produto", 14, yPos);
     yPos += 4;
 
-    // Agrupar totais por produto
-    const productTotals: Record<string, { name: string; totalQty: number; totalUnits: number; unit: string }> = {};
-    sortedMovements.forEach(mov => {
-      if (!productTotals[mov.productName]) {
-        productTotals[mov.productName] = { name: mov.productName, totalQty: 0, totalUnits: 0, unit: mov.unit };
+    // Agrupar totais por produto COM CONVERSÃO DE UNIDADES
+    const productTotals: Record<string, { name: string; totalQtyNormalized: number; totalUnits: number; baseUnit: string }> = {};
+    
+    // Primeiro, processar movimentações originais (não agrupadas) para ter acesso à unidade de cada movimento
+    filteredMovements.forEach(mov => {
+      const product = products.find(p => p.id === mov.product_id);
+      const productName = mov.product?.name || product?.name || '';
+      const packageSize = product?.package_size || 1;
+      
+      // Converter para unidade base
+      const converted = convertToBaseUnit(Number(mov.quantity), mov.unit);
+      
+      if (!productTotals[productName]) {
+        productTotals[productName] = { 
+          name: productName, 
+          totalQtyNormalized: 0, 
+          totalUnits: 0, 
+          baseUnit: converted.baseUnit 
+        };
       }
-      productTotals[mov.productName].totalQty += mov.totalQty;
-      productTotals[mov.productName].totalUnits += mov.packageQty;
+      
+      productTotals[productName].totalQtyNormalized += converted.value;
+      productTotals[productName].totalUnits += packageSize > 0 ? Number(mov.quantity) / packageSize : 0;
     });
 
     const summaryData = Object.values(productTotals)
       .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
-      .map(p => [p.name, p.totalUnits.toFixed(2), `${p.totalQty.toFixed(2)} ${p.unit}`]);
+      .map(p => [p.name, p.totalUnits.toFixed(2), `${p.totalQtyNormalized.toFixed(2)} ${p.baseUnit}`]);
 
     autoTable(doc, {
       startY: yPos,
