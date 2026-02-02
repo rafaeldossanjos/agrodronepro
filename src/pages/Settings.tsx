@@ -101,8 +101,8 @@ export default function Settings() {
   return (
     <div className="space-y-4 max-w-2xl">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Configurações</h1>
-        <p className="text-base text-muted-foreground">Gerencie suas informações pessoais e preferências</p>
+        <h1 className="text-4xl sm:text-5xl font-bold text-foreground">Configurações</h1>
+        <p className="text-xl sm:text-2xl text-muted-foreground">Gerencie suas informações pessoais e preferências</p>
       </div>
 
       <Card className="rounded-xl">

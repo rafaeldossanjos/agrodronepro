@@ -42,10 +42,10 @@ export default function Recipes() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
+          <h1 className="text-5xl sm:text-6xl font-bold text-foreground">
             Receituários
           </h1>
-          <p className="text-xl sm:text-2xl text-muted-foreground">
+          <p className="text-2xl sm:text-3xl text-muted-foreground">
             Templates de receitas com produtos e doses pré-definidos
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function Recipes() {
             placeholder="Buscar receituários..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-14"
+            className="pl-14 h-14 text-lg rounded-xl"
           />
         </div>
       )}
