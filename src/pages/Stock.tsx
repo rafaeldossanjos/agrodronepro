@@ -16,7 +16,9 @@ import {
   Download,
   FileText,
   Filter,
-  Pencil
+  Pencil,
+  Trash2,
+  ArrowUpDown
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -27,17 +29,28 @@ import { StockMovementDialog } from "@/components/StockMovementDialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Stock() {
-  const { movements, balances, isLoading } = useStockMovements();
+  const { movements, balances, isLoading, deleteMovement } = useStockMovements();
   const { properties } = useProperties();
   const { products } = useProducts();
 
-  // movement_date pode vir como timestamp ISO (ex: 2026-01-30T12:34:56Z)
-  // ou como date-only (ex: 2026-01-30). Isso evita RangeError no date-fns/format.
+  // Parse para data LOCAL (evita erro de timezone que mostra dia anterior)
   const parseMovementDate = (value: string) => {
     const v = String(value || "");
-    const d = v.includes("T") ? new Date(v) : new Date(`${v}T00:00:00`);
+    // Se for ISO timestamp, extrai apenas a parte da data (YYYY-MM-DD) e interpreta como local
+    const dateOnly = v.includes("T") ? v.split("T")[0] : v;
+    const d = new Date(`${dateOnly}T12:00:00`); // meio-dia evita problemas de timezone
     return Number.isNaN(d.getTime()) ? null : d;
   };
   
@@ -48,6 +61,9 @@ export default function Stock() {
   const [dateTo, setDateTo] = useState("");
   const [editingMovement, setEditingMovement] = useState<StockMovement | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [deletingMovement, setDeletingMovement] = useState<StockMovement | null>(null);
+  const [sortField, setSortField] = useState<"date" | "name" | "quantity">("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Filter balances
   const filteredBalances = balances.filter((balance) => {
@@ -128,6 +144,45 @@ export default function Stock() {
     setEditingMovement(null);
     setIsEditDialogOpen(false);
   };
+
+  const handleDeleteMovement = async () => {
+    if (!deletingMovement) return;
+    try {
+      await deleteMovement(deletingMovement.id);
+      setDeletingMovement(null);
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+    }
+  };
+
+  const toggleSort = (field: "date" | "name" | "quantity") => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection(field === "date" ? "desc" : "asc");
+    }
+  };
+
+  // Ordenar movimentações filtradas
+  const sortedMovements = [...filteredMovements].sort((a, b) => {
+    const dir = sortDirection === "asc" ? 1 : -1;
+    
+    switch (sortField) {
+      case "date":
+        const dateA = parseMovementDate(a.movement_date)?.getTime() || 0;
+        const dateB = parseMovementDate(b.movement_date)?.getTime() || 0;
+        return (dateA - dateB) * dir;
+      case "name":
+        const nameA = (a.product?.name || products.find(p => p.id === a.product_id)?.name || "").toLowerCase();
+        const nameB = (b.product?.name || products.find(p => p.id === b.product_id)?.name || "").toLowerCase();
+        return nameA.localeCompare(nameB, 'pt-BR') * dir;
+      case "quantity":
+        return (Number(a.quantity) - Number(b.quantity)) * dir;
+      default:
+        return 0;
+    }
+  });
 
   // Função para gerar PDF do relatório
   const generatePDF = () => {
@@ -388,16 +443,40 @@ export default function Stock() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xl font-semibold">Data</TableHead>
-                      <TableHead className="text-xl font-semibold">Produto</TableHead>
+                      <TableHead 
+                        className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                        onClick={() => toggleSort("date")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Data
+                          <ArrowUpDown className={`h-4 w-4 ${sortField === "date" ? "text-primary" : "text-muted-foreground"}`} />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                        onClick={() => toggleSort("name")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Produto
+                          <ArrowUpDown className={`h-4 w-4 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                        </div>
+                      </TableHead>
                       <TableHead className="text-xl font-semibold">Propriedade</TableHead>
-                      <TableHead className="text-xl font-semibold">Quantidade</TableHead>
+                      <TableHead 
+                        className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                        onClick={() => toggleSort("quantity")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Quantidade
+                          <ArrowUpDown className={`h-4 w-4 ${sortField === "quantity" ? "text-primary" : "text-muted-foreground"}`} />
+                        </div>
+                      </TableHead>
                       <TableHead className="text-xl font-semibold">Motivo</TableHead>
-                      <TableHead className="text-xl font-semibold w-20">Ações</TableHead>
+                      <TableHead className="text-xl font-semibold w-28">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredMovements.map((movement) => {
+                    {sortedMovements.map((movement) => {
                       const product = products.find(p => p.id === movement.product_id);
                       const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null);
                       const productName = movement.product?.name || product?.name || '-';
@@ -426,14 +505,24 @@ export default function Stock() {
                           </TableCell>
                           <TableCell className="text-xl">{getReasonLabel(movement.reason)}</TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditMovement(movement)}
-                              className="h-12 w-12 p-0 rounded-xl"
-                            >
-                              <Pencil className="h-5 w-5" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditMovement(movement)}
+                                className="h-12 w-12 p-0 rounded-xl"
+                              >
+                                <Pencil className="h-5 w-5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeletingMovement(movement)}
+                                className="h-12 w-12 p-0 rounded-xl text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-5 w-5" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -531,6 +620,27 @@ export default function Stock() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={!!deletingMovement} onOpenChange={(open) => !open && setDeletingMovement(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta movimentação? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteMovement}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
