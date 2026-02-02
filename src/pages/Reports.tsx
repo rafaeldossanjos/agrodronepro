@@ -57,6 +57,9 @@ export default function Reports() {
   const [pdfIncludeProductCosts, setPdfIncludeProductCosts] = useState(false);
   const [pdfCustomFooter, setPdfCustomFooter] = useState("");
   
+  // Ordenação do PDF
+  const [pdfSortBy, setPdfSortBy] = useState<'date_asc' | 'date_desc' | 'name_asc' | 'name_desc' | 'area_asc' | 'area_desc' | 'plot_asc'>('date_desc');
+  
   // Comparativo de períodos
   const [showComparison, setShowComparison] = useState(false);
   const [comparisonPeriod, setComparisonPeriod] = useState<string>("previous");
@@ -463,6 +466,29 @@ export default function Reports() {
 
   const CHART_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+  // Função para ordenar aplicações conforme seleção do PDF
+  const getSortedApplications = (apps: any[]) => {
+    const sorted = [...apps];
+    switch (pdfSortBy) {
+      case 'date_asc':
+        return sorted.sort((a, b) => new Date(a.application_date).getTime() - new Date(b.application_date).getTime());
+      case 'date_desc':
+        return sorted.sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime());
+      case 'name_asc':
+        return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pt-BR'));
+      case 'name_desc':
+        return sorted.sort((a, b) => (b.name || '').localeCompare(a.name || '', 'pt-BR'));
+      case 'area_asc':
+        return sorted.sort((a, b) => Number(a.area_applied) - Number(b.area_applied));
+      case 'area_desc':
+        return sorted.sort((a, b) => Number(b.area_applied) - Number(a.area_applied));
+      case 'plot_asc':
+        return sorted.sort((a, b) => (a.plot_name || '').localeCompare(b.plot_name || '', 'pt-BR'));
+      default:
+        return sorted;
+    }
+  };
+
   const exportToCSV = () => {
     const headers = ["Propriedade", "Talhão", "Data", "Tipo", "Status", "Área (ha)", "Produtos", "Observações", "Custo (R$)"];
     const rows = filteredApplications.map((app: any) => {
@@ -498,6 +524,9 @@ export default function Reports() {
   };
 
   const exportToPDF = () => {
+    // Ordenar aplicações conforme seleção do usuário
+    const sortedApplications = getSortedApplications(filteredApplications);
+    
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -669,7 +698,7 @@ export default function Reports() {
     }
 
     // HISTÓRICO POR TALHÃO
-    if (pdfIncludePlotHistory && filteredApplications.length > 0) {
+    if (pdfIncludePlotHistory && sortedApplications.length > 0) {
       if (yPosition > 180) {
         doc.addPage();
         yPosition = 20;
@@ -684,7 +713,7 @@ export default function Reports() {
       // Agrupar aplicações por talhão - verificando se o talhão ainda existe
       const appsByPlot: Record<string, { plotName: string; plotAreaHectares: number | null; plotExists: boolean; apps: any[] }> = {};
       
-      filteredApplications.forEach((app: any) => {
+      sortedApplications.forEach((app: any) => {
         // Verificar se o talhão ainda existe
         const plotData = app.plot_id ? plots.find(p => p.id === app.plot_id) : null;
         const plotExists = !app.plot_id || plotData !== undefined;
@@ -763,7 +792,7 @@ export default function Reports() {
     }
 
     // Detalhes das Aplicações - Listagem individual agrupada por Talhão
-    if (filteredApplications.length > 0) {
+    if (sortedApplications.length > 0) {
       if (yPosition > 200) {
         doc.addPage();
         yPosition = 20;
@@ -784,7 +813,7 @@ export default function Reports() {
         apps: any[];
       }> = {};
 
-      filteredApplications.forEach((app: any) => {
+      sortedApplications.forEach((app: any) => {
         // Verificar se o talhão ainda existe
         const plotData = app.plot_id ? plots.find(p => p.id === app.plot_id) : null;
         const plotExists = !app.plot_id || plotData !== undefined;
@@ -1379,6 +1408,25 @@ export default function Reports() {
               <Label htmlFor="pdfProductCosts" className="text-base cursor-pointer">
                 Custos por produto
               </Label>
+            </div>
+            
+            {/* Ordenação do PDF */}
+            <div className="flex items-center gap-3">
+              <Label className="text-base font-medium whitespace-nowrap">Ordenar por:</Label>
+              <Select value={pdfSortBy} onValueChange={(v: any) => setPdfSortBy(v)}>
+                <SelectTrigger className="h-12 w-auto min-w-[180px] text-base rounded-xl">
+                  <SelectValue placeholder="Ordenação" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="date_desc" className="text-base py-3">Data (mais recente)</SelectItem>
+                  <SelectItem value="date_asc" className="text-base py-3">Data (mais antiga)</SelectItem>
+                  <SelectItem value="name_asc" className="text-base py-3">Nome (A-Z)</SelectItem>
+                  <SelectItem value="name_desc" className="text-base py-3">Nome (Z-A)</SelectItem>
+                  <SelectItem value="area_desc" className="text-base py-3">Área (maior)</SelectItem>
+                  <SelectItem value="area_asc" className="text-base py-3">Área (menor)</SelectItem>
+                  <SelectItem value="plot_asc" className="text-base py-3">Talhão (A-Z)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
