@@ -313,70 +313,27 @@ export default function Dashboard() {
         <h2 className="mb-6 text-3xl font-semibold text-foreground">
           Ações Rápidas
         </h2>
-        <div className="grid grid-cols-3 gap-6">
-          <button 
-            onClick={() => navigate('/applications')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <Droplet className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Aplicação</span>
-          </button>
-          <button 
-            onClick={() => navigate('/calculator')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <Calculator className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Calculadora</span>
-          </button>
-          <button 
-            onClick={() => navigate('/map')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <Map className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Mapa</span>
-          </button>
-          <button 
-            onClick={() => navigate('/team')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <Users className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Equipe</span>
-          </button>
-          <button 
-            onClick={() => navigate('/reports')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <TrendingUp className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Relatórios</span>
-          </button>
-          <button 
-            onClick={() => navigate('/properties')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <MapPin className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Propriedades</span>
-          </button>
-          <button 
-            onClick={() => navigate('/products')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <Cylinder className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Produtos</span>
-          </button>
-          <button 
-            onClick={() => navigate('/recipes')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <FileText className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Receituários</span>
-          </button>
-          <button 
-            onClick={() => navigate('/stock')}
-            className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border p-8 transition-colors hover:border-primary hover:bg-muted"
-          >
-            <Package className="h-16 w-16 text-primary" />
-            <span className="text-xl font-medium text-foreground">Estoque</span>
-          </button>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+          {[
+            { icon: Droplet, label: "Aplicação", href: "/applications" },
+            { icon: Calculator, label: "Calculadora", href: "/calculator" },
+            { icon: Map, label: "Mapa", href: "/map" },
+            { icon: Users, label: "Equipe", href: "/team" },
+            { icon: TrendingUp, label: "Relatórios", href: "/reports" },
+            { icon: MapPin, label: "Propriedades", href: "/properties" },
+            { icon: Cylinder, label: "Produtos", href: "/products" },
+            { icon: FileText, label: "Receituários", href: "/recipes" },
+            { icon: Package, label: "Estoque", href: "/stock" },
+          ].map(({ icon: Icon, label, href }) => (
+            <button
+              key={href}
+              onClick={() => navigate(href)}
+              className="flex flex-col items-center gap-3 sm:gap-4 rounded-xl border border-dashed border-border p-5 sm:p-8 transition-colors hover:border-primary hover:bg-muted"
+            >
+              <Icon className="h-10 w-10 sm:h-16 sm:w-16 text-primary" />
+              <span className="text-base sm:text-xl font-medium text-foreground">{label}</span>
+            </button>
+          ))}
         </div>
       </Card>
     </div>
