@@ -97,9 +97,16 @@ export default function Applications() {
     setDialogOpen(true);
   };
 
+  const [deletingAppId, setDeletingAppId] = useState<string | null>(null);
+
   const handleDelete = (id: string) => {
-    if (confirm("Deseja realmente remover esta aplicação?")) {
-      deleteApplication.mutate(id);
+    setDeletingAppId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deletingAppId) {
+      deleteApplication.mutate(deletingAppId);
+      setDeletingAppId(null);
     }
   };
 
