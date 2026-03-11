@@ -674,6 +674,7 @@ export default function Stock() {
                           </div>
                         </TableHead>
                         <TableHead className="text-right text-xl font-semibold">Volume</TableHead>
+                        <TableHead className="text-xl font-semibold">Observação</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -698,6 +699,9 @@ export default function Stock() {
                             <TableCell className="text-right text-lg">
                               {Number(mov.quantity).toFixed(2)} {mov.unit}
                             </TableCell>
+                            <TableCell className="text-lg text-muted-foreground max-w-[200px] truncate">
+                              {mov.notes || "-"}
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -705,6 +709,50 @@ export default function Stock() {
                   </Table>
                 </div>
               )}
+
+              {/* Somatório por Produto na UI */}
+              {filteredMovements.length > 0 && (() => {
+                const productTotalsUI: Record<string, { name: string; totalQtyNormalized: number; totalUnits: number; baseUnit: string }> = {};
+                filteredMovements.forEach(mov => {
+                  const product = products.find(p => p.id === mov.product_id);
+                  const productName = mov.product?.name || product?.name || '';
+                  const packageSize = product?.package_size || 1;
+                  const converted = convertToBaseUnit(Number(mov.quantity), mov.unit);
+                  if (!productTotalsUI[productName]) {
+                    productTotalsUI[productName] = { name: productName, totalQtyNormalized: 0, totalUnits: 0, baseUnit: converted.baseUnit };
+                  }
+                  productTotalsUI[productName].totalQtyNormalized += converted.value;
+                  productTotalsUI[productName].totalUnits += packageSize > 0 ? Number(mov.quantity) / packageSize : 0;
+                });
+                const sortedTotals = Object.values(productTotalsUI).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+                return (
+                  <Card className="rounded-xl mt-4">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-2xl">Somatório por Produto</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-lg font-semibold">Produto</TableHead>
+                            <TableHead className="text-right text-lg font-semibold">Unidades</TableHead>
+                            <TableHead className="text-right text-lg font-semibold">Volume Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {sortedTotals.map(p => (
+                            <TableRow key={p.name}>
+                              <TableCell className="font-semibold text-lg">{p.name}</TableCell>
+                              <TableCell className="text-right text-lg">{p.totalUnits.toFixed(2)}</TableCell>
+                              <TableCell className="text-right font-bold text-lg">{p.totalQtyNormalized.toFixed(3)} {p.baseUnit}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>

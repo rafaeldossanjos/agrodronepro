@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plane } from 'lucide-react';
+import { Plane, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -75,6 +75,8 @@ const Auth = () => {
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           toast.error('Email ou senha incorretos');
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error('Confirme seu email antes de fazer login. Verifique sua caixa de entrada.');
         } else {
           toast.error(error.message || 'Erro ao fazer login');
         }
@@ -90,27 +92,27 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+      <Card className="w-full max-w-md rounded-xl">
+        <CardHeader className="text-center pb-4">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
-              <Plane className="h-8 w-8 text-primary-foreground" />
+            <div className="p-4 bg-primary rounded-full">
+              <Plane className="h-10 w-10 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl">AgroDrone PRO</CardTitle>
-          <CardDescription>Sistema de Gestão para Drones Agrícolas</CardDescription>
+          <CardTitle className="text-3xl sm:text-4xl">AgroDrone PRO</CardTitle>
+          <CardDescription className="text-lg sm:text-xl">Sistema de Gestão para Drones Agrícolas</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-14 rounded-xl">
+              <TabsTrigger value="signin" className="text-lg sm:text-xl rounded-xl">Entrar</TabsTrigger>
+              <TabsTrigger value="signup" className="text-lg sm:text-xl rounded-xl">Cadastrar</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-5 mt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="signin-email" className="text-base sm:text-lg">Email</Label>
                   <Input
                     id="signin-email"
                     type="email"
@@ -118,10 +120,11 @@ const Auth = () => {
                     value={signInData.email}
                     onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                     required
+                    className="h-14 text-base sm:text-lg rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Senha</Label>
+                  <Label htmlFor="signin-password" className="text-base sm:text-lg">Senha</Label>
                   <Input
                     id="signin-password"
                     type="password"
@@ -129,18 +132,24 @@ const Auth = () => {
                     value={signInData.password}
                     onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                     required
+                    className="h-14 text-base sm:text-lg rounded-xl"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Entrando...' : 'Entrar'}
+                <Button type="submit" className="w-full h-14 text-lg sm:text-xl rounded-xl" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : 'Entrar'}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
+              <form onSubmit={handleSignUp} className="space-y-5 mt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Nome Completo</Label>
+                  <Label htmlFor="signup-name" className="text-base sm:text-lg">Nome Completo</Label>
                   <Input
                     id="signup-name"
                     type="text"
@@ -148,10 +157,11 @@ const Auth = () => {
                     value={signUpData.fullName}
                     onChange={(e) => setSignUpData({ ...signUpData, fullName: e.target.value })}
                     required
+                    className="h-14 text-base sm:text-lg rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-base sm:text-lg">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -159,10 +169,11 @@ const Auth = () => {
                     value={signUpData.email}
                     onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
                     required
+                    className="h-14 text-base sm:text-lg rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
+                  <Label htmlFor="signup-password" className="text-base sm:text-lg">Senha</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -170,10 +181,11 @@ const Auth = () => {
                     value={signUpData.password}
                     onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                     required
+                    className="h-14 text-base sm:text-lg rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-confirm">Confirmar Senha</Label>
+                  <Label htmlFor="signup-confirm" className="text-base sm:text-lg">Confirmar Senha</Label>
                   <Input
                     id="signup-confirm"
                     type="password"
@@ -181,10 +193,16 @@ const Auth = () => {
                     value={signUpData.confirmPassword}
                     onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
                     required
+                    className="h-14 text-base sm:text-lg rounded-xl"
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Criando conta...' : 'Criar Conta'}
+                <Button type="submit" className="w-full h-14 text-lg sm:text-xl rounded-xl" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Criando conta...
+                    </>
+                  ) : 'Criar Conta'}
                 </Button>
               </form>
             </TabsContent>
