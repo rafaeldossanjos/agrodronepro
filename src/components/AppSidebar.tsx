@@ -112,7 +112,7 @@ export function AppSidebar() {
             Sair
           </Button>
           <p className="text-lg lg:text-xl text-sidebar-foreground/50 text-center">
-            © 2025 AgroDrone PRO
+            © 2026 AgroDrone PRO
           </p>
         </div>
       </SidebarFooter>

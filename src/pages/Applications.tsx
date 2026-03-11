@@ -11,6 +11,16 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -97,9 +107,16 @@ export default function Applications() {
     setDialogOpen(true);
   };
 
+  const [deletingAppId, setDeletingAppId] = useState<string | null>(null);
+
   const handleDelete = (id: string) => {
-    if (confirm("Deseja realmente remover esta aplicação?")) {
-      deleteApplication.mutate(id);
+    setDeletingAppId(id);
+  };
+
+  const confirmDelete = () => {
+    if (deletingAppId) {
+      deleteApplication.mutate(deletingAppId);
+      setDeletingAppId(null);
     }
   };
 
@@ -434,6 +451,27 @@ export default function Applications() {
         onSave={handleSave}
         application={editingApp}
       />
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={!!deletingAppId} onOpenChange={(open) => !open && setDeletingAppId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta aplicação? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
