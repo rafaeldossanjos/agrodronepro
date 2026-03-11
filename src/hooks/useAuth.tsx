@@ -58,8 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error };
       }
 
-      toast.success('Conta criada com sucesso!');
-      navigate('/');
+      toast.success('Conta criada! Verifique seu email para confirmar o cadastro.');
       return { error: null };
     } catch (error) {
       return { error };
