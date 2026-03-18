@@ -43,9 +43,10 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Stock() {
-  const { movements, balances, isLoading, deleteMovement } = useStockMovements();
+  const { movements, balances, isLoading, deleteMovement, refetch } = useStockMovements();
   const { properties } = useProperties();
   const { products } = useProducts();
+  const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
 
   // Parse para data LOCAL (evita erro de timezone que mostra dia anterior)
   const parseMovementDate = (value: string) => {
