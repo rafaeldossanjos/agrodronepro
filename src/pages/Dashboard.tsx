@@ -176,7 +176,10 @@ export default function Dashboard() {
     ).length;
   }, [applications]);
 
+  if (loadingApps) return <DashboardSkeleton />;
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
