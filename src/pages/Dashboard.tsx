@@ -37,8 +37,6 @@ export default function Dashboard() {
     await Promise.all([refetchApps(), refetchProps()]);
   }, [refetchApps, refetchProps]);
 
-  if (loadingApps) return <DashboardSkeleton />;
-
   // Gerar lista de meses disponíveis baseado nas aplicações
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
