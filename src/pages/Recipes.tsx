@@ -32,6 +32,7 @@ export default function Recipes() {
   if (isLoading) return <CardGridSkeleton count={3} />;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">

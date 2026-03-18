@@ -395,6 +395,7 @@ export default function Stock() {
   if (isLoading) return <TableSkeleton rows={5} />;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

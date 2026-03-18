@@ -32,6 +32,7 @@ export default function Products() {
   if (isLoading) return <ListSkeleton count={4} />;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
