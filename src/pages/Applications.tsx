@@ -167,13 +167,7 @@ export default function Applications() {
     app.status !== 'planejada' && app.status !== 'em_andamento'
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Carregando aplicações...</p>
-      </div>
-    );
-  }
+  if (isLoading) return <ListSkeleton count={3} />;
 
   const StatusBadge = ({ app }: { app: any }) => {
     const config = statusConfig[app.status as keyof typeof statusConfig];
