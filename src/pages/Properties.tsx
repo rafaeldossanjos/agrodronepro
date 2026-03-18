@@ -1,7 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Edit, Trash2 } from "lucide-react";
+import { useCallback } from "react";
 import { useProperties } from "@/hooks/useProperties";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { CardGridSkeleton } from "@/components/PageSkeleton";
 import { PropertyDialog } from "@/components/PropertyDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
