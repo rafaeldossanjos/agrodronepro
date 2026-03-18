@@ -1,25 +1,21 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Edit, Trash2 } from "lucide-react";
+import { useCallback } from "react";
 import { useProperties } from "@/hooks/useProperties";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { CardGridSkeleton } from "@/components/PageSkeleton";
 import { PropertyDialog } from "@/components/PropertyDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export default function Properties() {
-  const { properties, isLoading, deleteProperty } = useProperties();
+  const { properties, isLoading, deleteProperty, refetch } = useProperties();
+  const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Carregando propriedades...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <CardGridSkeleton count={3} />;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -122,5 +118,6 @@ export default function Properties() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

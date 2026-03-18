@@ -15,7 +15,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { DashboardSkeleton } from "@/components/PageSkeleton";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -28,8 +30,12 @@ export default function Dashboard() {
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
-  const { applications, isLoading: loadingApps } = useApplications();
-  const { properties } = useProperties();
+  const { applications, isLoading: loadingApps, refetch: refetchApps } = useApplications();
+  const { properties, refetch: refetchProps } = useProperties();
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refetchApps(), refetchProps()]);
+  }, [refetchApps, refetchProps]);
 
   // Gerar lista de meses disponíveis baseado nas aplicações
   const availableMonths = useMemo(() => {
@@ -170,7 +176,10 @@ export default function Dashboard() {
     ).length;
   }, [applications]);
 
+  if (loadingApps) return <DashboardSkeleton />;
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -337,5 +346,6 @@ export default function Dashboard() {
         </div>
       </Card>
     </div>
+    </PullToRefresh>
   );
 }

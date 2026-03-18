@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Cylinder, Edit, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useProducts } from "@/hooks/useProducts";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { ListSkeleton } from "@/components/PageSkeleton";
 import { ProductDialog } from "@/components/ProductDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -19,25 +21,18 @@ const categoryColors: Record<string, string> = {
 
 export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { products, isLoading, deleteProduct } = useProducts();
+  const { products, isLoading, deleteProduct, refetch } = useProducts();
+  const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Carregando produtos...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <ListSkeleton count={4} />;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -179,5 +174,6 @@ export default function Products() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

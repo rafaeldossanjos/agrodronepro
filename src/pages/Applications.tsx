@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { ListSkeleton } from "@/components/PageSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +52,8 @@ const typeConfig = {
 
 export default function Applications() {
   const navigate = useNavigate();
-  const { applications, isLoading, createApplication, updateApplication, deleteApplication } = useApplications();
+  const { applications, isLoading, createApplication, updateApplication, deleteApplication, refetch } = useApplications();
+  const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingApp, setEditingApp] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -167,13 +170,7 @@ export default function Applications() {
     app.status !== 'planejada' && app.status !== 'em_andamento'
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Carregando aplicações...</p>
-      </div>
-    );
-  }
+  if (isLoading) return <ListSkeleton count={3} />;
 
   const StatusBadge = ({ app }: { app: any }) => {
     const config = statusConfig[app.status as keyof typeof statusConfig];
@@ -321,6 +318,7 @@ export default function Applications() {
   );
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -473,5 +471,6 @@ export default function Applications() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </PullToRefresh>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,8 @@ import { StockMovementDialog } from "@/components/StockMovementDialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { TableSkeleton } from "@/components/PageSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,9 +43,10 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Stock() {
-  const { movements, balances, isLoading, deleteMovement } = useStockMovements();
+  const { movements, balances, isLoading, deleteMovement, refetch } = useStockMovements();
   const { properties } = useProperties();
   const { products } = useProducts();
+  const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
 
   // Parse para data LOCAL (evita erro de timezone que mostra dia anterior)
   const parseMovementDate = (value: string) => {
@@ -389,15 +392,10 @@ export default function Stock() {
     toast.success("PDF gerado com sucesso!");
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  if (isLoading) return <TableSkeleton rows={5} />;
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -779,5 +777,6 @@ export default function Stock() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </PullToRefresh>
   );
 }
