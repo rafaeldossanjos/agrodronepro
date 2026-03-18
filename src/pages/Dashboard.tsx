@@ -28,8 +28,14 @@ export default function Dashboard() {
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
-  const { applications, isLoading: loadingApps } = useApplications();
-  const { properties } = useProperties();
+  const { applications, isLoading: loadingApps, refetch: refetchApps } = useApplications();
+  const { properties, refetch: refetchProps } = useProperties();
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refetchApps(), refetchProps()]);
+  }, [refetchApps, refetchProps]);
+
+  if (loadingApps) return <DashboardSkeleton />;
 
   // Gerar lista de meses disponíveis baseado nas aplicações
   const availableMonths = useMemo(() => {
