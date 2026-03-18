@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Recipes() {
-  const { recipes, isLoading, deleteRecipe } = useRecipes();
+  const { recipes, isLoading, deleteRecipe, refetch } = useRecipes();
+  const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredRecipes = recipes.filter((r) =>
