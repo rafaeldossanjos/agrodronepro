@@ -15,7 +15,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { DashboardSkeleton } from "@/components/PageSkeleton";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
