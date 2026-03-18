@@ -52,7 +52,8 @@ const typeConfig = {
 
 export default function Applications() {
   const navigate = useNavigate();
-  const { applications, isLoading, createApplication, updateApplication, deleteApplication } = useApplications();
+  const { applications, isLoading, createApplication, updateApplication, deleteApplication, refetch } = useApplications();
+  const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingApp, setEditingApp] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
