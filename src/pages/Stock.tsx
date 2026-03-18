@@ -29,6 +29,8 @@ import { StockMovementDialog } from "@/components/StockMovementDialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
+import { PullToRefresh } from "@/components/PullToRefresh";
+import { TableSkeleton } from "@/components/PageSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
