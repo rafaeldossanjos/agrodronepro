@@ -19,7 +19,8 @@ const categoryColors: Record<string, string> = {
 
 export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { products, isLoading, deleteProduct } = useProducts();
+  const { products, isLoading, deleteProduct, refetch } = useProducts();
+  const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
