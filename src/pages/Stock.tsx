@@ -773,5 +773,6 @@ export default function Stock() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </PullToRefresh>
   );
 }

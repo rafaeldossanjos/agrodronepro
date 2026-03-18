@@ -151,5 +151,6 @@ export default function Recipes() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

@@ -467,5 +467,6 @@ export default function Applications() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </PullToRefresh>
   );
 }
