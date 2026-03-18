@@ -27,16 +27,7 @@ export default function Products() {
     product.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Carregando produtos...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <ListSkeleton count={4} />;
 
   return (
     <div className="space-y-2">
