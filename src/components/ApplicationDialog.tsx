@@ -724,12 +724,12 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                               value={productItem.dose_unit}
                               onValueChange={(value) => updateProductCalculations(index, { dose_unit: value })}
                             >
-                              <SelectTrigger className="w-20">
+                              <SelectTrigger className="w-24 h-14 text-lg rounded-xl">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-popover">
                                 {availableUnits.map((unit) => (
-                                  <SelectItem key={unit} value={unit}>
+                                  <SelectItem key={unit} value={unit} className="text-lg py-3">
                                     {unit}
                                   </SelectItem>
                                 ))}
