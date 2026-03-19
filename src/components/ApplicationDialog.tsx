@@ -717,7 +717,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                                   updateProductCalculations(index, { dose_input: value.replace(',', '.') });
                                 }
                               }}
-                              className="flex-1"
+                              className="flex-1 h-14 text-lg rounded-xl"
                               placeholder="0.5"
                             />
                             <Select
