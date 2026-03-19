@@ -502,12 +502,12 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }))
                     }
                   >
-                    <SelectTrigger className={errors.property_id ? "border-destructive" : ""}>
+                    <SelectTrigger className={`h-14 text-lg rounded-xl ${errors.property_id ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {properties.map((prop) => (
-                        <SelectItem key={prop.id} value={prop.id}>
+                        <SelectItem key={prop.id} value={prop.id} className="text-lg py-3">
                           {prop.name}
                         </SelectItem>
                       ))}
