@@ -788,10 +788,10 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         </div>
 
         <div className="flex gap-3 px-4 sm:px-6 py-3 border-t bg-background shrink-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-14 text-lg rounded-xl">
             Cancelar
           </Button>
-          <Button type="submit" form="application-form" className="flex-1">
+          <Button type="submit" form="application-form" className="flex-1 h-14 text-lg rounded-xl">
             Salvar
           </Button>
         </div>
