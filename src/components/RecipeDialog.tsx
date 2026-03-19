@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProducts } from "@/hooks/useProducts";
 import { useRecipes, Recipe } from "@/hooks/useRecipes";
-import { Plus, Trash2, FileText } from "lucide-react";
+import { Plus, Trash2, FileText, Check, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
-import { isValidDecimalInput, parseDecimalInput } from "@/lib/utils";
+import { isValidDecimalInput, parseDecimalInput, cn } from "@/lib/utils";
 
 interface RecipeProductItem {
   product_id: string;
