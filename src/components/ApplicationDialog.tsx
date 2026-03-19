@@ -518,9 +518,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="plot_id" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
+                <div className="space-y-2">
+                  <Label htmlFor="plot_id" className="flex items-center gap-2 text-lg font-medium">
+                    <MapPin className="h-5 w-5" />
                     Talhão
                   </Label>
                   <div className="flex gap-2">
