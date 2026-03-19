@@ -774,13 +774,14 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
             {/* Observações */}
             <div className="space-y-1.5">
-              <Label htmlFor="notes">Observações</Label>
+              <Label htmlFor="notes" className="text-lg font-medium">Observações</Label>
               <Textarea
                 id="notes"
                 value={formData.notes || ""}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={2}
                 placeholder="Informações adicionais..."
+                className="text-lg px-4 py-3 rounded-xl resize-none"
               />
             </div>
           </form>
