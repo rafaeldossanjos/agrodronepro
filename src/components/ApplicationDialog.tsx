@@ -455,10 +455,10 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] max-h-[80dvh] flex flex-col p-0 gap-0 rounded-t-2xl sm:rounded-xl">
         <DialogHeader className="px-4 sm:px-6 pt-3 sm:pt-4 pb-3 border-b shrink-0">
-          <DialogTitle className="text-xl sm:text-2xl font-bold">
+          <DialogTitle className="text-2xl sm:text-3xl font-bold">
             {application ? "Editar Aplicação" : "Nova Aplicação"}
           </DialogTitle>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+          <p className="text-base sm:text-lg text-muted-foreground mt-1">
             {application ? "Atualize os dados da aplicação" : "Registre uma nova aplicação agrícola"}
           </p>
         </DialogHeader>
