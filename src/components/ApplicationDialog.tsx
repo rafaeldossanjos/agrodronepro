@@ -574,19 +574,19 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="name">Nome da Aplicação *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-lg font-medium">Nome da Aplicação *</Label>
                   <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={errors.name ? "border-destructive" : ""}
+                    className={`h-14 text-lg rounded-xl ${errors.name ? "border-destructive" : ""}`}
                     placeholder="Ex: Dessecação Talhão Norte"
                     required
                   />
                   {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name}</p>
+                    <p className="text-base text-destructive">{errors.name}</p>
                   )}
                 </div>
 
