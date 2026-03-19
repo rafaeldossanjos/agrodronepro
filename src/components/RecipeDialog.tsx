@@ -204,6 +204,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
                         category: 'Outro',
                         unit_price: 0,
                         unit: 'L',
+                        stock_quantity: 0,
                         active: true,
                       });
                       if (newProduct?.id) {
