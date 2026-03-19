@@ -119,7 +119,7 @@ export default function Products() {
                   <p className="text-lg sm:text-xl text-muted-foreground">Dose Recomendada</p>
                   <p className="font-semibold text-2xl sm:text-3xl text-foreground">
                     {product.recommended_dose 
-                      ? `${product.recommended_dose} ${product.recommended_dose_unit || product.unit}/ha`
+                      ? `${product.recommended_dose} ${product.recommended_dose_unit || `${product.unit}/ha`}`
                       : "Não informada"}
                   </p>
                 </div>

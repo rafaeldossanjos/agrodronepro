@@ -1469,13 +1469,13 @@ export default function Reports() {
         <Card className="p-5 rounded-xl">
           <div className="mb-3 flex items-center gap-3">
             <BarChart3 className="h-6 w-6 text-blue-500" />
-            <p className="text-base text-muted-foreground">Eficiência</p>
+            <p className="text-base text-muted-foreground">Concluídas</p>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-foreground">
-            {stats.efficiency.toFixed(0)}%
+            {stats.completedApps}
           </p>
           <p className="text-base text-muted-foreground mt-1">
-            {statusStats.concluída} concluídas
+            de {filteredApplications.length} aplicações
           </p>
         </Card>
 
@@ -1668,24 +1668,31 @@ export default function Reports() {
           </h2>
           <div className="space-y-6">
             {(() => {
-              // Agrupar aplicações por talhão
+              // Agrupar aplicações por talhão - verificar se o talhão ainda existe
               const appsByPlot: Record<string, { 
                 plotName: string; 
                 plotId: string | null;
                 plotAreaHectares: number | null;
+                plotExists: boolean;
                 apps: any[] 
               }> = {};
               
               filteredApplications.forEach((app: any) => {
+                const plotData = app.plot_id ? plots.find(p => p.id === app.plot_id) : null;
+                const plotExists = !app.plot_id || plotData !== undefined;
+                
+                // Pular talhões que foram removidos
+                if (!plotExists) return;
+                
                 const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
                 const plotName = app.plot_name || 'Sem Talhão';
-                const plotData = plots.find(p => p.id === app.plot_id);
                 
                 if (!appsByPlot[plotKey]) {
                   appsByPlot[plotKey] = {
                     plotName,
                     plotId: app.plot_id,
                     plotAreaHectares: plotData?.area_hectares || null,
+                    plotExists,
                     apps: [],
                   };
                 }

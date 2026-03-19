@@ -303,13 +303,18 @@ export default function Stock() {
       }
     });
 
-    // Calcular embalagens e ordenar
+    // Calcular embalagens e ordenar: data crescente, depois produto alfabético
     const sortedMovements = Object.values(groupedMovements)
       .map(mov => ({
         ...mov,
         packageQty: mov.packageSize > 0 ? mov.totalQty / mov.packageSize : 0,
       }))
-      .sort((a, b) => a.productName.toLowerCase().localeCompare(b.productName.toLowerCase(), 'pt-BR'));
+      .sort((a, b) => {
+        const dateA = parseMovementDate(a.date)?.getTime() || 0;
+        const dateB = parseMovementDate(b.date)?.getTime() || 0;
+        if (dateA !== dateB) return dateA - dateB;
+        return a.productName.toLowerCase().localeCompare(b.productName.toLowerCase(), 'pt-BR');
+      });
 
     // Tabela de movimentações
      const tableData = sortedMovements.map((mov) => {

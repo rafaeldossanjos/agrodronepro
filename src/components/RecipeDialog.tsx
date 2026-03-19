@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProducts } from "@/hooks/useProducts";
 import { useRecipes, Recipe } from "@/hooks/useRecipes";
-import { Plus, Trash2, FileText } from "lucide-react";
+import { Plus, Trash2, FileText, Check, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
-import { isValidDecimalInput, parseDecimalInput } from "@/lib/utils";
+import { isValidDecimalInput, parseDecimalInput, cn } from "@/lib/utils";
 
 interface RecipeProductItem {
   product_id: string;
@@ -23,9 +23,144 @@ interface RecipeDialogProps {
   trigger?: React.ReactNode;
 }
 
+// Autocomplete de produto com opção de criar novo
+function RecipeProductAutocomplete({ 
+  products, 
+  selectedProductId, 
+  onSelect,
+  onCreateProduct 
+}: { 
+  products: { id: string; name: string; manufacturer?: string; unit_price: number; unit: string }[];
+  selectedProductId: string; 
+  onSelect: (id: string) => void;
+  onCreateProduct: (name: string) => void;
+}) {
+  const [inputValue, setInputValue] = useState("");
+  const [isListOpen, setIsListOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(inputValue.toLowerCase())
+  );
+
+  useEffect(() => {
+    if (selectedProduct && !isListOpen) {
+      setInputValue(selectedProduct.name);
+    }
+  }, [selectedProduct, isListOpen]);
+
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [filteredProducts.length]);
+
+  const handleSelect = (product: { id: string; name: string }) => {
+    onSelect(product.id);
+    setInputValue(product.name);
+    setIsListOpen(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isListOpen) {
+      if (e.key === "ArrowDown" || e.key === "Enter") {
+        setIsListOpen(true);
+        e.preventDefault();
+      }
+      return;
+    }
+    const totalItems = filteredProducts.length + (inputValue.trim() && !filteredProducts.some(p => p.name.toLowerCase() === inputValue.toLowerCase()) ? 1 : 0);
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex(i => Math.min(i + 1, totalItems - 1));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex(i => Math.max(i - 1, 0));
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (highlightedIndex < filteredProducts.length) {
+          handleSelect(filteredProducts[highlightedIndex]);
+        } else if (inputValue.trim()) {
+          onCreateProduct(inputValue.trim());
+          setIsListOpen(false);
+        }
+        break;
+      case "Escape":
+        setIsListOpen(false);
+        if (selectedProduct) setInputValue(selectedProduct.name);
+        break;
+    }
+  };
+
+  const showCreateOption = inputValue.trim() && !filteredProducts.some(p => p.name.toLowerCase() === inputValue.trim().toLowerCase());
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            setIsListOpen(true);
+            if (!e.target.value && selectedProductId) onSelect("");
+          }}
+          onFocus={() => setIsListOpen(true)}
+          onBlur={() => setTimeout(() => setIsListOpen(false), 200)}
+          onKeyDown={handleKeyDown}
+          placeholder="Digite para buscar ou criar produto..."
+          className="h-14 text-lg pl-10 rounded-xl"
+        />
+      </div>
+      {isListOpen && (filteredProducts.length > 0 || showCreateOption) && (
+        <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-xl border bg-popover shadow-lg">
+          {filteredProducts.map((product, index) => (
+            <div
+              key={product.id}
+              className={cn(
+                "flex items-center justify-between px-4 py-3 cursor-pointer text-lg",
+                index === highlightedIndex && "bg-accent",
+                product.id === selectedProductId && "bg-primary/10"
+              )}
+              onMouseEnter={() => setHighlightedIndex(index)}
+              onMouseDown={(e) => { e.preventDefault(); handleSelect(product); }}
+            >
+              <span className="font-medium">{product.name}</span>
+              {product.id === selectedProductId && <Check className="h-5 w-5 text-primary" />}
+            </div>
+          ))}
+          {showCreateOption && (
+            <div
+              className={cn(
+                "flex items-center gap-2 px-4 py-3 cursor-pointer text-lg text-primary font-medium border-t",
+                highlightedIndex === filteredProducts.length && "bg-accent"
+              )}
+              onMouseEnter={() => setHighlightedIndex(filteredProducts.length)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onCreateProduct(inputValue.trim());
+                setIsListOpen(false);
+              }}
+            >
+              <Plus className="h-5 w-5" />
+              Criar produto "{inputValue.trim()}"
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
   const [open, setOpen] = useState(false);
-  const { products } = useProducts();
+  const { products, createProduct } = useProducts();
   const { createRecipe, updateRecipe } = useRecipes();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -193,21 +328,29 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
                   )}
                 </div>
 
-                <Select
-                  value={item.product_id}
-                  onValueChange={(v) => updateProduct(index, "product_id", v)}
-                >
-                  <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover max-h-[300px]">
-                    {products.filter(p => p.active).map((p) => (
-                      <SelectItem key={p.id} value={p.id} className="text-lg py-3">
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <RecipeProductAutocomplete
+                  products={products.filter(p => p.active)}
+                  selectedProductId={item.product_id}
+                  onSelect={(id) => updateProduct(index, "product_id", id)}
+                  onCreateProduct={async (name) => {
+                    try {
+                      const newProduct = await createProduct.mutateAsync({
+                        name,
+                        category: 'Outro',
+                        unit_price: 0,
+                        unit: 'L',
+                        stock_quantity: 0,
+                        active: true,
+                      });
+                      if (newProduct?.id) {
+                        updateProduct(index, "product_id", newProduct.id);
+                        toast.success(`Produto "${name}" criado com sucesso!`);
+                      }
+                    } catch (err) {
+                      toast.error('Erro ao criar produto');
+                    }
+                  }}
+                />
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
