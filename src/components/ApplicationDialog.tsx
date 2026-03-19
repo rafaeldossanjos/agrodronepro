@@ -738,8 +738,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                          <Label>
+                        <div className="space-y-2">
+                          <Label className="text-lg font-medium">
                             Total
                             {productItem.product_id && (
                               <span className="text-muted-foreground ml-1">
@@ -750,7 +750,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           <Input
                             type="text"
                             value={productItem.total_amount.toFixed(2)}
-                            className="bg-muted font-medium"
+                            className="bg-muted font-medium h-14 text-lg rounded-xl"
                             readOnly
                           />
                         </div>
