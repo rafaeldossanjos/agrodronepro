@@ -25,7 +25,7 @@ interface RecipeDialogProps {
 
 export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
   const [open, setOpen] = useState(false);
-  const { products } = useProducts();
+  const { products, createProduct } = useProducts();
   const { createRecipe, updateRecipe } = useRecipes();
   const [isLoading, setIsLoading] = useState(false);
 
