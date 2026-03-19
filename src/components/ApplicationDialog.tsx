@@ -539,7 +539,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }}
                       disabled={!formData.property_id}
                     >
-                      <SelectTrigger className="flex-1">
+                      <SelectTrigger className="flex-1 h-14 text-lg rounded-xl">
                         <SelectValue placeholder={
                           !formData.property_id 
                             ? "Selecione a propriedade" 
@@ -549,9 +549,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         } />
                       </SelectTrigger>
                       <SelectContent className="max-h-60 overflow-y-auto">
-                        <SelectItem value="none">Nenhum</SelectItem>
+                        <SelectItem value="none" className="text-lg py-3">Nenhum</SelectItem>
                         {availablePlots.map((plot) => (
-                          <SelectItem key={plot.id} value={plot.id}>
+                          <SelectItem key={plot.id} value={plot.id} className="text-lg py-3">
                             {plot.name} {plot.area_hectares ? `(${plot.area_hectares} ha)` : ''}
                           </SelectItem>
                         ))}
