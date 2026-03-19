@@ -590,8 +590,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="application_date">Data *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="application_date" className="text-lg font-medium">Data *</Label>
                   <Input
                     id="application_date"
                     type="date"
