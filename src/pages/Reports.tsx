@@ -1469,13 +1469,13 @@ export default function Reports() {
         <Card className="p-5 rounded-xl">
           <div className="mb-3 flex items-center gap-3">
             <BarChart3 className="h-6 w-6 text-blue-500" />
-            <p className="text-base text-muted-foreground">Eficiência</p>
+            <p className="text-base text-muted-foreground">Concluídas</p>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-foreground">
-            {stats.efficiency.toFixed(0)}%
+            {stats.completedApps}
           </p>
           <p className="text-base text-muted-foreground mt-1">
-            {statusStats.concluída} concluídas
+            de {filteredApplications.length} aplicações
           </p>
         </Card>
 
