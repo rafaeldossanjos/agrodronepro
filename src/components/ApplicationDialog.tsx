@@ -489,10 +489,10 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
             {/* Informações Básicas */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-foreground">Informações Básicas</h3>
+              <h3 className="text-xl font-semibold text-foreground">Informações Básicas</h3>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="property_id">Propriedade *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="property_id" className="text-lg font-medium">Propriedade *</Label>
                   <Select
                     value={formData.property_id}
                     onValueChange={(value) =>
