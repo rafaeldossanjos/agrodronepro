@@ -765,9 +765,9 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 type="button"
                 variant="outline"
                 onClick={addProduct}
-                className="gap-2 w-full"
+                className="gap-2 w-full h-14 text-lg rounded-xl"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-5 w-5" />
                 Adicionar Produto
               </Button>
             </div>
