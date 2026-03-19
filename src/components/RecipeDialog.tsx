@@ -193,21 +193,28 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
                   )}
                 </div>
 
-                <Select
-                  value={item.product_id}
-                  onValueChange={(v) => updateProduct(index, "product_id", v)}
-                >
-                  <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover max-h-[300px]">
-                    {products.filter(p => p.active).map((p) => (
-                      <SelectItem key={p.id} value={p.id} className="text-lg py-3">
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <RecipeProductAutocomplete
+                  products={products.filter(p => p.active)}
+                  selectedProductId={item.product_id}
+                  onSelect={(id) => updateProduct(index, "product_id", id)}
+                  onCreateProduct={async (name) => {
+                    try {
+                      const newProduct = await createProduct.mutateAsync({
+                        name,
+                        category: 'Outro',
+                        unit_price: 0,
+                        unit: 'L',
+                        active: true,
+                      });
+                      if (newProduct?.id) {
+                        updateProduct(index, "product_id", newProduct.id);
+                        toast.success(`Produto "${name}" criado com sucesso!`);
+                      }
+                    } catch (err) {
+                      toast.error('Erro ao criar produto');
+                    }
+                  }}
+                />
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
