@@ -163,7 +163,7 @@ export const useProducts = () => {
       } else {
         const existing = products.find(p => p.id === id);
         const localProduct = await put('products', { ...existing, ...updatedProduct, synced: false });
-        setProducts(prev => prev.map(p => p.id === id ? localProduct : p).sort((a, b) => a.name.localeCompare(b.name)));
+        setProducts(prev => prev.map(p => p.id === id ? localProduct : p));
         toast.success('Produto atualizado localmente! Será sincronizado quando conectar.');
         return localProduct;
       }
