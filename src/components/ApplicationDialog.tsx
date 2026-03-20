@@ -12,9 +12,111 @@ import { useRecipes } from "@/hooks/useRecipes";
 import { usePlots } from "@/hooks/usePlots";
 import { Application } from "@/hooks/useApplications";
 import { z } from "zod";
-import { Plus, X, Check, BookOpen, MapPin, Map as MapIcon } from "lucide-react";
+import { Plus, X, Check, BookOpen, MapPin, Map as MapIcon, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn, isValidDecimalInput, parseDecimalInput } from "@/lib/utils";
+
+// Componente genérico de select com busca por digitação
+function SearchableSelect({ 
+  items, 
+  value, 
+  onSelect, 
+  placeholder = "Digite para buscar...",
+  className = "",
+}: { 
+  items: { id: string; label: string }[];
+  value: string;
+  onSelect: (id: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  const [search, setSearch] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selectedItem = items.find(i => i.id === value);
+
+  const filtered = items.filter(i =>
+    i.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  useEffect(() => {
+    if (selectedItem && !isOpen) {
+      setSearch(selectedItem.label);
+    }
+  }, [selectedItem, isOpen]);
+
+  const handleSelect = (item: { id: string; label: string }) => {
+    setSearch(item.label);
+    setIsOpen(false);
+    onSelect(item.id);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen || filtered.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightIndex(prev => (prev + 1) % filtered.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightIndex(prev => (prev - 1 + filtered.length) % filtered.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSelect(filtered[highlightIndex]);
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          ref={inputRef}
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setIsOpen(true);
+            setHighlightIndex(0);
+          }}
+          onFocus={() => {
+            setIsOpen(true);
+            setSearch('');
+          }}
+          onBlur={() => setTimeout(() => {
+            setIsOpen(false);
+            if (selectedItem) setSearch(selectedItem.label);
+          }, 150)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className={cn("pl-10 h-14 text-lg rounded-xl", className)}
+        />
+      </div>
+      {isOpen && (
+        <ul className="absolute z-50 w-full mt-1 max-h-60 overflow-auto rounded-md border bg-popover shadow-lg">
+          {filtered.length === 0 ? (
+            <li className="px-4 py-3 text-base text-muted-foreground">Nenhum item encontrado</li>
+          ) : (
+            filtered.map((item, idx) => (
+              <li
+                key={item.id}
+                onClick={() => handleSelect(item)}
+                className={cn(
+                  "px-4 py-3 text-base cursor-pointer",
+                  idx === highlightIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                )}
+              >
+                {item.label}
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 const productItemSchema = z.object({
   product_id: z.string().uuid("Selecione um produto"),
