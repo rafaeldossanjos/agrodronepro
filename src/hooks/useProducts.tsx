@@ -157,7 +157,7 @@ export const useProducts = () => {
 
         if (error) throw error;
         await put('products', { ...data, synced: true });
-        setProducts(prev => prev.map(p => p.id === id ? data : p).sort((a, b) => a.name.localeCompare(b.name)));
+        setProducts(prev => prev.map(p => p.id === id ? data : p));
         toast.success('Produto atualizado com sucesso!');
         return data;
       } else {
