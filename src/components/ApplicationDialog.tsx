@@ -574,18 +574,12 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   <BookOpen className="h-4 w-4" />
                   Carregar Receituário
                 </Label>
-                <Select value={selectedRecipeId} onValueChange={loadRecipe}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um receituário (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {recipes.map((recipe) => (
-                      <SelectItem key={recipe.id} value={recipe.id}>
-                        {recipe.name} ({recipe.recipe_products?.length || 0} produtos)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  items={recipes.map(r => ({ id: r.id, label: `${r.name} (${r.recipe_products?.length || 0} produtos)` }))}
+                  value={selectedRecipeId}
+                  onSelect={(id) => loadRecipe(id)}
+                  placeholder="Digite para buscar receituário..."
+                />
               </div>
             )}
 
@@ -595,26 +589,13 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="property_id" className="text-lg font-medium">Propriedade *</Label>
-                  <Select
+                  <SearchableSelect
+                    items={properties.map(p => ({ id: p.id, label: p.name }))}
                     value={formData.property_id}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        property_id: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className={`h-14 text-lg rounded-xl ${errors.property_id ? "border-destructive" : ""}`}>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {properties.map((prop) => (
-                        <SelectItem key={prop.id} value={prop.id} className="text-lg py-3">
-                          {prop.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onSelect={(id) => setFormData(prev => ({ ...prev, property_id: id }))}
+                    placeholder="Digite para buscar propriedade..."
+                    className={errors.property_id ? "border-destructive" : ""}
+                  />
                   {errors.property_id && (
                     <p className="text-sm text-destructive">{errors.property_id}</p>
                   )}
