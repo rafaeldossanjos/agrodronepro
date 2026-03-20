@@ -314,9 +314,7 @@ export function StockMovementDialog({
               quantity: totalQuantity,
               unit: item.unit,
               reason: formData.reason || null,
-              notes: formData.notes 
-                ? `${formData.notes} (${item.quantity_units} embalagem(ns) de ${item.package_size}${item.unit})`
-                : `${item.quantity_units} embalagem(ns) de ${item.package_size}${item.unit}`,
+              notes: formData.notes || null,
               movement_date: new Date(formData.movement_date).toISOString(),
             });
           }
