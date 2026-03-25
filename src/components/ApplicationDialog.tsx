@@ -84,8 +84,16 @@ function SearchableSelect({
             setHighlightIndex(0);
           }}
           onFocus={() => {
+            if (autoFocusOnOpen) {
+              setIsOpen(true);
+              setSearch('');
+            }
+          }}
+          onClick={() => {
             setIsOpen(true);
-            setSearch('');
+            if (!autoFocusOnOpen && selectedItem) {
+              setSearch('');
+            }
           }}
           onBlur={() => setTimeout(() => {
             setIsOpen(false);
@@ -93,6 +101,7 @@ function SearchableSelect({
           }, 150)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          readOnly={!autoFocusOnOpen && !isOpen}
           className={cn("pl-10 h-14 text-lg rounded-xl", className)}
         />
       </div>
