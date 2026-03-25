@@ -605,7 +605,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                     items={properties.map(p => ({ id: p.id, label: p.name }))}
                     value={formData.property_id}
                     onSelect={(id) => setFormData(prev => ({ ...prev, property_id: id }))}
-                    placeholder="Digite para buscar propriedade..."
+                    placeholder="Toque para buscar propriedade..."
+                    autoFocusOnOpen={false}
                     className={errors.property_id ? "border-destructive" : ""}
                   />
                   {errors.property_id && (
