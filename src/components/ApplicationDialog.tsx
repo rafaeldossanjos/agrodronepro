@@ -23,12 +23,14 @@ function SearchableSelect({
   onSelect, 
   placeholder = "Digite para buscar...",
   className = "",
+  autoFocusOnOpen = true,
 }: { 
   items: { id: string; label: string }[];
   value: string;
   onSelect: (id: string) => void;
   placeholder?: string;
   className?: string;
+  autoFocusOnOpen?: boolean;
 }) {
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -82,8 +84,16 @@ function SearchableSelect({
             setHighlightIndex(0);
           }}
           onFocus={() => {
+            if (autoFocusOnOpen) {
+              setIsOpen(true);
+              setSearch('');
+            }
+          }}
+          onClick={() => {
             setIsOpen(true);
-            setSearch('');
+            if (!autoFocusOnOpen && selectedItem) {
+              setSearch('');
+            }
           }}
           onBlur={() => setTimeout(() => {
             setIsOpen(false);
@@ -91,6 +101,7 @@ function SearchableSelect({
           }, 150)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          readOnly={!autoFocusOnOpen && !isOpen}
           className={cn("pl-10 h-14 text-lg rounded-xl", className)}
         />
       </div>
@@ -578,7 +589,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   items={recipes.map(r => ({ id: r.id, label: `${r.name} (${r.recipe_products?.length || 0} produtos)` }))}
                   value={selectedRecipeId}
                   onSelect={(id) => loadRecipe(id)}
-                  placeholder="Digite para buscar receituário..."
+                  placeholder="Toque para buscar receituário..."
+                  autoFocusOnOpen={false}
                 />
               </div>
             )}
