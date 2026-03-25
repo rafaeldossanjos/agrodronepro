@@ -23,12 +23,14 @@ function SearchableSelect({
   onSelect, 
   placeholder = "Digite para buscar...",
   className = "",
+  autoFocusOnOpen = true,
 }: { 
   items: { id: string; label: string }[];
   value: string;
   onSelect: (id: string) => void;
   placeholder?: string;
   className?: string;
+  autoFocusOnOpen?: boolean;
 }) {
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
