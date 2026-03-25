@@ -580,7 +580,8 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                   items={recipes.map(r => ({ id: r.id, label: `${r.name} (${r.recipe_products?.length || 0} produtos)` }))}
                   value={selectedRecipeId}
                   onSelect={(id) => loadRecipe(id)}
-                  placeholder="Digite para buscar receituário..."
+                  placeholder="Toque para buscar receituário..."
+                  autoFocusOnOpen={false}
                 />
               </div>
             )}
