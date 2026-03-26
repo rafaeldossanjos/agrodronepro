@@ -28,6 +28,7 @@ export const initOfflineDb = (): Promise<IDBDatabase> => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
+      dbPromise = null;
       reject(request.error);
     };
 
