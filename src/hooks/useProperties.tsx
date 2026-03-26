@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useOnlineStatus } from './useOnlineStatus';
 import { supabase } from '@/integrations/supabase/client';
-import { getByIndex, put, remove, initOfflineDb, getAll } from '@/lib/offlineDb';
+import { getByIndex, put, remove, initOfflineDb, getAll, bulkPut } from '@/lib/offlineDb';
 import { toast } from 'sonner';
 
 export interface Property {
