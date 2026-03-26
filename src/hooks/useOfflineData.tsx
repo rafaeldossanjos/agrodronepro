@@ -23,19 +23,14 @@ export const useOfflineData = () => {
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    const init = async () => {
-      if (user?.id) {
-        try {
-          await initializeOfflineData(user.id);
-          setIsInitialized(true);
-          const count = await getPendingSyncCount();
-          setPendingCount(count);
-        } catch (error) {
-          console.error('Erro ao inicializar dados offline:', error);
-        }
-      }
-    };
-    init();
+    if (!user?.id) return;
+    // Initialize offline DB immediately, defer full sync to background
+    initOfflineDb().then(() => setIsInitialized(true));
+    // Run full sync in background without blocking UI
+    initializeOfflineData(user.id)
+      .then(() => getPendingSyncCount())
+      .then(setPendingCount)
+      .catch((error) => console.error('Erro ao inicializar dados offline:', error));
   }, [user?.id]);
 
   useEffect(() => {

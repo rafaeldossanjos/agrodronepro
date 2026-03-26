@@ -89,17 +89,12 @@ export const useApplications = () => {
         if (error) throw error;
         setApplications(serverData || []);
 
-        // Save applications to local DB
+        // Save to local DB in background (don't block UI)
         if (serverData) {
-          for (const app of serverData) {
-            await put('applications', { ...app, synced: true });
-            // Save application_products
-            if (app.application_products) {
-              for (const ap of app.application_products) {
-                await put('application_products', { ...ap, synced: true });
-              }
-            }
-          }
+          const { bulkPut } = await import('@/lib/offlineDb');
+          bulkPut('applications', serverData).catch(() => {});
+          const allAP = serverData.flatMap((app: any) => app.application_products || []);
+          if (allAP.length > 0) bulkPut('application_products', allAP).catch(() => {});
         }
       } else {
         // Load from local DB when offline

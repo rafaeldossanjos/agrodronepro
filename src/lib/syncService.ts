@@ -47,35 +47,37 @@ let isSyncing = false;
 export const syncFromServer = async (userId: string): Promise<void> => {
   console.log('🔄 Iniciando sincronização do servidor...');
   
-  // Sincronizar tabelas com user_id
-  for (const tableName of SYNC_TABLES_WITH_USER) {
-    try {
-      const lastSync = await getSyncMetadata(`${tableName}_last_sync`);
-      
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let query = (supabase.from(tableName) as any).select('*').eq('user_id', userId);
-      
-      if (lastSync) {
-        query = query.gte('updated_at', lastSync);
-      }
+  // Sincronizar tabelas com user_id em paralelo
+  await Promise.allSettled(
+    SYNC_TABLES_WITH_USER.map(async (tableName) => {
+      try {
+        const lastSync = await getSyncMetadata(`${tableName}_last_sync`);
+        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let query = (supabase.from(tableName) as any).select('*').eq('user_id', userId);
+        
+        if (lastSync) {
+          query = query.gte('updated_at', lastSync);
+        }
 
-      const { data, error } = await query;
+        const { data, error } = await query;
 
-      if (error) {
+        if (error) {
+          console.error(`Erro ao sincronizar ${tableName}:`, error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          await bulkPut(tableName, data);
+          console.log(`✅ ${tableName}: ${data.length} registros sincronizados`);
+        }
+
+        await setSyncMetadata(`${tableName}_last_sync`, new Date().toISOString());
+      } catch (error) {
         console.error(`Erro ao sincronizar ${tableName}:`, error);
-        continue;
       }
-
-      if (data && data.length > 0) {
-        await bulkPut(tableName, data);
-        console.log(`✅ ${tableName}: ${data.length} registros sincronizados`);
-      }
-
-      await setSyncMetadata(`${tableName}_last_sync`, new Date().toISOString());
-    } catch (error) {
-      console.error(`Erro ao sincronizar ${tableName}:`, error);
-    }
-  }
+    })
+  );
 
   // Sincronizar tabelas de relacionamento
   try {

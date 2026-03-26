@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useOnlineStatus } from './useOnlineStatus';
 import { supabase } from '@/integrations/supabase/client';
-import { getByIndex, put, remove, initOfflineDb, getAll } from '@/lib/offlineDb';
+import { getByIndex, put, remove, initOfflineDb, getAll, bulkPut } from '@/lib/offlineDb';
 import { toast } from 'sonner';
 
 export interface Property {
@@ -60,10 +60,9 @@ export const useProperties = () => {
         if (error) throw error;
         setProperties(serverData || []);
 
+        // Save to local DB in background
         if (serverData) {
-          for (const record of serverData) {
-            await put('properties', { ...record, synced: true });
-          }
+          bulkPut('properties', serverData).catch(() => {});
         }
       } else {
         // Offline: carregar dados locais (do usuário e do time)
