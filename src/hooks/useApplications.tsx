@@ -96,9 +96,6 @@ export const useApplications = () => {
           const allAP = serverData.flatMap((app: any) => app.application_products || []);
           if (allAP.length > 0) bulkPut('application_products', allAP).catch(() => {});
         }
-            }
-          }
-        }
       } else {
         // Load from local DB when offline
         const localApps = await getAll('applications');
