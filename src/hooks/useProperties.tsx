@@ -60,10 +60,9 @@ export const useProperties = () => {
         if (error) throw error;
         setProperties(serverData || []);
 
+        // Save to local DB in background
         if (serverData) {
-          for (const record of serverData) {
-            await put('properties', { ...record, synced: true });
-          }
+          bulkPut('properties', serverData).catch(() => {});
         }
       } else {
         // Offline: carregar dados locais (do usuário e do time)
