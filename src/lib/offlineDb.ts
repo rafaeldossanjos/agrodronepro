@@ -16,14 +16,14 @@ const DB_NAME = 'agrodrone_offline';
 const DB_VERSION = 3;
 
 let db: IDBDatabase | null = null;
+let dbPromise: Promise<IDBDatabase> | null = null;
 
-// Inicializa o IndexedDB
+// Inicializa o IndexedDB (cached promise to avoid redundant opens)
 export const initOfflineDb = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    if (db) {
-      resolve(db);
-      return;
-    }
+  if (db) return Promise.resolve(db);
+  if (dbPromise) return dbPromise;
+
+  dbPromise = new Promise((resolve, reject) => {
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
