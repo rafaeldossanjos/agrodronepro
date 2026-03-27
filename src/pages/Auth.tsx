@@ -64,6 +64,29 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    const email = signInData.email;
+    if (!email) {
+      toast.error('Digite seu email no campo acima para recuperar a senha');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast.error(error.message || 'Erro ao enviar email de recuperação');
+      } else {
+        toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      }
+    } catch {
+      toast.error('Erro inesperado');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
