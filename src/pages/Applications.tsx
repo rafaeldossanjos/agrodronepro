@@ -170,6 +170,8 @@ export default function Applications() {
   const otherApps = filteredApplications.filter((app: any) => 
     app.status !== 'planejada' && app.status !== 'em_andamento'
   );
+  
+  const { paginatedItems: paginatedOtherApps, currentPage, setCurrentPage, totalItems, itemsPerPage } = usePagination(otherApps, 10);
 
   if (isLoading) return <ListSkeleton count={3} />;
 
