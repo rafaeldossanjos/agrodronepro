@@ -605,6 +605,12 @@ export default function Stock() {
                 </Table>
               </div>
             </Card>
+            <Pagination
+              currentPage={movPage}
+              totalItems={movTotal}
+              itemsPerPage={movPerPage}
+              onPageChange={setMovPage}
+            />
           )}
           
           {/* Dialog de edição */}
