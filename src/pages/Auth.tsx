@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plane, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 
 const signUpSchema = z.object({
   fullName: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(100),
@@ -59,6 +60,29 @@ const Auth = () => {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const email = signInData.email;
+    if (!email) {
+      toast.error('Digite seu email no campo acima para recuperar a senha');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast.error(error.message || 'Erro ao enviar email de recuperação');
+      } else {
+        toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      }
+    } catch {
+      toast.error('Erro inesperado');
     } finally {
       setIsLoading(false);
     }
@@ -143,6 +167,15 @@ const Auth = () => {
                     </>
                   ) : 'Entrar'}
                 </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-base text-primary hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
               </form>
             </TabsContent>
 

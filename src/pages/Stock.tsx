@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { Pagination, usePagination } from "@/components/Pagination";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,6 +230,7 @@ export default function Stock() {
 
   // Ordenar movimentações filtradas
   const sortedMovements = sortMovements(filteredMovements, sortField, sortDirection);
+  const { paginatedItems: paginatedMovements, currentPage: movPage, setCurrentPage: setMovPage, totalItems: movTotal, itemsPerPage: movPerPage } = usePagination(sortedMovements, 15);
   const sortedReportMovements = sortMovements(filteredMovements, reportSortField, reportSortDirection);
 
   // Função para gerar PDF do relatório
@@ -510,99 +512,107 @@ export default function Stock() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="rounded-xl">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead 
-                        className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
-                        onClick={() => toggleSort("date")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Data
-                          <ArrowUpDown className={`h-4 w-4 ${sortField === "date" ? "text-primary" : "text-muted-foreground"}`} />
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
-                        onClick={() => toggleSort("name")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Produto
-                          <ArrowUpDown className={`h-4 w-4 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-xl font-semibold">Propriedade</TableHead>
-                      <TableHead 
-                        className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
-                        onClick={() => toggleSort("quantity")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Quantidade
-                          <ArrowUpDown className={`h-4 w-4 ${sortField === "quantity" ? "text-primary" : "text-muted-foreground"}`} />
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-xl font-semibold">Motivo</TableHead>
-                      <TableHead className="text-xl font-semibold w-28">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedMovements.map((movement) => {
-                      const product = products.find(p => p.id === movement.product_id);
-                      const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null);
-                      const productName = movement.product?.name || product?.name || '-';
-                      const propertyName = movement.property?.name || properties.find(p => p.id === movement.property_id)?.name || '-';
-                      return (
-                        <TableRow key={movement.id}>
-                          <TableCell className="text-xl">
-                             {(() => {
-                               const d = parseMovementDate(movement.movement_date);
-                               return d ? format(d, "dd/MM/yyyy", { locale: ptBR }) : "-";
-                             })()}
-                          </TableCell>
-                          <TableCell className="font-semibold text-xl">{productName}</TableCell>
-                          <TableCell className="text-xl">{propertyName}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <span className="font-bold text-xl">
-                                {Number(movement.quantity).toFixed(2)} {movement.unit}
-                              </span>
-                              {packageQty && (
-                                <span className="text-lg text-muted-foreground">
-                                  ({packageQty} unid.)
+            <>
+              <Card className="rounded-xl">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead 
+                          className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                          onClick={() => toggleSort("date")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Data
+                            <ArrowUpDown className={`h-4 w-4 ${sortField === "date" ? "text-primary" : "text-muted-foreground"}`} />
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                          onClick={() => toggleSort("name")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Produto
+                            <ArrowUpDown className={`h-4 w-4 ${sortField === "name" ? "text-primary" : "text-muted-foreground"}`} />
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-xl font-semibold">Propriedade</TableHead>
+                        <TableHead 
+                          className="text-xl font-semibold cursor-pointer hover:bg-muted/50"
+                          onClick={() => toggleSort("quantity")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Quantidade
+                            <ArrowUpDown className={`h-4 w-4 ${sortField === "quantity" ? "text-primary" : "text-muted-foreground"}`} />
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-xl font-semibold">Motivo</TableHead>
+                        <TableHead className="text-xl font-semibold w-28">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedMovements.map((movement) => {
+                        const product = products.find(p => p.id === movement.product_id);
+                        const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null);
+                        const productName = movement.product?.name || product?.name || '-';
+                        const propertyName = movement.property?.name || properties.find(p => p.id === movement.property_id)?.name || '-';
+                        return (
+                          <TableRow key={movement.id}>
+                            <TableCell className="text-xl">
+                               {(() => {
+                                 const d = parseMovementDate(movement.movement_date);
+                                 return d ? format(d, "dd/MM/yyyy", { locale: ptBR }) : "-";
+                               })()}
+                            </TableCell>
+                            <TableCell className="font-semibold text-xl">{productName}</TableCell>
+                            <TableCell className="text-xl">{propertyName}</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-xl">
+                                  {Number(movement.quantity).toFixed(2)} {movement.unit}
                                 </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-xl">{getReasonLabel(movement.reason)}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditMovement(movement)}
-                                className="h-12 w-12 p-0 rounded-xl"
-                              >
-                                <Pencil className="h-5 w-5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDeletingMovement(movement)}
-                                className="h-12 w-12 p-0 rounded-xl text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-5 w-5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
+                                {packageQty && (
+                                  <span className="text-lg text-muted-foreground">
+                                    ({packageQty} unid.)
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xl">{getReasonLabel(movement.reason)}</TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditMovement(movement)}
+                                  className="h-12 w-12 p-0 rounded-xl"
+                                >
+                                  <Pencil className="h-5 w-5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setDeletingMovement(movement)}
+                                  className="h-12 w-12 p-0 rounded-xl text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-5 w-5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+              <Pagination
+                currentPage={movPage}
+                totalItems={movTotal}
+                itemsPerPage={movPerPage}
+                onPageChange={setMovPage}
+              />
+            </>
           )}
           
           {/* Dialog de edição */}

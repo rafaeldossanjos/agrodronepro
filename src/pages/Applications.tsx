@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { Pagination, usePagination } from "@/components/Pagination";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -169,6 +170,8 @@ export default function Applications() {
   const otherApps = filteredApplications.filter((app: any) => 
     app.status !== 'planejada' && app.status !== 'em_andamento'
   );
+  
+  const { paginatedItems: paginatedOtherApps, currentPage, setCurrentPage, totalItems, itemsPerPage } = usePagination(otherApps, 10);
 
   if (isLoading) return <ListSkeleton count={3} />;
 
@@ -434,10 +437,16 @@ export default function Applications() {
                 </h2>
               )}
               <div className="space-y-2">
-                {otherApps.map((app: any) => (
+                {paginatedOtherApps.map((app: any) => (
                   <ApplicationCard key={app.id} app={app} />
                 ))}
               </div>
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </div>
