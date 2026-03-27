@@ -89,7 +89,7 @@ export default function Products() {
         </Card>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
-          {filteredProducts.map((product) => (
+          {paginatedProducts.map((product) => (
             <Card key={product.id} className="p-4">
               <div className="mb-2">
                 <div className="flex gap-2">
