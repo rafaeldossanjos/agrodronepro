@@ -437,10 +437,16 @@ export default function Applications() {
                 </h2>
               )}
               <div className="space-y-2">
-                {otherApps.map((app: any) => (
+                {paginatedOtherApps.map((app: any) => (
                   <ApplicationCard key={app.id} app={app} />
                 ))}
               </div>
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </div>
