@@ -88,99 +88,101 @@ export default function Products() {
           </div>
         </Card>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2">
-          {paginatedProducts.map((product) => (
-            <Card key={product.id} className="p-4">
-              <div className="mb-2">
-                <div className="flex gap-2">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-                    <Cylinder className="h-7 w-7 text-primary" />
+        <>
+          <div className="grid gap-3 md:grid-cols-2">
+            {paginatedProducts.map((product) => (
+              <Card key={product.id} className="p-4">
+                <div className="mb-2">
+                  <div className="flex gap-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+                      <Cylinder className="h-7 w-7 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-2xl sm:text-3xl text-foreground line-clamp-1">
+                        {product.name}
+                      </h3>
+                      {product.manufacturer && (
+                        <p className="text-xl text-muted-foreground truncate">
+                          {product.manufacturer}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-2xl sm:text-3xl text-foreground line-clamp-1">
-                      {product.name}
-                    </h3>
-                    {product.manufacturer && (
-                      <p className="text-xl text-muted-foreground truncate">
-                        {product.manufacturer}
-                      </p>
-                    )}
+                  <div className="mt-2">
+                    <Badge
+                      className={categoryColors[product.category] || categoryColors.Outro}
+                      variant="outline"
+                    >
+                      {product.category}
+                    </Badge>
                   </div>
                 </div>
-                <div className="mt-2">
-                  <Badge
-                    className={categoryColors[product.category] || categoryColors.Outro}
-                    variant="outline"
-                  >
-                    {product.category}
-                  </Badge>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
-                <div>
-                  <p className="text-lg sm:text-xl text-muted-foreground">Dose Recomendada</p>
-                  <p className="font-semibold text-2xl sm:text-3xl text-foreground">
-                    {product.recommended_dose 
-                      ? `${product.recommended_dose} ${product.recommended_dose_unit || `${product.unit}/ha`}`
-                      : "Não informada"}
-                  </p>
+                <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
+                  <div>
+                    <p className="text-lg sm:text-xl text-muted-foreground">Dose Recomendada</p>
+                    <p className="font-semibold text-2xl sm:text-3xl text-foreground">
+                      {product.recommended_dose 
+                        ? `${product.recommended_dose} ${product.recommended_dose_unit || `${product.unit}/ha`}`
+                        : "Não informada"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-lg sm:text-xl text-muted-foreground">Tamanho Embalagem</p>
+                    <p className="font-semibold text-2xl sm:text-3xl text-foreground">
+                      {product.package_size 
+                        ? `${product.package_size} ${product.unit}`
+                        : "Não informado"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-lg sm:text-xl text-muted-foreground">Tamanho Embalagem</p>
-                  <p className="font-semibold text-2xl sm:text-3xl text-foreground">
-                    {product.package_size 
-                      ? `${product.package_size} ${product.unit}`
-                      : "Não informado"}
-                  </p>
-                </div>
-              </div>
 
-              <div className="mt-3 flex gap-2">
-                <ProductDialog
-                  product={product}
-                  trigger={
-                    <Button variant="outline" size="default" className="flex-1 h-12 text-lg">
-                      <Edit className="h-5 w-5 mr-2" />
-                      Editar
-                    </Button>
-                  }
-                />
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="default" className="flex-1 h-12 text-lg">
-                      <Trash2 className="h-5 w-5 mr-2" />
-                      Excluir
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tem certeza que deseja excluir o produto "{product.name}"?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={() => deleteProduct.mutate(product.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
+                <div className="mt-3 flex gap-2">
+                  <ProductDialog
+                    product={product}
+                    trigger={
+                      <Button variant="outline" size="default" className="flex-1 h-12 text-lg">
+                        <Edit className="h-5 w-5 mr-2" />
+                        Editar
+                      </Button>
+                    }
+                  />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="default" className="flex-1 h-12 text-lg">
+                        <Trash2 className="h-5 w-5 mr-2" />
                         Excluir
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </Card>
-          ))}
-        </div>
-        <Pagination
-          currentPage={currentPage}
-          totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-        />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir o produto "{product.name}"?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => deleteProduct.mutate(product.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </Card>
+            ))}
+          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        </>
       )}
     </div>
     </PullToRefresh>
