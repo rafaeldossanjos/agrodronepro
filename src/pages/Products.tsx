@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Cylinder, Edit, Trash2 } from "lucide-react";
 import { useState, useCallback } from "react";
+import { Pagination, usePagination } from "@/components/Pagination";
 import { useProducts } from "@/hooks/useProducts";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { ListSkeleton } from "@/components/PageSkeleton";
