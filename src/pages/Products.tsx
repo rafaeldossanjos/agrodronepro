@@ -30,6 +30,8 @@ export default function Products() {
     product.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const { paginatedItems: paginatedProducts, currentPage, setCurrentPage, totalItems, itemsPerPage } = usePagination(filteredProducts, 10);
+
   if (isLoading) return <ListSkeleton count={4} />;
 
   return (
