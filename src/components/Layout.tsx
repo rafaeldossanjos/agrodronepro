@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SyncIndicator } from "@/components/SyncIndicator";
 
 // Inner component that has access to sidebar context
 const LayoutContent = ({ children }: { children: React.ReactNode }) => {
