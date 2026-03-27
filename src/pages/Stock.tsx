@@ -550,7 +550,7 @@ export default function Stock() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedMovements.map((movement) => {
+                    {paginatedMovements.map((movement) => {
                       const product = products.find(p => p.id === movement.product_id);
                       const packageQty = formatPackageQuantity(Number(movement.quantity), product?.package_size || null);
                       const productName = movement.product?.name || product?.name || '-';

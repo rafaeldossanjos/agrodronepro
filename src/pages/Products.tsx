@@ -175,6 +175,12 @@ export default function Products() {
             </Card>
           ))}
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
     </PullToRefresh>
