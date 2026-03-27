@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -51,7 +52,6 @@ export const Pagination = ({ currentPage, totalItems, itemsPerPage, onPageChange
 export function usePagination<T>(items: T[], itemsPerPage = 10) {
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Reset to page 1 when items change significantly
   const totalPages = Math.ceil(items.length / itemsPerPage);
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
   
@@ -72,5 +72,3 @@ export function usePagination<T>(items: T[], itemsPerPage = 10) {
     itemsPerPage,
   };
 }
-
-import { useState } from 'react';
