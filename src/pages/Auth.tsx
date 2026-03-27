@@ -143,6 +143,15 @@ const Auth = () => {
                     </>
                   ) : 'Entrar'}
                 </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-base text-primary hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
               </form>
             </TabsContent>
 
