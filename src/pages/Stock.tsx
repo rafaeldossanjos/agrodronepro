@@ -230,6 +230,7 @@ export default function Stock() {
 
   // Ordenar movimentações filtradas
   const sortedMovements = sortMovements(filteredMovements, sortField, sortDirection);
+  const { paginatedItems: paginatedMovements, currentPage: movPage, setCurrentPage: setMovPage, totalItems: movTotal, itemsPerPage: movPerPage } = usePagination(sortedMovements, 15);
   const sortedReportMovements = sortMovements(filteredMovements, reportSortField, reportSortDirection);
 
   // Função para gerar PDF do relatório
