@@ -2,11 +2,12 @@ import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Edit2, Trash2, Package } from "lucide-react";
+import { FileText, Search, Edit2, Trash2, Package, Copy } from "lucide-react";
 import { useRecipes } from "@/hooks/useRecipes";
 import { RecipeDialog } from "@/components/RecipeDialog";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { CardGridSkeleton } from "@/components/PageSkeleton";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +21,26 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Recipes() {
-  const { recipes, isLoading, deleteRecipe, refetch } = useRecipes();
+  const { recipes, isLoading, createRecipe, deleteRecipe, refetch } = useRecipes();
   const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleDuplicate = async (recipe: typeof recipes[0]) => {
+    try {
+      await createRecipe({
+        name: `${recipe.name} (cópia)`,
+        description: recipe.description,
+        products: recipe.recipe_products?.map((rp) => ({
+          product_id: rp.product_id,
+          dose_per_ha: rp.dose_per_ha,
+          dose_unit: rp.dose_unit,
+        })) || [],
+      });
+      toast.success("Receituário duplicado com sucesso!");
+    } catch {
+      toast.error("Erro ao duplicar receituário");
+    }
+  };
 
   const filteredRecipes = recipes.filter((r) =>
     r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -117,8 +135,15 @@ export default function Recipes() {
                 )}
               </div>
 
-              {/* Actions */}
               <div className="flex gap-3 pt-3 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="default"
+                  onClick={() => handleDuplicate(recipe)}
+                  title="Duplicar"
+                >
+                  <Copy className="h-5 w-5" />
+                </Button>
                 <RecipeDialog
                   recipe={recipe}
                   trigger={

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Calendar, Edit, Trash2, Check, Clock, Play, X, Map, Search, Filter } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2, Check, Clock, Play, X, Map, Search, Filter, Copy } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { format } from "date-fns";
@@ -109,6 +109,22 @@ export default function Applications() {
   const handleEdit = (app: any) => {
     setEditingApp(app);
     setDialogOpen(true);
+  };
+
+  const handleDuplicate = (app: any) => {
+    const duplicated = {
+      ...app,
+      id: undefined,
+      name: `${app.name || 'Aplicação'} (cópia)`,
+      status: 'planejada',
+      application_date: new Date().toISOString().split('T')[0],
+    };
+    setEditingApp(null);
+    setDialogOpen(true);
+    // Usamos setTimeout para garantir que o dialog abra antes de preencher
+    setTimeout(() => {
+      setEditingApp(duplicated);
+    }, 50);
   };
 
   const [deletingAppId, setDeletingAppId] = useState<string | null>(null);
@@ -297,6 +313,16 @@ export default function Applications() {
               <span className="hidden sm:inline">Mapa</span>
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="default"
+            onClick={() => handleDuplicate(app)}
+            className="flex-1 sm:flex-none h-12 text-base"
+            title="Duplicar"
+          >
+            <Copy className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">Duplicar</span>
+          </Button>
           <Button
             variant="outline"
             size="default"
