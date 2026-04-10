@@ -23,6 +23,8 @@ import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { SmartNotifications } from "@/components/SmartNotifications";
 
 type PeriodFilter = 1 | 7 | 15 | 30 | 'month' | 'all';
 
