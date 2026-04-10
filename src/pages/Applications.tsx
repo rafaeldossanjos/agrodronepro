@@ -111,6 +111,22 @@ export default function Applications() {
     setDialogOpen(true);
   };
 
+  const handleDuplicate = (app: any) => {
+    const duplicated = {
+      ...app,
+      id: undefined,
+      name: `${app.name || 'Aplicação'} (cópia)`,
+      status: 'planejada',
+      application_date: new Date().toISOString().split('T')[0],
+    };
+    setEditingApp(null);
+    setDialogOpen(true);
+    // Usamos setTimeout para garantir que o dialog abra antes de preencher
+    setTimeout(() => {
+      setEditingApp(duplicated);
+    }, 50);
+  };
+
   const [deletingAppId, setDeletingAppId] = useState<string | null>(null);
 
   const handleDelete = (id: string) => {
