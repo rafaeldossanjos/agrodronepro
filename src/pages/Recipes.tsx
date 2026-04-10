@@ -135,8 +135,15 @@ export default function Recipes() {
                 )}
               </div>
 
-              {/* Actions */}
               <div className="flex gap-3 pt-3 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="default"
+                  onClick={() => handleDuplicate(recipe)}
+                  title="Duplicar"
+                >
+                  <Copy className="h-5 w-5" />
+                </Button>
                 <RecipeDialog
                   recipe={recipe}
                   trigger={
