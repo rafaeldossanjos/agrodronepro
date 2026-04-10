@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Cylinder, Edit, Trash2 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Pagination, usePagination } from "@/components/Pagination";
 import { useProducts } from "@/hooks/useProducts";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -20,24 +20,39 @@ const categoryColors: Record<string, string> = {
   Outro: "bg-muted text-muted-foreground",
 };
 
+const CATEGORIES = ["Todos", "Herbicida", "Fungicida", "Inseticida", "Adjuvante", "Fertilizante", "Outro"];
+
 export default function Products() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
   const { products, isLoading, deleteProduct, refetch } = useProducts();
   const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === "Todos" || product.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchTerm, selectedCategory]);
 
   const { paginatedItems: paginatedProducts, currentPage, setCurrentPage, totalItems, itemsPerPage } = usePagination(filteredProducts, 10);
+
+  // Contar por categoria
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { Todos: products.length };
+    products.forEach(p => {
+      counts[p.category] = (counts[p.category] || 0) + 1;
+    });
+    return counts;
+  }, [products]);
 
   if (isLoading) return <ListSkeleton count={4} />;
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-2">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-5xl sm:text-6xl font-bold text-foreground">
@@ -59,6 +74,22 @@ export default function Products() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-14 h-14 text-lg rounded-xl"
         />
+      </div>
+
+      {/* Filtro por categoria */}
+      <div className="flex gap-2 flex-wrap">
+        {CATEGORIES.map((cat) => (
+          <Button
+            key={cat}
+            variant={selectedCategory === cat ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategory(cat)}
+            className="h-10 text-base rounded-xl"
+          >
+            {cat}
+            {categoryCounts[cat] ? ` (${categoryCounts[cat]})` : ''}
+          </Button>
+        ))}
       </div>
 
       {/* Products Grid */}
@@ -83,7 +114,7 @@ export default function Products() {
               Nenhum produto encontrado
             </h3>
             <p className="text-xl sm:text-2xl text-muted-foreground">
-              Tente buscar por outro termo
+              Tente buscar por outro termo ou categoria
             </p>
           </div>
         </Card>

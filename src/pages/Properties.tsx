@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Edit, Trash2 } from "lucide-react";
-import { useCallback } from "react";
+import { Input } from "@/components/ui/input";
+import { MapPin, Edit, Trash2, Search } from "lucide-react";
+import { useCallback, useState } from "react";
 import { useProperties } from "@/hooks/useProperties";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { CardGridSkeleton } from "@/components/PageSkeleton";
@@ -10,14 +11,19 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export default function Properties() {
   const { properties, isLoading, deleteProperty, refetch } = useProperties();
+  const [searchTerm, setSearchTerm] = useState("");
   const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
+
+  const filteredProperties = properties.filter((p) =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (isLoading) return <CardGridSkeleton count={3} />;
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-5xl sm:text-6xl font-bold text-foreground">Propriedades</h1>
@@ -28,7 +34,17 @@ export default function Properties() {
         <PropertyDialog />
       </div>
 
-      {/* Properties Grid */}
+      {/* Busca */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Buscar propriedades..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-14 h-14 text-lg rounded-xl"
+        />
+      </div>
+
       {properties.length === 0 ? (
         <Card className="p-10">
           <div className="text-center">
@@ -42,9 +58,21 @@ export default function Properties() {
             <PropertyDialog />
           </div>
         </Card>
+      ) : filteredProperties.length === 0 ? (
+        <Card className="p-10">
+          <div className="text-center">
+            <Search className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-2xl font-semibold text-foreground mb-3">
+              Nenhuma propriedade encontrada
+            </h3>
+            <p className="text-xl text-muted-foreground">
+              Tente buscar por outro termo
+            </p>
+          </div>
+        </Card>
       ) : (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => (
+          {filteredProperties.map((property) => (
             <Card key={property.id} className="p-5 transition-all hover:shadow-lg">
               <div className="mb-3 flex items-start justify-between">
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
