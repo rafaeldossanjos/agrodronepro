@@ -30,6 +30,17 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -102,15 +113,35 @@ export function AppSidebar() {
             <User className="h-8 w-8 lg:h-9 lg:w-9 text-sidebar-foreground/70 flex-shrink-0" />
             <span className="text-sidebar-foreground/70 truncate">{user?.email}</span>
           </div>
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="w-full text-xl lg:text-2xl h-16 lg:h-18 rounded-xl" 
-            onClick={signOut}
-          >
-            <LogOut className="h-8 w-8 lg:h-9 lg:w-9 mr-3" />
-            Sair
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="w-full text-xl lg:text-2xl h-16 lg:h-18 rounded-xl" 
+              >
+                <LogOut className="h-8 w-8 lg:h-9 lg:w-9 mr-3" />
+                Sair
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-2xl">Sair do sistema</AlertDialogTitle>
+                <AlertDialogDescription className="text-lg">
+                  Tem certeza que deseja sair? Dados não sincronizados podem ser perdidos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="h-12 text-lg">Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={signOut}
+                  className="h-12 text-lg bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Sair
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <p className="text-lg lg:text-xl text-sidebar-foreground/50 text-center">
             © 2026 AgroDrone PRO
           </p>
