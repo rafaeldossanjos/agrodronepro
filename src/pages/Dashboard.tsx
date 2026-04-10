@@ -179,7 +179,7 @@ export default function Dashboard() {
       'semeadura': 'Semeadura',
       'outro': 'Outro',
     };
-    return Array.from(typeMap.entries()).map(([type, area]) => ({
+    return Object.entries(typeMap).map(([type, area]) => ({
       name: labels[type] || type,
       value: Number(area.toFixed(2)),
     }));
