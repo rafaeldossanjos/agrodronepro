@@ -316,6 +316,16 @@ export default function Applications() {
           <Button
             variant="outline"
             size="default"
+            onClick={() => handleDuplicate(app)}
+            className="flex-1 sm:flex-none h-12 text-base"
+            title="Duplicar"
+          >
+            <Copy className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">Duplicar</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="default"
             onClick={() => handleEdit(app)}
             className="flex-1 sm:flex-none h-12 text-base"
           >
