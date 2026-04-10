@@ -189,7 +189,66 @@ export default function Stock() {
     }
   };
 
-  const toggleSort = (field: "date" | "name" | "quantity") => {
+  const exportCSV = () => {
+    try {
+      const headers = ["Data", "Tipo", "Produto", "Quantidade", "Unidade", "Propriedade", "Motivo", "Observações"];
+      const rows = filteredMovements.map((m) => {
+        const d = parseMovementDate(m.movement_date);
+        const productName = m.product?.name || products.find(p => p.id === m.product_id)?.name || "";
+        const propertyName = m.property?.name || properties.find(p => p.id === m.property_id)?.name || "";
+        return [
+          d ? format(d, "dd/MM/yyyy") : "",
+          m.movement_type === "entrada" ? "Entrada" : m.movement_type === "saida" ? "Saída" : "Ajuste",
+          productName,
+          m.quantity,
+          m.unit,
+          propertyName,
+          getReasonLabel(m.reason),
+          m.notes || "",
+        ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
+      });
+      const csv = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `estoque_movimentacoes_${format(new Date(), "yyyy-MM-dd")}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("CSV exportado com sucesso!");
+    } catch {
+      toast.error("Erro ao exportar CSV");
+    }
+  };
+
+  const exportBalancesCSV = () => {
+    try {
+      const headers = ["Produto", "Propriedade", "Quantidade Atual", "Unidade", "Estoque Mínimo"];
+      const rows = filteredBalances.map((b) => {
+        const productName = b.product?.name || products.find(p => p.id === b.product_id)?.name || "";
+        const propertyName = b.property?.name || properties.find(p => p.id === b.property_id)?.name || "";
+        return [
+          productName,
+          propertyName,
+          b.current_quantity,
+          b.unit,
+          b.min_quantity || 0,
+        ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
+      });
+      const csv = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `estoque_saldos_${format(new Date(), "yyyy-MM-dd")}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("CSV exportado com sucesso!");
+    } catch {
+      toast.error("Erro ao exportar CSV");
+    }
+  };
+
     if (sortField === field) {
       setSortDirection(prev => prev === "asc" ? "desc" : "asc");
     } else {
