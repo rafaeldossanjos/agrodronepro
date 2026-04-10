@@ -2,11 +2,12 @@ import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Search, Edit2, Trash2, Package } from "lucide-react";
+import { FileText, Search, Edit2, Trash2, Package, Copy } from "lucide-react";
 import { useRecipes } from "@/hooks/useRecipes";
 import { RecipeDialog } from "@/components/RecipeDialog";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { CardGridSkeleton } from "@/components/PageSkeleton";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
