@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Calendar, Edit, Trash2, Check, Clock, Play, X, Map, Search, Filter } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2, Check, Clock, Play, X, Map, Search, Filter, Copy } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { format } from "date-fns";

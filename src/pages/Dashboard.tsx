@@ -216,6 +216,11 @@ export default function Dashboard() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-4">
+      <OnboardingWizard />
+
+      {/* Notificações Inteligentes */}
+      <SmartNotifications />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
