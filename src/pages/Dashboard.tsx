@@ -129,17 +129,16 @@ export default function Dashboard() {
     
     if (diffDays > 60) {
       // Agrupar por mês
-      const monthMap = new Map<string, { area: number; cost: number; count: number }>();
+      const monthMap: Record<string, { area: number; cost: number; count: number }> = {};
       concluidas.forEach(app => {
         const d = new Date(app.application_date + 'T00:00:00');
         const key = format(d, "MMM/yy", { locale: ptBR });
-        const existing = monthMap.get(key) || { area: 0, cost: 0, count: 0 };
-        existing.area += Number(app.area_applied);
-        existing.cost += Number(app.total_cost);
-        existing.count += 1;
-        monthMap.set(key, existing);
+        if (!monthMap[key]) monthMap[key] = { area: 0, cost: 0, count: 0 };
+        monthMap[key].area += Number(app.area_applied);
+        monthMap[key].cost += Number(app.total_cost);
+        monthMap[key].count += 1;
       });
-      return Array.from(monthMap.entries()).map(([name, data]) => ({
+      return Object.entries(monthMap).map(([name, data]) => ({
         name,
         area: Number(data.area.toFixed(2)),
         custo: Number(data.cost.toFixed(2)),
@@ -169,10 +168,10 @@ export default function Dashboard() {
   // Dados para gráfico de pizza - distribuição por tipo
   const pieData = useMemo(() => {
     const concluidas = filteredApps.filter(app => app.status === 'concluída');
-    const typeMap = new Map<string, number>();
+    const typeMap: Record<string, number> = {};
     concluidas.forEach(app => {
       const type = app.application_type || 'outro';
-      typeMap.set(type, (typeMap.get(type) || 0) + Number(app.area_applied));
+      typeMap[type] = (typeMap[type] || 0) + Number(app.area_applied);
     });
     const labels: Record<string, string> = {
       'pulverização': 'Pulverização',
