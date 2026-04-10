@@ -21,9 +21,26 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Recipes() {
-  const { recipes, isLoading, deleteRecipe, refetch } = useRecipes();
+  const { recipes, isLoading, createRecipe, deleteRecipe, refetch } = useRecipes();
   const handleRefresh = useCallback(async () => { await refetch(); }, [refetch]);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleDuplicate = async (recipe: typeof recipes[0]) => {
+    try {
+      await createRecipe({
+        name: `${recipe.name} (cópia)`,
+        description: recipe.description,
+        products: recipe.recipe_products?.map((rp) => ({
+          product_id: rp.product_id,
+          dose_per_ha: rp.dose_per_ha,
+          dose_unit: rp.dose_unit,
+        })) || [],
+      });
+      toast.success("Receituário duplicado com sucesso!");
+    } catch {
+      toast.error("Erro ao duplicar receituário");
+    }
+  };
 
   const filteredRecipes = recipes.filter((r) =>
     r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
