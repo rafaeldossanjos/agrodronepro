@@ -72,6 +72,7 @@ export const initOfflineDb = (): Promise<IDBDatabase> => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getAll = async (storeName: string): Promise<any[]> => {
   const database = await initOfflineDb();
+  if (!database) return [];
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(storeName, 'readonly');
     const store = transaction.objectStore(storeName);
