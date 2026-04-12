@@ -249,6 +249,7 @@ export default function Stock() {
     }
   };
 
+  const toggleSort = (field: "date" | "name" | "quantity") => {
     if (sortField === field) {
       setSortDirection(prev => prev === "asc" ? "desc" : "asc");
     } else {
