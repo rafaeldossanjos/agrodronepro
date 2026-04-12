@@ -70,20 +70,20 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-4 px-5 py-6 lg:py-7">
-          <div className="flex h-16 w-16 lg:h-18 lg:w-18 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary">
-            <Plane className="h-10 w-10 lg:h-12 lg:w-12 text-primary-foreground" />
+        <div className="flex items-center gap-3 px-4 py-5 lg:px-5 lg:py-6">
+          <div className="flex h-12 w-12 lg:h-16 lg:w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary">
+            <Plane className="h-7 w-7 lg:h-10 lg:w-10 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-sidebar-foreground">AgroDrone</h1>
-            <p className="text-lg lg:text-xl text-sidebar-foreground/70">Sistema PRO</p>
+            <h1 className="text-xl lg:text-2xl font-bold text-sidebar-foreground">AgroDrone</h1>
+            <p className="text-sm lg:text-lg text-sidebar-foreground/70">Sistema PRO</p>
           </div>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xl lg:text-2xl px-5 py-3 font-semibold">Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-base lg:text-xl px-4 lg:px-5 py-2 lg:py-3 font-semibold">Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigation.map((item) => {
@@ -94,10 +94,10 @@ export function AppSidebar() {
                       isActive={isActive}
                       size="lg"
                       onClick={() => handleNavigation(item.href)}
-                      className="min-h-[68px] lg:min-h-[72px] text-xl lg:text-2xl px-5 gap-4"
+                      className="min-h-[56px] lg:min-h-[68px] text-lg lg:text-xl px-4 lg:px-5 gap-3 lg:gap-4"
                     >
-                      <item.icon className="h-9 w-9 lg:h-10 lg:w-10 flex-shrink-0" />
-                      <span className="font-medium">{item.name}</span>
+                      <item.icon className="h-7 w-7 lg:h-9 lg:w-9 flex-shrink-0" />
+                      <span className="font-medium text-base lg:text-xl">{item.name}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -107,10 +107,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-6 lg:p-7">
-        <div className="space-y-5 lg:space-y-6">
-          <div className="flex items-center gap-4 text-lg lg:text-xl">
-            <User className="h-8 w-8 lg:h-9 lg:w-9 text-sidebar-foreground/70 flex-shrink-0" />
+      <SidebarFooter className="border-t border-sidebar-border p-4 lg:p-6">
+        <div className="space-y-4 lg:space-y-5">
+          <div className="flex items-center gap-3 text-sm lg:text-lg">
+            <User className="h-6 w-6 lg:h-8 lg:w-8 text-sidebar-foreground/70 flex-shrink-0" />
             <span className="text-sidebar-foreground/70 truncate">{user?.email}</span>
           </div>
           <AlertDialog>
@@ -118,9 +118,9 @@ export function AppSidebar() {
               <Button 
                 variant="outline" 
                 size="lg"
-                className="w-full text-xl lg:text-2xl h-16 lg:h-18 rounded-xl" 
+                className="w-full text-base lg:text-lg h-12 lg:h-14 rounded-xl" 
               >
-                <LogOut className="h-8 w-8 lg:h-9 lg:w-9 mr-3" />
+                <LogOut className="h-6 w-6 lg:h-7 lg:w-7 mr-2" />
                 Sair
               </Button>
             </AlertDialogTrigger>
@@ -142,7 +142,7 @@ export function AppSidebar() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <p className="text-lg lg:text-xl text-sidebar-foreground/50 text-center">
+          <p className="text-sm lg:text-lg text-sidebar-foreground/50 text-center">
             © 2026 AgroDrone PRO
           </p>
         </div>

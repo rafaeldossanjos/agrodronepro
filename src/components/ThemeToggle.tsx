@@ -14,8 +14,8 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-12 w-12 lg:h-14 lg:w-14">
-        <Sun className="h-7 w-7 lg:h-8 lg:w-8" />
+      <Button variant="ghost" size="icon" className="h-10 w-10 lg:h-12 lg:w-12">
+        <Sun className="h-5 w-5 lg:h-6 lg:w-6" />
       </Button>
     );
   }
@@ -24,13 +24,13 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      className="h-12 w-12 lg:h-14 lg:w-14"
+      className="h-10 w-10 lg:h-12 lg:w-12"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
       {theme === "dark" ? (
-        <Sun className="h-7 w-7 lg:h-8 lg:w-8 text-yellow-500" />
+        <Sun className="h-5 w-5 lg:h-6 lg:w-6 text-yellow-500" />
       ) : (
-        <Moon className="h-7 w-7 lg:h-8 lg:w-8" />
+        <Moon className="h-5 w-5 lg:h-6 lg:w-6" />
       )}
       <span className="sr-only">Alternar tema</span>
     </Button>
