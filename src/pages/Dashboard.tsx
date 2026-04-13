@@ -15,14 +15,15 @@ import {
 import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useMemo, useState, useCallback } from "react";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { DashboardSkeleton } from "@/components/PageSkeleton";
-import { format, subDays, startOfMonth, endOfMonth, eachWeekOfInterval, startOfWeek, endOfWeek } from "date-fns";
+import { format, subDays, eachWeekOfInterval, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { SmartNotifications } from "@/components/SmartNotifications";
 
@@ -33,6 +34,7 @@ export default function Dashboard() {
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
+  const isMobile = useIsMobile();
   const { applications, isLoading: loadingApps, refetch: refetchApps } = useApplications();
   const { properties, refetch: refetchProps } = useProperties();
 
@@ -215,38 +217,38 @@ export default function Dashboard() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <OnboardingWizard />
 
       {/* Notificações Inteligentes */}
       <SmartNotifications />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-xl sm:text-2xl text-muted-foreground">
+          <h1 className="text-2xl font-bold text-foreground sm:text-5xl">Dashboard</h1>
+          <p className="text-sm text-muted-foreground sm:text-2xl">
             Visão geral das operações
           </p>
         </div>
         {pendingCount > 0 && (
           <button
             onClick={() => navigate('/applications')}
-            className="flex items-center gap-2 px-4 py-3 rounded-full bg-warning/10 text-warning text-base sm:text-lg font-medium hover:bg-warning/20 transition-colors"
+            className="flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-2 text-xs font-medium text-warning transition-colors hover:bg-warning/20 sm:gap-2 sm:px-4 sm:py-3 sm:text-lg"
           >
-            <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
+            <Clock className="h-4 w-4 sm:h-6 sm:w-6" />
             {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
           </button>
         )}
       </div>
 
       {/* Filtros de Período */}
-      <div className="flex gap-3 flex-wrap items-center">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <Button
           variant={periodFilter === 'all' ? "default" : "outline"}
           size="lg"
           onClick={() => handlePeriodChange('all' as PeriodFilter)}
-          className="h-14 px-5 text-lg sm:text-xl rounded-xl"
+          className="h-10 rounded-lg px-4 text-sm sm:h-14 sm:rounded-xl sm:px-5 sm:text-xl"
         >
           Todos
         </Button>
@@ -260,19 +262,19 @@ export default function Dashboard() {
             variant={periodFilter === value ? "default" : "outline"}
             size="lg"
             onClick={() => handlePeriodChange(value as PeriodFilter)}
-            className="h-14 px-5 text-lg sm:text-xl rounded-xl"
+            className="h-10 rounded-lg px-4 text-sm sm:h-14 sm:rounded-xl sm:px-5 sm:text-xl"
           >
             {label}
           </Button>
         ))}
         
         <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-14 w-auto min-w-[140px] text-lg sm:text-xl rounded-xl px-4">
+          <SelectTrigger className="h-10 w-auto min-w-[120px] rounded-lg px-3 text-sm sm:h-14 sm:min-w-[140px] sm:rounded-xl sm:px-4 sm:text-xl">
             <SelectValue placeholder="Selecionar mês" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[280px]">
             {availableMonths.map((month) => (
-              <SelectItem key={month} value={month} className="capitalize text-lg sm:text-xl py-3">
+              <SelectItem key={month} value={month} className="py-2 text-sm capitalize sm:py-3 sm:text-xl">
                 {getMonthLabel(month)}
               </SelectItem>
             ))}
@@ -280,13 +282,13 @@ export default function Dashboard() {
         </Select>
 
         <Select value={selectedProperty} onValueChange={handlePropertyChange}>
-          <SelectTrigger className="h-14 w-auto min-w-[180px] text-lg sm:text-xl rounded-xl px-4">
+          <SelectTrigger className="h-10 w-auto min-w-[150px] rounded-lg px-3 text-sm sm:h-14 sm:min-w-[180px] sm:rounded-xl sm:px-4 sm:text-xl">
             <SelectValue placeholder="Selecionar fazenda" />
           </SelectTrigger>
           <SelectContent className="bg-popover max-h-[280px]">
-            <SelectItem value="all" className="text-lg sm:text-xl py-3">Todas as fazendas</SelectItem>
+            <SelectItem value="all" className="py-2 text-sm sm:py-3 sm:text-xl">Todas as fazendas</SelectItem>
             {properties.map((property) => (
-              <SelectItem key={property.id} value={property.id} className="text-lg sm:text-xl py-3">
+              <SelectItem key={property.id} value={property.id} className="py-2 text-sm sm:py-3 sm:text-xl">
                 {property.name}
               </SelectItem>
             ))}
@@ -295,15 +297,15 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-6">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-5 sm:p-8 flex flex-col items-center">
-            <div className={cn("p-4 sm:p-5 rounded-xl bg-muted", stat.color)}>
-              <stat.icon className="h-10 w-10 sm:h-12 sm:w-12" />
+          <Card key={stat.label} className="flex flex-col items-center p-3 sm:p-8">
+            <div className={cn("rounded-xl bg-muted p-2.5 sm:p-5", stat.color)}>
+              <stat.icon className="h-5 w-5 sm:h-12 sm:w-12" />
             </div>
-            <div className="mt-4 text-center">
-              <p className="text-3xl sm:text-4xl font-bold text-foreground leading-none">{stat.value}</p>
-              <p className="text-base sm:text-lg text-muted-foreground mt-2">{stat.label}</p>
+            <div className="mt-3 text-center sm:mt-4">
+              <p className="text-lg font-bold leading-none text-foreground sm:text-4xl">{stat.value}</p>
+              <p className="mt-1.5 text-[11px] leading-tight text-muted-foreground sm:mt-2 sm:text-lg">{stat.label}</p>
             </div>
           </Card>
         ))}
@@ -311,18 +313,29 @@ export default function Dashboard() {
 
       {/* Gráficos */}
       {chartData.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {/* Gráfico de barras - Área aplicada */}
-          <Card className="p-5 sm:p-6">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4">
+          <Card className="min-w-0 overflow-hidden p-3 sm:p-6">
+            <h2 className="mb-3 text-sm font-semibold leading-tight text-foreground sm:mb-4 sm:text-3xl">
               Área Aplicada (ha)
             </h2>
-            <div className="h-[250px] sm:h-[300px]">
+            <div className="h-[180px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                <BarChart data={chartData} margin={{ top: 5, right: isMobile ? 0 : 10, left: isMobile ? -26 : -10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: isMobile ? 8 : 12, fill: 'hsl(var(--muted-foreground))' }}
+                    tickLine={false}
+                    axisLine={false}
+                    minTickGap={isMobile ? 2 : 8}
+                  />
+                  <YAxis
+                    width={isMobile ? 24 : 36}
+                    tick={{ fontSize: isMobile ? 8 : 12, fill: 'hsl(var(--muted-foreground))' }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--popover))',
@@ -343,22 +356,27 @@ export default function Dashboard() {
           </Card>
 
           {/* Gráfico de pizza - Distribuição por tipo */}
-          <Card className="p-5 sm:p-6">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4">
+          <Card className="min-w-0 overflow-hidden p-3 sm:p-6">
+            <h2 className="mb-3 text-sm font-semibold leading-tight text-foreground sm:mb-4 sm:text-3xl">
               Distribuição por Tipo
             </h2>
-            <div className="h-[250px] sm:h-[300px]">
+            <div className="h-[180px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
+                    innerRadius={isMobile ? 24 : 50}
+                    outerRadius={isMobile ? 48 : 90}
                     paddingAngle={3}
                     dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}ha`}
+                    label={
+                      !isMobile
+                        ? ({ name, value }: { name: string; value: number }) => `${name}: ${value}ha`
+                        : false
+                    }
+                    labelLine={!isMobile}
                   >
                     {pieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
@@ -381,21 +399,21 @@ export default function Dashboard() {
       )}
 
       {/* Recent Applications */}
-      <Card className="p-5 sm:p-6">
+      <Card className="p-4 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
+          <h2 className="text-lg font-semibold text-foreground sm:text-3xl">
             Aplicações Recentes
           </h2>
           <button 
             onClick={() => navigate('/applications')}
-            className="text-lg sm:text-xl font-medium text-primary hover:underline"
+            className="text-sm font-medium text-primary hover:underline sm:text-xl"
           >
             Ver todas
           </button>
         </div>
         <div className="space-y-4">
           {recentApplications.length === 0 ? (
-            <p className="text-lg sm:text-xl text-muted-foreground">Nenhuma aplicação registrada.</p>
+            <p className="text-sm text-muted-foreground sm:text-xl">Nenhuma aplicação registrada.</p>
           ) : (
             recentApplications.map((app, index) => (
             <div
@@ -403,13 +421,13 @@ export default function Dashboard() {
               className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-xl sm:text-2xl font-medium text-foreground truncate">{app.name}</p>
-                <p className="text-lg sm:text-xl text-muted-foreground">{app.plotName}</p>
+                <p className="truncate text-base font-medium text-foreground sm:text-2xl">{app.name}</p>
+                <p className="text-sm text-muted-foreground sm:text-xl">{app.plotName}</p>
               </div>
               <div className="text-right flex-shrink-0 ml-4">
-                <p className="text-xl sm:text-2xl font-semibold text-foreground">{app.area}</p>
+                <p className="text-base font-semibold text-foreground sm:text-2xl">{app.area}</p>
                 <span className={cn(
-                  "inline-flex items-center rounded-full px-3 py-1 text-base sm:text-lg font-medium",
+                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium sm:px-3 sm:py-1 sm:text-lg",
                   app.status === 'concluída' ? "bg-success/10 text-success" :
                   app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
                   app.status === 'planejada' ? "bg-warning/10 text-warning" :
@@ -427,11 +445,11 @@ export default function Dashboard() {
       </Card>
 
       {/* Quick Actions */}
-      <Card className="p-8">
-        <h2 className="mb-6 text-3xl font-semibold text-foreground">
+      <Card className="p-4 sm:p-8">
+        <h2 className="mb-4 text-lg font-semibold text-foreground sm:mb-6 sm:text-3xl">
           Ações Rápidas
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6">
           {[
             { icon: Droplet, label: "Aplicação", href: "/applications" },
             { icon: Calculator, label: "Calculadora", href: "/calculator" },
@@ -446,10 +464,10 @@ export default function Dashboard() {
             <button
               key={href}
               onClick={() => navigate(href)}
-              className="flex flex-col items-center gap-3 sm:gap-4 rounded-xl border border-dashed border-border p-5 sm:p-8 transition-colors hover:border-primary hover:bg-muted"
+              className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted sm:gap-4 sm:p-8"
             >
-              <Icon className="h-10 w-10 sm:h-16 sm:w-16 text-primary" />
-              <span className="text-base sm:text-xl font-medium text-foreground">{label}</span>
+              <Icon className="h-6 w-6 text-primary sm:h-16 sm:w-16" />
+              <span className="text-center text-[11px] font-medium leading-tight text-foreground sm:text-xl">{label}</span>
             </button>
           ))}
         </div>
