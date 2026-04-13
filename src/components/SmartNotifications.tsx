@@ -1,16 +1,12 @@
 import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { AlertTriangle, Clock, Package } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useApplications } from "@/hooks/useApplications";
-import { useStockMovements } from "@/hooks/useStockMovements";
-import { useProducts } from "@/hooks/useProducts";
 
 export function SmartNotifications() {
   const navigate = useNavigate();
   const { applications } = useApplications();
-  const { balances } = useStockMovements();
-  const { products } = useProducts();
 
   const notifications = useMemo(() => {
     const items: Array<{
@@ -37,52 +33,8 @@ export function SmartNotifications() {
       });
     }
 
-    // Estoque baixo
-    const lowStock = balances.filter((b) => {
-      const min = Number(b.min_quantity ?? 0);
-      const cur = Number(b.current_quantity ?? 0);
-      return min > 0 && cur <= min;
-    });
-    if (lowStock.length > 0) {
-      const productNames = lowStock
-        .map((b) => {
-          const p = b.product?.name || products.find((pr) => pr.id === b.product_id)?.name;
-          return p;
-        })
-        .filter(Boolean)
-        .slice(0, 3);
-      
-      items.push({
-        id: "low-stock",
-        icon: Package,
-        title: `${lowStock.length} produto(s) com estoque baixo`,
-        description: productNames.length > 0 
-          ? `${productNames.join(", ")}${lowStock.length > 3 ? "..." : ""}`
-          : "Verifique os itens com estoque abaixo do mínimo",
-        color: "text-destructive",
-        action: () => navigate("/stock"),
-      });
-    }
-
-    // Estoque zerado (sem mínimo definido mas qty = 0)
-    const zeroStock = balances.filter((b) => {
-      const cur = Number(b.current_quantity ?? 0);
-      const min = Number(b.min_quantity ?? 0);
-      return cur <= 0 && min === 0;
-    });
-    if (zeroStock.length > 0) {
-      items.push({
-        id: "zero-stock",
-        icon: AlertTriangle,
-        title: `${zeroStock.length} produto(s) sem estoque`,
-        description: "Produtos com quantidade zerada ou negativa",
-        color: "text-orange-500",
-        action: () => navigate("/stock"),
-      });
-    }
-
     return items;
-  }, [applications, balances, products, navigate]);
+  }, [applications, navigate]);
 
   if (notifications.length === 0) return null;
 
