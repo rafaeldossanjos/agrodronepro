@@ -25,22 +25,22 @@ export const SyncIndicator = () => {
           size="icon"
           onClick={handleClick}
           className={cn(
-            "relative h-10 w-10 lg:h-12 lg:w-12 rounded-xl",
+            "relative h-9 w-9 rounded-lg lg:h-12 lg:w-12 lg:rounded-xl",
             !isOnline && "text-destructive",
             isSyncing && "text-primary",
             pendingCount > 0 && isOnline && !isSyncing && "text-yellow-600 dark:text-yellow-400"
           )}
         >
           {!isOnline ? (
-            <CloudOff className="h-5 w-5 lg:h-6 lg:w-6" />
+            <CloudOff className="h-[18px] w-[18px] lg:h-6 lg:w-6" />
           ) : isSyncing ? (
-            <RefreshCw className="h-5 w-5 lg:h-6 lg:w-6 animate-spin" />
+            <RefreshCw className="h-[18px] w-[18px] lg:h-6 lg:w-6 animate-spin" />
           ) : (
-            <Cloud className="h-5 w-5 lg:h-6 lg:h-6" />
+            <Cloud className="h-[18px] w-[18px] lg:h-6 lg:w-6" />
           )}
           {pendingCount > 0 && (
             <span className={cn(
-              "absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white",
+              "absolute -right-0.5 -top-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[9px] font-bold text-white",
               !isOnline ? "bg-destructive" : "bg-yellow-500"
             )}>
               {pendingCount > 9 ? '9+' : pendingCount}

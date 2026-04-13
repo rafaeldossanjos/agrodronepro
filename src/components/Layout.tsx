@@ -19,9 +19,9 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     <div className="flex min-h-screen w-full bg-background">
       <AppSidebar />
       <main className="flex-1 flex flex-col w-full">
-        <header className="sticky top-0 z-[200] flex h-14 lg:h-16 items-center justify-between gap-4 border-b border-border bg-card px-3 sm:px-4 lg:px-6 pt-[env(safe-area-inset-top)]">
-          <SidebarTrigger className="h-10 w-10 lg:h-12 lg:w-12 [&>svg]:h-6 [&>svg]:w-6 lg:[&>svg]:h-7 lg:[&>svg]:w-7" />
-          <div className="flex items-center gap-1">
+        <header className="sticky top-0 z-[200] flex min-h-[calc(3.5rem+env(safe-area-inset-top)+0.625rem)] items-center justify-between gap-3 border-b border-border bg-card/95 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.625rem)] backdrop-blur supports-[backdrop-filter]:bg-card/90 sm:px-4 lg:min-h-16 lg:px-6 lg:py-0">
+          <SidebarTrigger className="h-9 w-9 rounded-lg lg:h-12 lg:w-12 [&>svg]:h-[18px] [&>svg]:w-[18px] lg:[&>svg]:h-7 lg:[&>svg]:w-7" />
+          <div className="flex items-center gap-0.5 sm:gap-1">
             <SyncIndicator />
             <ThemeToggle />
           </div>
