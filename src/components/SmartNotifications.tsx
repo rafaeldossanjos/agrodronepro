@@ -11,7 +11,7 @@ export function SmartNotifications() {
   const notifications = useMemo(() => {
     const items: Array<{
       id: string;
-      icon: typeof AlertTriangle;
+      icon: typeof Clock;
       title: string;
       description: string;
       color: string;
