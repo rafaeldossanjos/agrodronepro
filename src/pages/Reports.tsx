@@ -105,16 +105,16 @@ export default function Reports() {
     return labels[status] || status;
   };
 
-  // Filtrar talhões pela propriedade selecionada
+  // Filtrar talhões pela(s) propriedade(s) selecionada(s)
   const filteredPlots = useMemo(() => {
-    if (selectedProperty === "all") return plots;
-    return plots.filter(p => p.property_id === selectedProperty);
-  }, [plots, selectedProperty]);
+    if (selectedProperties.length === 0) return plots;
+    return plots.filter(p => selectedProperties.includes(p.property_id));
+  }, [plots, selectedProperties]);
 
   const isLoading = appsLoading || propsLoading || productsLoading || plotsLoading || recipesLoading;
 
   const clearFilters = () => {
-    setSelectedProperty("all");
+    setSelectedProperties([]);
     setSelectedPeriod("all");
     setSelectedMonth("all");
     setSelectedStatus("all");
@@ -126,7 +126,7 @@ export default function Reports() {
     setDateTo("");
   };
 
-  const hasActiveFilters = selectedProperty !== "all" || selectedPeriod !== "all" || 
+  const hasActiveFilters = selectedProperties.length > 0 || selectedPeriod !== "all" || 
     selectedMonth !== "all" || selectedStatus !== "all" || selectedType !== "all" || 
     selectedPlot !== "all" || selectedRecipe !== "all" || selectedProducts.length > 0 ||
     dateFrom !== "" || dateTo !== "";
@@ -195,9 +195,9 @@ export default function Reports() {
   const filteredApplications = useMemo(() => {
     let filtered = applications || [];
 
-    // Filtro por propriedade
-    if (selectedProperty !== "all") {
-      filtered = filtered.filter((app: any) => app.property_id === selectedProperty);
+    // Filtro por propriedade(s)
+    if (selectedProperties.length > 0) {
+      filtered = filtered.filter((app: any) => selectedProperties.includes(app.property_id));
     }
 
     // Filtro por talhão
@@ -264,7 +264,7 @@ export default function Reports() {
     // Se selectedPeriod === "all", não filtra por data (retorna todos)
 
     return filtered;
-  }, [applications, selectedProperty, selectedPlot, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProducts, selectedRecipe, recipes, dateFrom, dateTo]);
+  }, [applications, selectedProperties, selectedPlot, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProducts, selectedRecipe, recipes, dateFrom, dateTo]);
 
   // Aplicações do período anterior para comparação
   const previousPeriodApplications = useMemo(() => {
@@ -273,8 +273,8 @@ export default function Reports() {
     const { startDate, endDate } = getPreviousPeriodDates();
     let filtered = applications || [];
 
-    if (selectedProperty !== "all") {
-      filtered = filtered.filter((app: any) => app.property_id === selectedProperty);
+    if (selectedProperties.length > 0) {
+      filtered = filtered.filter((app: any) => selectedProperties.includes(app.property_id));
     }
 
     filtered = filtered.filter((app: any) => {
@@ -283,7 +283,7 @@ export default function Reports() {
     });
 
     return filtered;
-  }, [applications, selectedProperty, showComparison, selectedPeriod, selectedMonth, dateFrom, dateTo]);
+  }, [applications, selectedProperties, showComparison, selectedPeriod, selectedMonth, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
     const totalArea = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied), 0);
@@ -558,9 +558,11 @@ export default function Reports() {
       filterText = `Período: ${selectedPeriod} dias`;
     }
     
-    const propertyText = selectedProperty === "all" 
+    const propertyText = selectedProperties.length === 0
       ? "Todas as Propriedades" 
-      : properties.find(p => p.id === selectedProperty)?.name || "N/A";
+      : selectedProperties.length === 1
+        ? properties.find(p => p.id === selectedProperties[0])?.name || "N/A"
+        : `${selectedProperties.length} propriedades`;
     doc.text(`${filterText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
     doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, pageWidth - 14, 28, { align: 'right' });
 
