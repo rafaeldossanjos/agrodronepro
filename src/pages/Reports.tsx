@@ -718,7 +718,7 @@ export default function Reports() {
       yPosition += 4;
 
       // Agrupar aplicações por talhão - verificando se o talhão ainda existe
-      const appsByPlot: Record<string, { plotName: string; plotAreaHectares: number | null; plotExists: boolean; apps: any[] }> = {};
+      const appsByPlot: Record<string, { plotName: string; propertyName: string; plotAreaHectares: number | null; plotExists: boolean; apps: any[] }> = {};
       
       sortedApplications.forEach((app: any) => {
         // Verificar se o talhão ainda existe
@@ -733,6 +733,7 @@ export default function Reports() {
         if (!appsByPlot[plotKey]) {
           appsByPlot[plotKey] = {
             plotName,
+            propertyName: app.properties?.name || 'N/A',
             plotAreaHectares: plotData?.area_hectares || null,
             plotExists,
             apps: [],
@@ -746,7 +747,14 @@ export default function Reports() {
       let lastPlotKey = '';
       
       Object.entries(appsByPlot)
-        .sort(([, a], [, b]) => a.plotName.localeCompare(b.plotName, 'pt-BR'))
+        .sort(([, a], [, b]) => {
+          // Ordenar por propriedade primeiro (se múltiplas), depois por talhão
+          if (showPropertyColumn) {
+            const propCmp = a.propertyName.localeCompare(b.propertyName, 'pt-BR');
+            if (propCmp !== 0) return propCmp;
+          }
+          return a.plotName.localeCompare(b.plotName, 'pt-BR');
+        })
         .forEach(([plotKey, plotGroup]) => {
           plotGroup.apps.forEach((app: any) => {
             const appName = app.name || 'Aplicação sem nome';
@@ -760,8 +768,12 @@ export default function Reports() {
             // Sempre mostrar talhão (repetir em todas as linhas)
             const plotInfo = plotGroup.plotName + (plotGroup.plotAreaHectares ? ` (${Number(plotGroup.plotAreaHectares).toFixed(2)} ha)` : '');
             
+            const rowData = showPropertyColumn
+              ? [plotGroup.propertyName, appName, `${appArea} ha`, productsText, plotInfo]
+              : [appName, `${appArea} ha`, productsText, plotInfo];
+            
             plotRows.push({
-              data: [appName, `${appArea} ha`, productsText, plotInfo],
+              data: rowData,
               isFirstOfGroup: lastPlotKey !== plotKey,
               plotKey: plotKey,
             });
@@ -769,19 +781,31 @@ export default function Reports() {
           });
         });
 
+      const plotHistoryHeaders = showPropertyColumn
+        ? ['Propriedade', 'Aplicação', 'Área', 'Produtos', 'Talhão (Área)']
+        : ['Aplicação', 'Área', 'Produtos', 'Talhão (Área)'];
+
+      const plotHistoryColumnStyles: any = showPropertyColumn ? {
+        0: { cellWidth: 32, fontStyle: 'bold' },
+        1: { cellWidth: 38 },
+        2: { cellWidth: 18 },
+        3: { cellWidth: 50 },
+        4: { cellWidth: 42, fontStyle: 'bold' },
+      } : {
+        0: { cellWidth: 45 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 60 },
+        3: { cellWidth: 55, fontStyle: 'bold' },
+      };
+
       autoTable(doc, {
         startY: yPosition,
-        head: [['Aplicação', 'Área', 'Produtos', 'Talhão (Área)']],
+        head: [plotHistoryHeaders],
         body: plotRows.map(r => r.data),
         theme: 'grid',
         headStyles: { fillColor: [46, 125, 50], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8, cellPadding: 4, overflow: 'linebreak', lineColor: [200, 200, 200] },
-        columnStyles: {
-          0: { cellWidth: 45 },
-          1: { cellWidth: 20 },
-          2: { cellWidth: 60 },
-          3: { cellWidth: 55, fontStyle: 'bold' },
-        },
+        columnStyles: plotHistoryColumnStyles,
         didParseCell: function(data) {
           if (data.section === 'body') {
             const rowInfo = plotRows[data.row.index];
