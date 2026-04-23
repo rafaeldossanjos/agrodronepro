@@ -838,6 +838,7 @@ export default function Reports() {
       // Agrupar aplicações por talhão - verificando se talhão ainda existe
       const appsByPlot: Record<string, {
         plotName: string;
+        propertyName: string;
         plotId: string | null;
         plotAreaHectares: number | null;
         plotExists: boolean;
@@ -857,6 +858,7 @@ export default function Reports() {
         if (!appsByPlot[plotKey]) {
           appsByPlot[plotKey] = {
             plotName,
+            propertyName: app.properties?.name || 'N/A',
             plotId: app.plot_id,
             plotAreaHectares: plotData?.area_hectares || null,
             plotExists,
@@ -876,9 +878,15 @@ export default function Reports() {
       const tableRows: TableRowData[] = [];
       let lastPlotKey = '';
       
-      // Ordenar talhões por nome
+      // Ordenar talhões por propriedade (se múltiplas) e depois por nome
       Object.entries(appsByPlot)
-        .sort(([, a], [, b]) => a.plotName.localeCompare(b.plotName))
+        .sort(([, a], [, b]) => {
+          if (showPropertyColumn) {
+            const propCmp = a.propertyName.localeCompare(b.propertyName, 'pt-BR');
+            if (propCmp !== 0) return propCmp;
+          }
+          return a.plotName.localeCompare(b.plotName);
+        })
         .forEach(([plotKey, plotGroup]) => {
           // Para cada aplicação do talhão, criar uma linha
           plotGroup.apps.forEach((app: any) => {
@@ -895,12 +903,9 @@ export default function Reports() {
             // Sempre mostrar talhão (repetir em todas as linhas)
             const plotInfo = plotGroup.plotName + (plotGroup.plotAreaHectares ? ` (${Number(plotGroup.plotAreaHectares).toFixed(2)} ha)` : '');
             
-            const row = [
-              appName,
-              `${appArea} ha`,
-              productsText,
-              plotInfo,
-            ];
+            const row: string[] = [];
+            if (showPropertyColumn) row.push(plotGroup.propertyName);
+            row.push(appName, `${appArea} ha`, productsText, plotInfo);
             
             if (pdfIncludeNotes) {
               row.push(app.notes || '-');
@@ -915,8 +920,46 @@ export default function Reports() {
           });
         });
 
-      const headers = ['Aplicação', 'Área', 'Produtos', 'Talhão (Área)'];
+      const headers: string[] = [];
+      if (showPropertyColumn) headers.push('Propriedade');
+      headers.push('Aplicação', 'Área', 'Produtos', 'Talhão (Área)');
       if (pdfIncludeNotes) headers.push('Observações');
+
+      // Definir larguras de coluna conforme combinação de flags
+      let columnStyles: any;
+      if (showPropertyColumn && pdfIncludeNotes) {
+        columnStyles = {
+          0: { cellWidth: 28, fontStyle: 'bold' },
+          1: { cellWidth: 32 },
+          2: { cellWidth: 18 },
+          3: { cellWidth: 40 },
+          4: { cellWidth: 30, fontStyle: 'bold' },
+          5: { cellWidth: 32 },
+        };
+      } else if (showPropertyColumn) {
+        columnStyles = {
+          0: { cellWidth: 32, fontStyle: 'bold' },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 50 },
+          4: { cellWidth: 40, fontStyle: 'bold' },
+        };
+      } else if (pdfIncludeNotes) {
+        columnStyles = {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 50 },
+          3: { cellWidth: 35, fontStyle: 'bold' },
+          4: { cellWidth: 35 },
+        };
+      } else {
+        columnStyles = {
+          0: { cellWidth: 50 },
+          1: { cellWidth: 22 },
+          2: { cellWidth: 60 },
+          3: { cellWidth: 50, fontStyle: 'bold' },
+        };
+      }
 
       autoTable(doc, {
         startY: yPosition,
@@ -925,18 +968,7 @@ export default function Reports() {
         theme: 'grid',
         headStyles: { fillColor: [46, 125, 50], textColor: 255, fontStyle: 'bold' },
         styles: { fontSize: 8, cellPadding: 4, overflow: 'linebreak', lineColor: [200, 200, 200] },
-        columnStyles: pdfIncludeNotes ? {
-          0: { cellWidth: 40 },
-          1: { cellWidth: 20 },
-          2: { cellWidth: 50 },
-          3: { cellWidth: 35, fontStyle: 'bold' },
-          4: { cellWidth: 35 },
-        } : {
-          0: { cellWidth: 50 },
-          1: { cellWidth: 22 },
-          2: { cellWidth: 60 },
-          3: { cellWidth: 50, fontStyle: 'bold' },
-        },
+        columnStyles,
         didParseCell: function(data) {
           if (data.section === 'body') {
             const rowInfo = tableRows[data.row.index];
