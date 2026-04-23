@@ -702,7 +702,7 @@ export default function Reports() {
 
     // Determinar se devemos exibir a coluna "Propriedade" (mais de uma propriedade no relatório)
     const distinctPropertyIds = new Set(sortedApplications.map((a: any) => a.property_id));
-    const showPropertyColumn = selectedProperties.length !== 1 && distinctPropertyIds.size > 1;
+    const showPropertyColumn = distinctPropertyIds.size > 1;
 
     // HISTÓRICO POR TALHÃO
     if (pdfIncludePlotHistory && sortedApplications.length > 0) {
