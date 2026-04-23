@@ -700,6 +700,10 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
+    // Determinar se devemos exibir a coluna "Propriedade" (mais de uma propriedade no relatório)
+    const distinctPropertyIds = new Set(sortedApplications.map((a: any) => a.property_id));
+    const showPropertyColumn = selectedProperties.length !== 1 && distinctPropertyIds.size > 1;
+
     // HISTÓRICO POR TALHÃO
     if (pdfIncludePlotHistory && sortedApplications.length > 0) {
       if (yPosition > 180) {
