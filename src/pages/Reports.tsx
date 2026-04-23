@@ -36,7 +36,8 @@ export default function Reports() {
   const { profile } = useProfile();
   
   // Filtros existentes
-  const [selectedProperty, setSelectedProperty] = useState<string>("all");
+  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+  const [showPropertiesDropdown, setShowPropertiesDropdown] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
