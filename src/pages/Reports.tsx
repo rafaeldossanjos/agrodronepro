@@ -36,7 +36,8 @@ export default function Reports() {
   const { profile } = useProfile();
   
   // Filtros existentes
-  const [selectedProperty, setSelectedProperty] = useState<string>("all");
+  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+  const [showPropertiesDropdown, setShowPropertiesDropdown] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -104,16 +105,16 @@ export default function Reports() {
     return labels[status] || status;
   };
 
-  // Filtrar talhões pela propriedade selecionada
+  // Filtrar talhões pela(s) propriedade(s) selecionada(s)
   const filteredPlots = useMemo(() => {
-    if (selectedProperty === "all") return plots;
-    return plots.filter(p => p.property_id === selectedProperty);
-  }, [plots, selectedProperty]);
+    if (selectedProperties.length === 0) return plots;
+    return plots.filter(p => selectedProperties.includes(p.property_id));
+  }, [plots, selectedProperties]);
 
   const isLoading = appsLoading || propsLoading || productsLoading || plotsLoading || recipesLoading;
 
   const clearFilters = () => {
-    setSelectedProperty("all");
+    setSelectedProperties([]);
     setSelectedPeriod("all");
     setSelectedMonth("all");
     setSelectedStatus("all");
@@ -125,7 +126,7 @@ export default function Reports() {
     setDateTo("");
   };
 
-  const hasActiveFilters = selectedProperty !== "all" || selectedPeriod !== "all" || 
+  const hasActiveFilters = selectedProperties.length > 0 || selectedPeriod !== "all" || 
     selectedMonth !== "all" || selectedStatus !== "all" || selectedType !== "all" || 
     selectedPlot !== "all" || selectedRecipe !== "all" || selectedProducts.length > 0 ||
     dateFrom !== "" || dateTo !== "";
@@ -194,9 +195,9 @@ export default function Reports() {
   const filteredApplications = useMemo(() => {
     let filtered = applications || [];
 
-    // Filtro por propriedade
-    if (selectedProperty !== "all") {
-      filtered = filtered.filter((app: any) => app.property_id === selectedProperty);
+    // Filtro por propriedade(s)
+    if (selectedProperties.length > 0) {
+      filtered = filtered.filter((app: any) => selectedProperties.includes(app.property_id));
     }
 
     // Filtro por talhão
@@ -263,7 +264,7 @@ export default function Reports() {
     // Se selectedPeriod === "all", não filtra por data (retorna todos)
 
     return filtered;
-  }, [applications, selectedProperty, selectedPlot, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProducts, selectedRecipe, recipes, dateFrom, dateTo]);
+  }, [applications, selectedProperties, selectedPlot, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProducts, selectedRecipe, recipes, dateFrom, dateTo]);
 
   // Aplicações do período anterior para comparação
   const previousPeriodApplications = useMemo(() => {
@@ -272,8 +273,8 @@ export default function Reports() {
     const { startDate, endDate } = getPreviousPeriodDates();
     let filtered = applications || [];
 
-    if (selectedProperty !== "all") {
-      filtered = filtered.filter((app: any) => app.property_id === selectedProperty);
+    if (selectedProperties.length > 0) {
+      filtered = filtered.filter((app: any) => selectedProperties.includes(app.property_id));
     }
 
     filtered = filtered.filter((app: any) => {
@@ -282,7 +283,7 @@ export default function Reports() {
     });
 
     return filtered;
-  }, [applications, selectedProperty, showComparison, selectedPeriod, selectedMonth, dateFrom, dateTo]);
+  }, [applications, selectedProperties, showComparison, selectedPeriod, selectedMonth, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
     const totalArea = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied), 0);
@@ -557,9 +558,11 @@ export default function Reports() {
       filterText = `Período: ${selectedPeriod} dias`;
     }
     
-    const propertyText = selectedProperty === "all" 
+    const propertyText = selectedProperties.length === 0
       ? "Todas as Propriedades" 
-      : properties.find(p => p.id === selectedProperty)?.name || "N/A";
+      : selectedProperties.length === 1
+        ? properties.find(p => p.id === selectedProperties[0])?.name || "N/A"
+        : `${selectedProperties.length} propriedades`;
     doc.text(`${filterText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
     doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, pageWidth - 14, 28, { align: 'right' });
 
@@ -967,9 +970,11 @@ export default function Reports() {
       filterText = `Período: ${selectedPeriod} dias`;
     }
     
-    const propertyText = selectedProperty === "all" 
+    const propertyText = selectedProperties.length === 0
       ? "Todas as Propriedades" 
-      : properties.find(p => p.id === selectedProperty)?.name || "N/A";
+      : selectedProperties.length === 1
+        ? properties.find(p => p.id === selectedProperties[0])?.name || "N/A"
+        : `${selectedProperties.length} propriedades`;
     doc.text(`${filterText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
     doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, pageWidth - 14, 28, { align: 'right' });
 
@@ -1176,17 +1181,63 @@ export default function Reports() {
         <div className="space-y-4">
           {/* Linha 1: Propriedade, Talhão, Receituário */}
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-            <Select value={selectedProperty} onValueChange={(v) => { setSelectedProperty(v); setSelectedPlot("all"); }}>
-              <SelectTrigger className="h-14 text-base rounded-xl">
-                <SelectValue placeholder="Propriedade" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover">
-                <SelectItem value="all" className="text-base py-3">Todas Propriedades</SelectItem>
-                {properties.map((prop: any) => (
-                  <SelectItem key={prop.id} value={prop.id} className="text-base py-3">{prop.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Seleção múltipla de propriedades */}
+            <div className="relative">
+              <Button
+                variant="outline"
+                className="h-14 w-full justify-start text-base font-normal rounded-xl"
+                onClick={() => setShowPropertiesDropdown(!showPropertiesDropdown)}
+              >
+                {selectedProperties.length === 0
+                  ? 'Todas Propriedades'
+                  : selectedProperties.length === 1
+                    ? properties.find((p: any) => p.id === selectedProperties[0])?.name || '1 propriedade'
+                    : `${selectedProperties.length} propriedades selecionadas`}
+              </Button>
+              {showPropertiesDropdown && (
+                <div className="absolute top-16 left-0 right-0 z-50 bg-popover border rounded-xl shadow-lg max-h-64 overflow-y-auto p-4">
+                  <div className="flex items-center space-x-3 py-3 border-b mb-2">
+                    <Checkbox
+                      id="property-all"
+                      checked={selectedProperties.length === 0}
+                      onCheckedChange={() => { setSelectedProperties([]); setSelectedPlot("all"); }}
+                      className="h-6 w-6"
+                    />
+                    <Label htmlFor="property-all" className="text-base cursor-pointer font-medium">
+                      Todas Propriedades
+                    </Label>
+                  </div>
+                  {properties.map((prop: any) => (
+                    <div key={prop.id} className="flex items-center space-x-3 py-3">
+                      <Checkbox
+                        id={`property-${prop.id}`}
+                        checked={selectedProperties.includes(prop.id)}
+                        onCheckedChange={() => {
+                          setSelectedProperties(prev =>
+                            prev.includes(prop.id)
+                              ? prev.filter(id => id !== prop.id)
+                              : [...prev, prop.id]
+                          );
+                          setSelectedPlot("all");
+                        }}
+                        className="h-6 w-6"
+                      />
+                      <Label htmlFor={`property-${prop.id}`} className="text-base cursor-pointer">
+                        {prop.name}
+                      </Label>
+                    </div>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-3 text-base h-12 rounded-xl"
+                    onClick={() => setShowPropertiesDropdown(false)}
+                  >
+                    Fechar
+                  </Button>
+                </div>
+              )}
+            </div>
             
             <Select value={selectedPlot} onValueChange={setSelectedPlot}>
               <SelectTrigger className="h-14 text-base rounded-xl">
