@@ -748,7 +748,7 @@ export default function Reports() {
       
       Object.entries(appsByPlot)
         .sort(([, a], [, b]) => {
-          // Ordenar por propriedade primeiro (se múltiplas), depois por talhão
+          // Sempre priorizar agrupamento por propriedade quando há múltiplas
           if (showPropertyColumn) {
             const propCmp = a.propertyName.localeCompare(b.propertyName, 'pt-BR');
             if (propCmp !== 0) return propCmp;
@@ -756,7 +756,11 @@ export default function Reports() {
           return a.plotName.localeCompare(b.plotName, 'pt-BR');
         })
         .forEach(([plotKey, plotGroup]) => {
-          plotGroup.apps.forEach((app: any) => {
+          // Ordenar aplicações dentro do talhão pela data mais recente para mais antiga
+          const sortedApps = [...plotGroup.apps].sort(
+            (a: any, b: any) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime()
+          );
+          sortedApps.forEach((app: any) => {
             const appName = app.name || 'Aplicação sem nome';
             const appArea = Number(app.area_applied).toFixed(2);
             const productsText = app.application_products && app.application_products.length > 0
