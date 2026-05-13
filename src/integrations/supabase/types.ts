@@ -16,9 +16,12 @@ export type Database = {
     Tables: {
       application_products: {
         Row: {
+          adjuvante: boolean | null
           application_id: string
+          classe_toxicologica: string | null
           created_at: string
           dose_per_ha: number
+          formulacao: string | null
           id: string
           product_id: string
           total_amount: number
@@ -26,9 +29,12 @@ export type Database = {
           unit_cost: number
         }
         Insert: {
+          adjuvante?: boolean | null
           application_id: string
+          classe_toxicologica?: string | null
           created_at?: string
           dose_per_ha: number
+          formulacao?: string | null
           id?: string
           product_id: string
           total_amount: number
@@ -36,9 +42,12 @@ export type Database = {
           unit_cost: number
         }
         Update: {
+          adjuvante?: boolean | null
           application_id?: string
+          classe_toxicologica?: string | null
           created_at?: string
           dose_per_ha?: number
+          formulacao?: string | null
           id?: string
           product_id?: string
           total_amount?: number
@@ -64,58 +73,145 @@ export type Database = {
       }
       applications: {
         Row: {
+          altura_voo: number | null
+          angulo: string | null
           application_date: string
           application_type: Database["public"]["Enums"]["application_type"]
           area_applied: number
+          coordenadas: string | null
           created_at: string
+          croqui_url: string | null
+          cultura: string | null
+          equipamento: string | null
           flight_time_minutes: number | null
+          hora_fim: string | null
+          hora_inicio: string | null
           id: string
+          largura_faixa: number | null
+          modelo_equipamento: string | null
           name: string | null
           notes: string | null
+          observacoes_meteo: string | null
           plot_id: string | null
           plot_name: string | null
+          prefixo_aeronave: string | null
           property_id: string
+          receituario_data: string | null
+          receituario_numero: string | null
           status: Database["public"]["Enums"]["application_status"]
           team_id: string | null
+          temp_mat_final: number | null
+          temp_mat_inicial: number | null
+          temp_max: number | null
+          temp_vesp_final: number | null
+          temp_vesp_inicial: number | null
+          tipo_bico: string | null
+          tipo_servico: string | null
           total_cost: number
+          umidade_min: number | null
           updated_at: string
+          ur_mat_final: number | null
+          ur_mat_inicial: number | null
+          ur_vesp_final: number | null
+          ur_vesp_inicial: number | null
           user_id: string
+          uso_dgps: boolean | null
+          vento_max: number | null
+          volume_calda_lha: number | null
         }
         Insert: {
+          altura_voo?: number | null
+          angulo?: string | null
           application_date: string
           application_type: Database["public"]["Enums"]["application_type"]
           area_applied: number
+          coordenadas?: string | null
           created_at?: string
+          croqui_url?: string | null
+          cultura?: string | null
+          equipamento?: string | null
           flight_time_minutes?: number | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
           id?: string
+          largura_faixa?: number | null
+          modelo_equipamento?: string | null
           name?: string | null
           notes?: string | null
+          observacoes_meteo?: string | null
           plot_id?: string | null
           plot_name?: string | null
+          prefixo_aeronave?: string | null
           property_id: string
+          receituario_data?: string | null
+          receituario_numero?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           team_id?: string | null
+          temp_mat_final?: number | null
+          temp_mat_inicial?: number | null
+          temp_max?: number | null
+          temp_vesp_final?: number | null
+          temp_vesp_inicial?: number | null
+          tipo_bico?: string | null
+          tipo_servico?: string | null
           total_cost: number
+          umidade_min?: number | null
           updated_at?: string
+          ur_mat_final?: number | null
+          ur_mat_inicial?: number | null
+          ur_vesp_final?: number | null
+          ur_vesp_inicial?: number | null
           user_id: string
+          uso_dgps?: boolean | null
+          vento_max?: number | null
+          volume_calda_lha?: number | null
         }
         Update: {
+          altura_voo?: number | null
+          angulo?: string | null
           application_date?: string
           application_type?: Database["public"]["Enums"]["application_type"]
           area_applied?: number
+          coordenadas?: string | null
           created_at?: string
+          croqui_url?: string | null
+          cultura?: string | null
+          equipamento?: string | null
           flight_time_minutes?: number | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
           id?: string
+          largura_faixa?: number | null
+          modelo_equipamento?: string | null
           name?: string | null
           notes?: string | null
+          observacoes_meteo?: string | null
           plot_id?: string | null
           plot_name?: string | null
+          prefixo_aeronave?: string | null
           property_id?: string
+          receituario_data?: string | null
+          receituario_numero?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           team_id?: string | null
+          temp_mat_final?: number | null
+          temp_mat_inicial?: number | null
+          temp_max?: number | null
+          temp_vesp_final?: number | null
+          temp_vesp_inicial?: number | null
+          tipo_bico?: string | null
+          tipo_servico?: string | null
           total_cost?: number
+          umidade_min?: number | null
           updated_at?: string
+          ur_mat_final?: number | null
+          ur_mat_inicial?: number | null
+          ur_vesp_final?: number | null
+          ur_vesp_inicial?: number | null
           user_id?: string
+          uso_dgps?: boolean | null
+          vento_max?: number | null
+          volume_calda_lha?: number | null
         }
         Relationships: [
           {
@@ -140,6 +236,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      company_settings: {
+        Row: {
+          cnpj: string | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          eng_agronomo_crea: string | null
+          eng_agronomo_nome: string | null
+          equipamento_padrao: string | null
+          id: string
+          modelo_padrao: string | null
+          municipio: string | null
+          piloto_nome: string | null
+          piloto_registro: string | null
+          prefixo_aeronave: string | null
+          razao_social: string | null
+          registro_mapa: string | null
+          telefone: string | null
+          uf: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          eng_agronomo_crea?: string | null
+          eng_agronomo_nome?: string | null
+          equipamento_padrao?: string | null
+          id?: string
+          modelo_padrao?: string | null
+          municipio?: string | null
+          piloto_nome?: string | null
+          piloto_registro?: string | null
+          prefixo_aeronave?: string | null
+          razao_social?: string | null
+          registro_mapa?: string | null
+          telefone?: string | null
+          uf?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          eng_agronomo_crea?: string | null
+          eng_agronomo_nome?: string | null
+          equipamento_padrao?: string | null
+          id?: string
+          modelo_padrao?: string | null
+          municipio?: string | null
+          piloto_nome?: string | null
+          piloto_registro?: string | null
+          prefixo_aeronave?: string | null
+          razao_social?: string | null
+          registro_mapa?: string | null
+          telefone?: string | null
+          uf?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       equipment: {
         Row: {
@@ -399,38 +561,53 @@ export type Database = {
       }
       properties: {
         Row: {
+          client_document: string | null
+          client_name: string | null
+          coordinates: string | null
           created_at: string
           id: string
           location: string
+          municipality: string | null
           name: string
           notes: string | null
           plot_count: number
           team_id: string | null
           total_area: number
+          uf: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          client_document?: string | null
+          client_name?: string | null
+          coordinates?: string | null
           created_at?: string
           id?: string
           location: string
+          municipality?: string | null
           name: string
           notes?: string | null
           plot_count?: number
           team_id?: string | null
           total_area: number
+          uf?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          client_document?: string | null
+          client_name?: string | null
+          coordinates?: string | null
           created_at?: string
           id?: string
           location?: string
+          municipality?: string | null
           name?: string
           notes?: string | null
           plot_count?: number
           team_id?: string | null
           total_area?: number
+          uf?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -1229,6 +1229,32 @@ export default function Reports() {
             <FileText className="h-5 w-5" />
             Gerar PDF
           </Button>
+          <Button
+            onClick={async () => {
+              const { generateMonthlyReportPdf } = await import('@/lib/monthlyReportPdf');
+              const { useCompanySettings } = await import('@/hooks/useCompanySettings');
+              const { supabase } = await import('@/integrations/supabase/client');
+              const { data: { user } } = await supabase.auth.getUser();
+              const { data: company } = user
+                ? await supabase.from('company_settings').select('*').eq('user_id', user.id).maybeSingle()
+                : { data: null };
+              const monthLabel = selectedMonth !== 'all'
+                ? getMonthLabel(selectedMonth)
+                : (dateFrom || dateTo ? `${dateFrom || ''} a ${dateTo || ''}` : 'Período Completo');
+              generateMonthlyReportPdf({
+                applications: filteredApplications,
+                properties,
+                company,
+                monthLabel,
+              });
+            }}
+            variant="secondary"
+            className="gap-2 w-full sm:w-auto h-14 text-base rounded-xl"
+            disabled={filteredApplications.length === 0}
+          >
+            <FileText className="h-5 w-5" />
+            Relatório Mensal
+          </Button>
         </div>
       </div>
 

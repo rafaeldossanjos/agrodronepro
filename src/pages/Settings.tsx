@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Building2, Phone, Mail, Save, FileText, Image } from "lucide-react";
+import { User, Building2, Phone, Mail, Save, FileText, Image, Plane } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -17,8 +18,26 @@ const profileSchema = z.object({
 
 export default function Settings() {
   const { profile, isLoading, updateProfile } = useProfile();
+  const { settings: companySettings, save: saveCompany } = useCompanySettings();
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingPdf, setIsSavingPdf] = useState(false);
+  const [isSavingCompany, setIsSavingCompany] = useState(false);
+  const [companyForm, setCompanyForm] = useState<any>({
+    razao_social: '', registro_mapa: '', cnpj: '', endereco: '', municipio: '', uf: '',
+    email: '', telefone: '', eng_agronomo_nome: '', eng_agronomo_crea: '',
+    piloto_nome: '', piloto_registro: '', prefixo_aeronave: '', equipamento_padrao: '', modelo_padrao: '',
+  });
+
+  useEffect(() => {
+    if (companySettings) setCompanyForm({ ...companyForm, ...companySettings });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companySettings]);
+
+  const handleSaveCompany = async () => {
+    setIsSavingCompany(true);
+    try { await saveCompany(companyForm); } finally { setIsSavingCompany(false); }
+  };
+
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -185,7 +204,52 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      {/* Configurações de PDF */}
+      {/* Dados da Empresa / Operacional (ANEXO IX) */}
+      <Card className="rounded-xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Plane className="h-5 w-5" />
+            Dados da Empresa / Operador (Relatório Operacional)
+          </CardTitle>
+          <CardDescription className="text-base">
+            Preenchidos automaticamente no Relatório Operacional (ANEXO IX) e no Relatório Mensal
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {([
+            ['razao_social', 'Razão Social'],
+            ['registro_mapa', 'Registro MAPA'],
+            ['cnpj', 'CNPJ'],
+            ['endereco', 'Endereço'],
+            ['municipio', 'Município'],
+            ['uf', 'UF'],
+            ['email', 'E-mail'],
+            ['telefone', 'Telefone'],
+            ['eng_agronomo_nome', 'Eng. Agrônomo (Nome)'],
+            ['eng_agronomo_crea', 'CREA do Eng. Agrônomo'],
+            ['piloto_nome', 'Piloto Agrícola (Nome)'],
+            ['piloto_registro', 'Registro do Piloto'],
+            ['prefixo_aeronave', 'Prefixo da Aeronave'],
+            ['equipamento_padrao', 'Equipamento padrão (ex: Drone)'],
+            ['modelo_padrao', 'Modelo padrão (ex: DJI T30)'],
+          ] as [string, string][]).map(([key, label]) => (
+            <div key={key} className="space-y-2">
+              <Label className="text-base">{label}</Label>
+              <Input
+                value={companyForm[key] || ''}
+                onChange={(e) => setCompanyForm({ ...companyForm, [key]: e.target.value })}
+                className="h-14 text-base rounded-xl"
+              />
+            </div>
+          ))}
+          <Button onClick={handleSaveCompany} className="w-full gap-2 h-14 text-base rounded-xl" disabled={isSavingCompany}>
+            <Save className="h-5 w-5" />
+            {isSavingCompany ? 'Salvando...' : 'Salvar Dados da Empresa'}
+          </Button>
+        </CardContent>
+      </Card>
+
+
       <Card className="rounded-xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center gap-2">
