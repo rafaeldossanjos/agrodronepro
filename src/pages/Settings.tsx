@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Building2, Phone, Mail, Save, FileText, Image } from "lucide-react";
+import { User, Building2, Phone, Mail, Save, FileText, Image, Plane } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -17,8 +18,26 @@ const profileSchema = z.object({
 
 export default function Settings() {
   const { profile, isLoading, updateProfile } = useProfile();
+  const { settings: companySettings, save: saveCompany } = useCompanySettings();
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingPdf, setIsSavingPdf] = useState(false);
+  const [isSavingCompany, setIsSavingCompany] = useState(false);
+  const [companyForm, setCompanyForm] = useState<any>({
+    razao_social: '', registro_mapa: '', cnpj: '', endereco: '', municipio: '', uf: '',
+    email: '', telefone: '', eng_agronomo_nome: '', eng_agronomo_crea: '',
+    piloto_nome: '', piloto_registro: '', prefixo_aeronave: '', equipamento_padrao: '', modelo_padrao: '',
+  });
+
+  useEffect(() => {
+    if (companySettings) setCompanyForm({ ...companyForm, ...companySettings });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companySettings]);
+
+  const handleSaveCompany = async () => {
+    setIsSavingCompany(true);
+    try { await saveCompany(companyForm); } finally { setIsSavingCompany(false); }
+  };
+
   
   const [formData, setFormData] = useState({
     full_name: '',
