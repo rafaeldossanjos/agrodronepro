@@ -150,10 +150,25 @@ export const useApplications = () => {
     const now = new Date().toISOString();
     const appId = uuidv4();
     
+    // Campos opcionais do ANEXO IX
+    const reportFields = [
+      'cultura', 'volume_calda_lha', 'temp_max', 'umidade_min', 'vento_max',
+      'equipamento', 'modelo_equipamento', 'tipo_bico', 'angulo', 'altura_voo',
+      'largura_faixa', 'coordenadas', 'receituario_numero', 'receituario_data',
+      'hora_inicio', 'hora_fim', 'prefixo_aeronave', 'uso_dgps',
+      'temp_mat_inicial', 'temp_mat_final', 'temp_vesp_inicial', 'temp_vesp_final',
+      'ur_mat_inicial', 'ur_mat_final', 'ur_vesp_inicial', 'ur_vesp_final',
+      'observacoes_meteo', 'croqui_url', 'tipo_servico',
+    ];
+    const extraReport: any = {};
+    reportFields.forEach((k) => {
+      if (application[k] !== undefined) extraReport[k] = application[k];
+    });
+
     const newApp = {
       id: appId,
       user_id: user.id,
-      team_id: userTeamId, // Adiciona o team_id automaticamente
+      team_id: userTeamId,
       property_id: application.property_id,
       plot_id: application.plot_id || null,
       plot_name: application.plot_name || null,
@@ -165,6 +180,7 @@ export const useApplications = () => {
       total_cost: application.total_cost,
       flight_time_minutes: application.flight_time_minutes,
       notes: application.notes,
+      ...extraReport,
       created_at: now,
       updated_at: now,
     };
@@ -187,6 +203,9 @@ export const useApplications = () => {
             total_amount: p.total_amount,
             unit_cost: p.unit_cost,
             total_cost: p.total_cost,
+            formulacao: p.formulacao || null,
+            classe_toxicologica: p.classe_toxicologica || null,
+            adjuvante: p.adjuvante ?? false,
           }));
 
           const { error: productsError } = await supabase
