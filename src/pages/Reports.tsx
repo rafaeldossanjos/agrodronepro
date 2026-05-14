@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { AnexoIxDialog } from "@/components/AnexoIxDialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart3, Target, Download, Filter, FileText, X, MapPin, FlaskConical, Users } from "lucide-react";
@@ -64,6 +65,7 @@ export default function Reports() {
   // Comparativo de períodos
   const [showComparison, setShowComparison] = useState(false);
   const [comparisonPeriod, setComparisonPeriod] = useState<string>("previous");
+  const [anexoOpen, setAnexoOpen] = useState(false);
 
   // Configurações de PDF do localStorage
   const pdfSettingsFromStorage = useMemo(() => {
@@ -1230,33 +1232,22 @@ export default function Reports() {
             Gerar PDF
           </Button>
           <Button
-            onClick={async () => {
-              const { generateMonthlyReportPdf } = await import('@/lib/monthlyReportPdf');
-              const { useCompanySettings } = await import('@/hooks/useCompanySettings');
-              const { supabase } = await import('@/integrations/supabase/client');
-              const { data: { user } } = await supabase.auth.getUser();
-              const { data: company } = user
-                ? await supabase.from('company_settings').select('*').eq('user_id', user.id).maybeSingle()
-                : { data: null };
-              const monthLabel = selectedMonth !== 'all'
-                ? getMonthLabel(selectedMonth)
-                : (dateFrom || dateTo ? `${dateFrom || ''} a ${dateTo || ''}` : 'Período Completo');
-              generateMonthlyReportPdf({
-                applications: filteredApplications,
-                properties,
-                company,
-                monthLabel,
-              });
-            }}
+            onClick={() => setAnexoOpen(true)}
             variant="secondary"
             className="gap-2 w-full sm:w-auto h-14 text-base rounded-xl"
-            disabled={filteredApplications.length === 0}
           >
             <FileText className="h-5 w-5" />
-            Relatório Mensal
+            Relatório Operacional (ANEXO IX)
           </Button>
         </div>
       </div>
+
+      <AnexoIxDialog
+        open={anexoOpen}
+        onOpenChange={setAnexoOpen}
+        applications={filteredApplications.length > 0 ? filteredApplications : applications}
+        properties={properties}
+      />
 
       {/* Filters */}
       <Card className="p-4 sm:p-5 rounded-xl">
