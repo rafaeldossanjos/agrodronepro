@@ -8,6 +8,8 @@ interface GenerateAnexoIxParams {
   application: any;
   property: any;
   company: CompanySettings | null;
+  output?: 'save' | 'blob';
+  fileName?: string;
 }
 
 const fmt = (v: any, suffix = '') => {
@@ -24,7 +26,7 @@ const fmtDate = (d?: string | null) => {
   }
 };
 
-export function generateAnexoIxPdf({ application, property, company }: GenerateAnexoIxParams) {
+export function generateAnexoIxPdf({ application, property, company, output = 'save', fileName }: GenerateAnexoIxParams) {
   const app = application;
   const prop = property || app.properties || {};
   const c = company || ({} as CompanySettings);
@@ -227,5 +229,10 @@ export function generateAnexoIxPdf({ application, property, company }: GenerateA
   doc.text(`${fmt(c.piloto_nome)}\nPiloto Agrícola - Reg.: ${fmt(c.piloto_registro)}`, margin + colW + colW / 2, y + 4, { align: 'center' });
   doc.text(`${fmt(prop.client_name)}\nProprietário/Preposto`, margin + 2 * colW + colW / 2, y + 4, { align: 'center' });
 
-  doc.save(`Relatorio_Operacional_${(app.name || 'aplicacao').replace(/[^a-z0-9]/gi, '_')}_${fmtDate(app.application_date)}.pdf`);
+  const safeName = fileName || `Relatorio_Operacional_${(app.name || 'aplicacao').replace(/[^a-z0-9]/gi, '_')}_${fmtDate(app.application_date)}.pdf`;
+  if (output === 'blob') {
+    return doc.output('bloburl') as unknown as string;
+  }
+  doc.save(safeName);
+  return null;
 }
