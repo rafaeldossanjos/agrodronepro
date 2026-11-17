@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { AnexoIxDialog } from "@/components/AnexoIxDialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Target, Download, Filter, FileText, X, MapPin, FlaskConical, Users } from "lucide-react";
+import { BarChart3, Target, Download, Filter, FileText, X, MapPin, FlaskConical } from "lucide-react";
 import { useApplications } from "@/hooks/useApplications";
 import { useProperties } from "@/hooks/useProperties";
 import { useProducts } from "@/hooks/useProducts";
@@ -17,6 +17,7 @@ import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -64,7 +65,6 @@ export default function Reports() {
   
   // Comparativo de períodos
   const [showComparison, setShowComparison] = useState(false);
-  const [comparisonPeriod, setComparisonPeriod] = useState<string>("previous");
   const [anexoOpen, setAnexoOpen] = useState(false);
 
   // Configurações de PDF do localStorage
@@ -80,7 +80,6 @@ export default function Reports() {
     return { headerText: '', footerText: '', logoUrl: '' };
   }, []);
 
-  // Gerar lista de meses disponíveis
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
     (applications || []).forEach((app: any) => {
@@ -97,17 +96,6 @@ export default function Reports() {
     return format(date, "MMMM yyyy", { locale: ptBR });
   };
 
-  const formatStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      'planejada': 'Planejada',
-      'em_andamento': 'Em Andamento',
-      'concluída': 'Concluída',
-      'cancelada': 'Cancelada'
-    };
-    return labels[status] || status;
-  };
-
-  // Filtrar talhões pela(s) propriedade(s) selecionada(s)
   const filteredPlots = useMemo(() => {
     if (selectedProperties.length === 0) return plots;
     return plots.filter(p => selectedProperties.includes(p.property_id));
@@ -163,7 +151,6 @@ export default function Reports() {
     );
   };
 
-  // Função para obter período de datas atual
   const getCurrentPeriodDates = () => {
     const now = new Date();
     let startDate: Date, endDate: Date = now;
@@ -176,14 +163,13 @@ export default function Reports() {
       startDate = dateFrom ? new Date(dateFrom + 'T00:00:00') : subDays(now, 365);
       endDate = dateTo ? new Date(dateTo + 'T23:59:59') : now;
     } else {
-      startDate = subDays(now, Number(selectedPeriod));
+      startDate = subDays(now, Number(selectedPeriod) || 365);
       endDate = now;
     }
     
     return { startDate, endDate };
   };
 
-  // Função para obter período anterior para comparação
   const getPreviousPeriodDates = () => {
     const { startDate, endDate } = getCurrentPeriodDates();
     const periodLength = endDate.getTime() - startDate.getTime();
@@ -197,46 +183,39 @@ export default function Reports() {
   const filteredApplications = useMemo(() => {
     let filtered = applications || [];
 
-    // Filtro por propriedade(s)
     if (selectedProperties.length > 0) {
       filtered = filtered.filter((app: any) => selectedProperties.includes(app.property_id));
     }
 
-    // Filtro por talhão
     if (selectedPlot !== "all") {
       filtered = filtered.filter((app: any) => app.plot_id === selectedPlot);
     }
 
-    // Filtro por status
     if (selectedStatus !== "all") {
       filtered = filtered.filter((app: any) => app.status === selectedStatus);
     }
 
-    // Filtro por tipo
     if (selectedType !== "all") {
       filtered = filtered.filter((app: any) => app.application_type === selectedType);
     }
 
-    // Filtro por múltiplos produtos
     if (selectedProducts.length > 0) {
       filtered = filtered.filter((app: any) => 
         app.application_products?.some((p: any) => selectedProducts.includes(p.product_id))
       );
     }
 
-    // Filtro por receituário (verificar se todos os produtos do receituário estão na aplicação)
     if (selectedRecipe !== "all") {
       const recipe = recipes.find(r => r.id === selectedRecipe);
       if (recipe && recipe.recipe_products) {
-        const recipeProductIds = recipe.recipe_products.map(rp => rp.product_id);
+        const recipeProductIds = recipe.recipe_products.map((rp: any) => rp.product_id);
         filtered = filtered.filter((app: any) => {
           const appProductIds = app.application_products?.map((p: any) => p.product_id) || [];
-          return recipeProductIds.every(rpId => appProductIds.includes(rpId));
+          return recipeProductIds.every((rpId: string) => appProductIds.includes(rpId));
         });
       }
     }
 
-    // Filtro por período
     if (selectedMonth !== "all") {
       const [year, month] = selectedMonth.split('-').map(Number);
       filtered = filtered.filter((app: any) => {
@@ -263,12 +242,10 @@ export default function Reports() {
         return appDate >= daysAgo && appDate <= now;
       });
     }
-    // Se selectedPeriod === "all", não filtra por data (retorna todos)
 
     return filtered;
   }, [applications, selectedProperties, selectedPlot, selectedPeriod, selectedMonth, selectedStatus, selectedType, selectedProducts, selectedRecipe, recipes, dateFrom, dateTo]);
 
-  // Aplicações do período anterior para comparação
   const previousPeriodApplications = useMemo(() => {
     if (!showComparison) return [];
     
@@ -288,8 +265,8 @@ export default function Reports() {
   }, [applications, selectedProperties, showComparison, selectedPeriod, selectedMonth, dateFrom, dateTo]);
 
   const stats = useMemo(() => {
-    const totalArea = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied), 0);
-    const totalCost = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.total_cost), 0);
+    const totalArea = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied || 0), 0);
+    const totalCost = filteredApplications.reduce((sum: number, app: any) => sum + Number(app.total_cost || 0), 0);
     const avgCostPerHa = totalArea > 0 ? totalCost / totalArea : 0;
     const completedApps = filteredApplications.filter((app: any) => app.status === "concluída").length;
     const efficiency = filteredApplications.length > 0 ? (completedApps / filteredApplications.length) * 100 : 0;
@@ -298,12 +275,11 @@ export default function Reports() {
     return { totalArea, totalCost, avgCostPerHa, efficiency, totalFlightTime, completedApps };
   }, [filteredApplications]);
 
-  // Stats do período anterior
   const previousStats = useMemo(() => {
     if (!showComparison) return null;
     
-    const totalArea = previousPeriodApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied), 0);
-    const totalCost = previousPeriodApplications.reduce((sum: number, app: any) => sum + Number(app.total_cost), 0);
+    const totalArea = previousPeriodApplications.reduce((sum: number, app: any) => sum + Number(app.area_applied || 0), 0);
+    const totalCost = previousPeriodApplications.reduce((sum: number, app: any) => sum + Number(app.total_cost || 0), 0);
     const avgCostPerHa = totalArea > 0 ? totalCost / totalArea : 0;
     const completedApps = previousPeriodApplications.filter((app: any) => app.status === "concluída").length;
 
@@ -322,74 +298,14 @@ export default function Reports() {
           cost: 0,
         };
       }
-      acc[propId].area += Number(app.area_applied);
+      acc[propId].area += Number(app.area_applied || 0);
       acc[propId].apps += 1;
-      acc[propId].cost += Number(app.total_cost);
+      acc[propId].cost += Number(app.total_cost || 0);
       return acc;
     }, {});
 
     return Object.values(grouped);
   }, [filteredApplications]);
-
-  // Estatísticas por talhão - verificar se o talhão ainda existe
-  const plotStats = useMemo(() => {
-    const grouped = filteredApplications.reduce((acc: any, app: any) => {
-      // Verificar se o talhão ainda existe na tabela de plots
-      const plotData = app.plot_id ? plots.find(p => p.id === app.plot_id) : null;
-      
-      // Se tinha plot_id mas não existe mais, o talhão foi deletado
-      const plotExists = !app.plot_id || plotData !== undefined;
-      
-      // Se o talhão foi deletado, usa "Talhão removido" ou o nome armazenado
-      const plotKey = plotExists ? (app.plot_id || app.plot_name || 'sem_talhao') : 'talhao_removido';
-      const plotName = plotExists 
-        ? (app.plot_name || 'Sem talhão')
-        : (app.plot_name ? `${app.plot_name} (removido)` : 'Talhão removido');
-      
-      // Área do talhão só se ele ainda existir
-      const plotAreaHectares = plotData?.area_hectares || null;
-      
-      if (!acc[plotKey]) {
-        acc[plotKey] = {
-          id: plotKey,
-          name: plotName,
-          propertyName: app.properties?.name || 'N/A',
-          plotAreaHectares: plotAreaHectares,
-          plotExists: plotExists,
-          areaApplied: 0,
-          apps: 0,
-          cost: 0,
-          products: new Map(),
-        };
-      }
-      acc[plotKey].areaApplied += Number(app.area_applied);
-      acc[plotKey].apps += 1;
-      acc[plotKey].cost += Number(app.total_cost);
-      
-      // Agregar produtos por talhão
-      if (app.application_products) {
-        app.application_products.forEach((ap: any) => {
-          const productName = ap.products?.name || 'Produto';
-          const existing = acc[plotKey].products.get(productName) || { amount: 0, unit: ap.products?.unit || '', cost: 0 };
-          existing.amount += Number(ap.total_amount || 0);
-          existing.cost += Number(ap.total_cost || 0);
-          acc[plotKey].products.set(productName, existing);
-        });
-      }
-      
-      return acc;
-    }, {});
-
-    return Object.values(grouped).map((p: any) => ({
-      ...p,
-      products: Array.from(p.products.entries()).map(([name, data]: [string, any]) => ({
-        name,
-        amount: data.amount,
-        unit: data.unit,
-        cost: data.cost
-      }))
-    })).sort((a: any, b: any) => a.name.localeCompare(b.name));
-  }, [filteredApplications, plots]);
 
   const productStats = useMemo(() => {
     const productMap: Record<string, { name: string; unit: string; totalAmount: number; totalCost: number; count: number; avgDose: number; totalArea: number }> = {};
@@ -419,12 +335,44 @@ export default function Reports() {
       }
     });
     
-    // Calcular dose média
     Object.values(productMap).forEach(p => {
       p.avgDose = p.totalArea > 0 ? p.totalAmount / p.totalArea : 0;
     });
     
     return Object.values(productMap).sort((a, b) => b.totalAmount - a.totalAmount);
+  }, [filteredApplications]);
+
+  // Detalhamento de consumo por data (para relatório ao cliente)
+  const consumptionDetails = useMemo(() => {
+    const details: Array<{
+      date: string;
+      propertyName: string;
+      plotName: string;
+      applicationName: string;
+      productName: string;
+      quantity: number;
+      unit: string;
+      area: number;
+    }> = [];
+
+    filteredApplications.forEach((app: any) => {
+      if (app.application_products && app.application_products.length > 0) {
+        app.application_products.forEach((ap: any) => {
+          details.push({
+            date: app.application_date,
+            propertyName: app.properties?.name || 'N/A',
+            plotName: app.plot_name || 'Sem talhão',
+            applicationName: app.name || 'Aplicação',
+            productName: ap.products?.name || 'Produto',
+            quantity: Number(ap.total_amount || 0),
+            unit: ap.products?.unit || 'un',
+            area: Number(app.area_applied || 0),
+          });
+        });
+      }
+    });
+
+    return details.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [filteredApplications]);
 
   const statusStats = useMemo(() => {
@@ -457,7 +405,6 @@ export default function Reports() {
     return stats;
   }, [filteredApplications]);
 
-  // Dados para gráfico de barras por propriedade
   const propertyChartData = useMemo(() => {
     return propertyStats.map((p: any) => ({
       name: p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name,
@@ -469,7 +416,6 @@ export default function Reports() {
 
   const CHART_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
-  // Função para ordenar aplicações conforme seleção do PDF
   const getSortedApplications = (apps: any[]) => {
     const sorted = [...apps];
     switch (pdfSortBy) {
@@ -526,15 +472,141 @@ export default function Reports() {
     link.click();
   };
 
+  const exportConsumptionPDF = () => {
+    if (consumptionDetails.length === 0) {
+      toast.error("Nenhum consumo encontrado no período selecionado");
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    doc.setFillColor(46, 125, 50);
+    doc.rect(0, 0, pageWidth, 32, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AgroDrone PRO', 14, 14);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Relatório de Consumo de Produtos', 14, 24);
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    let periodText = "Todos os períodos";
+    if (dateFrom || dateTo) {
+      periodText = `${dateFrom ? format(new Date(dateFrom + 'T00:00:00'), "dd/MM/yyyy") : '...'} a ${dateTo ? format(new Date(dateTo + 'T00:00:00'), "dd/MM/yyyy") : '...'}`;
+    } else if (selectedMonth !== "all") {
+      periodText = getMonthLabel(selectedMonth);
+    } else if (selectedPeriod !== "all") {
+      periodText = `Últimos ${selectedPeriod} dias`;
+    }
+
+    const propertyText = selectedProperties.length === 0
+      ? "Todas as propriedades"
+      : selectedProperties.length === 1
+        ? properties.find((p: any) => p.id === selectedProperties[0])?.name || "N/A"
+        : `${selectedProperties.length} propriedades`;
+
+    doc.text(`Período: ${periodText}`, pageWidth - 14, 14, { align: 'right' });
+    doc.text(`Propriedade: ${propertyText}`, pageWidth - 14, 22, { align: 'right' });
+
+    let y = 42;
+
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resumo do Serviço', 14, y);
+    y += 8;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Área total aplicada: ${stats.totalArea.toFixed(2)} ha`, 14, y);
+    y += 6;
+    doc.text(`Total de aplicações: ${filteredApplications.length}`, 14, y);
+    y += 6;
+    doc.text(`Produtos utilizados: ${productStats.length}`, 14, y);
+    y += 12;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Total por Produto', 14, y);
+    y += 6;
+
+    autoTable(doc, {
+      startY: y,
+      head: [['Produto', 'Quantidade Total', 'Unidade', 'Área Relacionada (ha)']],
+      body: productStats.map(p => [
+        p.name,
+        p.totalAmount.toFixed(2),
+        p.unit,
+        p.totalArea.toFixed(2)
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [46, 125, 50] },
+      styles: { fontSize: 9 },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 12;
+
+    if (y > 240) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Detalhamento por Data', 14, y);
+    y += 6;
+
+    autoTable(doc, {
+      startY: y,
+      head: [['Data', 'Propriedade', 'Talhão', 'Produto', 'Quantidade', 'Unidade']],
+      body: consumptionDetails.map(item => [
+        format(new Date(item.date + 'T00:00:00'), "dd/MM/yyyy"),
+        item.propertyName,
+        item.plotName,
+        item.productName,
+        item.quantity.toFixed(2),
+        item.unit
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [46, 125, 50] },
+      styles: { fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 22 },
+        4: { cellWidth: 22 },
+        5: { cellWidth: 18 },
+      }
+    });
+
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text(
+        `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")} - Página ${i} de ${pageCount}`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'center' }
+      );
+    }
+
+    doc.save(`consumo_produtos_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    toast.success("PDF de consumo gerado com sucesso!");
+  };
+
   const exportToPDF = () => {
-    // Ordenar aplicações conforme seleção do usuário
     const sortedApplications = getSortedApplications(filteredApplications);
     
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     
-    // Header - cor verde mais elegante
     doc.setFillColor(46, 125, 50);
     doc.rect(0, 0, pageWidth, 35, 'F');
     
@@ -547,7 +619,6 @@ export default function Reports() {
     doc.setFont('helvetica', 'normal');
     doc.text('Relatório de Aplicações', 14, 28);
     
-    // Período e filtros
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
     
@@ -556,21 +627,22 @@ export default function Reports() {
       filterText = `Período: ${dateFrom ? format(new Date(dateFrom + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Início'} - ${dateTo ? format(new Date(dateTo + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Hoje'}`;
     } else if (selectedMonth !== "all") {
       filterText = `Período: ${getMonthLabel(selectedMonth)}`;
-    } else {
+    } else if (selectedPeriod !== "all") {
       filterText = `Período: ${selectedPeriod} dias`;
+    } else {
+      filterText = "Todos os períodos";
     }
     
     const propertyText = selectedProperties.length === 0
       ? "Todas as Propriedades" 
       : selectedProperties.length === 1
-        ? properties.find(p => p.id === selectedProperties[0])?.name || "N/A"
+        ? properties.find((p: any) => p.id === selectedProperties[0])?.name || "N/A"
         : `${selectedProperties.length} propriedades`;
     doc.text(`${filterText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
     doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, pageWidth - 14, 28, { align: 'right' });
 
     let yPosition = 45;
 
-    // RESUMO EXECUTIVO
     if (pdfIncludeExecutiveSummary) {
       doc.setFillColor(245, 250, 245);
       doc.roundedRect(10, yPosition - 5, pageWidth - 20, 50, 3, 3, 'F');
@@ -597,7 +669,6 @@ export default function Reports() {
         doc.text(line, 14, yPosition + 6 + (i * 6));
       });
       
-      // Comparativo
       if (showComparison && previousStats) {
         const areaChange = stats.totalArea - previousStats.totalArea;
         const areaPercent = previousStats.totalArea > 0 ? ((areaChange / previousStats.totalArea) * 100).toFixed(1) : 'N/A';
@@ -608,7 +679,6 @@ export default function Reports() {
       yPosition += 55;
     }
 
-    // Resumo Estatístico
     doc.setTextColor(46, 125, 50);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -646,7 +716,6 @@ export default function Reports() {
 
     yPosition += 40;
 
-    // Consumo Total por Produto
     if (pdfIncludeProductCosts && productStats.length > 0) {
       doc.setTextColor(46, 125, 50);
       doc.setFontSize(14);
@@ -672,7 +741,6 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Resumo por Propriedade
     if (propertyStats.length > 0) {
       if (yPosition > 230) {
         doc.addPage();
@@ -702,11 +770,9 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Determinar se devemos exibir a coluna "Propriedade" (mais de uma propriedade no relatório)
     const distinctPropertyIds = new Set(sortedApplications.map((a: any) => a.property_id));
     const showPropertyColumn = distinctPropertyIds.size > 1;
 
-    // HISTÓRICO POR TALHÃO
     if (pdfIncludePlotHistory && sortedApplications.length > 0) {
       if (yPosition > 180) {
         doc.addPage();
@@ -719,12 +785,10 @@ export default function Reports() {
       doc.text('Histórico por Talhão', 14, yPosition);
       yPosition += 4;
 
-      // Agrupar aplicações por talhão - verificando se o talhão ainda existe
       const appsByPlot: Record<string, { plotName: string; propertyName: string; plotAreaHectares: number | null; plotExists: boolean; apps: any[] }> = {};
       
       sortedApplications.forEach((app: any) => {
-        // Verificar se o talhão ainda existe
-        const plotData = app.plot_id ? plots.find(p => p.id === app.plot_id) : null;
+        const plotData = app.plot_id ? plots.find((p: any) => p.id === app.plot_id) : null;
         const plotExists = !app.plot_id || plotData !== undefined;
         
         const plotKey = plotExists ? (app.plot_id || app.plot_name || 'sem_talhao') : 'talhao_removido';
@@ -744,13 +808,11 @@ export default function Reports() {
         appsByPlot[plotKey].apps.push(app);
       });
 
-      // Criar linhas para a tabela - repetir nome do talhão em todas as linhas
       const plotRows: any[] = [];
       let lastPlotKey = '';
       
       Object.entries(appsByPlot)
         .sort(([, a], [, b]) => {
-          // Sempre priorizar agrupamento por propriedade quando há múltiplas
           if (showPropertyColumn) {
             const propCmp = a.propertyName.localeCompare(b.propertyName, 'pt-BR');
             if (propCmp !== 0) return propCmp;
@@ -758,7 +820,6 @@ export default function Reports() {
           return a.plotName.localeCompare(b.plotName, 'pt-BR');
         })
         .forEach(([plotKey, plotGroup]) => {
-          // Ordenar aplicações dentro do talhão pela data mais recente para mais antiga
           const sortedApps = [...plotGroup.apps].sort(
             (a: any, b: any) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime()
           );
@@ -771,7 +832,6 @@ export default function Reports() {
                 ).join('\n')
               : '-';
             
-            // Sempre mostrar talhão (repetir em todas as linhas)
             const plotInfo = plotGroup.plotName + (plotGroup.plotAreaHectares ? ` (${Number(plotGroup.plotAreaHectares).toFixed(2)} ha)` : '');
             
             const rowData = showPropertyColumn
@@ -815,7 +875,6 @@ export default function Reports() {
         didParseCell: function(data) {
           if (data.section === 'body') {
             const rowInfo = plotRows[data.row.index];
-            // Primeira linha do grupo - fundo verde claro
             if (rowInfo && rowInfo.isFirstOfGroup) {
               data.cell.styles.fillColor = [232, 245, 233];
             } else {
@@ -828,7 +887,6 @@ export default function Reports() {
       yPosition = (doc as any).lastAutoTable.finalY + 12;
     }
 
-    // Detalhes das Aplicações - Listagem individual agrupada por Talhão
     if (sortedApplications.length > 0) {
       if (yPosition > 200) {
         doc.addPage();
@@ -841,7 +899,6 @@ export default function Reports() {
       doc.text('Detalhes das Aplicações', 14, yPosition);
       yPosition += 4;
 
-      // Agrupar aplicações por talhão - verificando se talhão ainda existe
       const appsByPlot: Record<string, {
         plotName: string;
         propertyName: string;
@@ -852,8 +909,7 @@ export default function Reports() {
       }> = {};
 
       sortedApplications.forEach((app: any) => {
-        // Verificar se o talhão ainda existe
-        const plotData = app.plot_id ? plots.find(p => p.id === app.plot_id) : null;
+        const plotData = app.plot_id ? plots.find((p: any) => p.id === app.plot_id) : null;
         const plotExists = !app.plot_id || plotData !== undefined;
         
         const plotKey = plotExists ? (app.plot_id || app.plot_name || 'sem_talhao') : 'talhao_removido';
@@ -875,7 +931,6 @@ export default function Reports() {
         appsByPlot[plotKey].apps.push(app);
       });
 
-      // Criar linhas para a tabela - repetir talhão em todas as linhas
       interface TableRowData {
         data: string[];
         isFirstOfGroup: boolean;
@@ -884,10 +939,8 @@ export default function Reports() {
       const tableRows: TableRowData[] = [];
       let lastPlotKey = '';
       
-      // Ordenar talhões por propriedade (se múltiplas) e depois por nome
       Object.entries(appsByPlot)
         .sort(([, a], [, b]) => {
-          // Sempre priorizar agrupamento por propriedade quando há múltiplas
           if (showPropertyColumn) {
             const propCmp = a.propertyName.localeCompare(b.propertyName, 'pt-BR');
             if (propCmp !== 0) return propCmp;
@@ -895,23 +948,19 @@ export default function Reports() {
           return a.plotName.localeCompare(b.plotName);
         })
         .forEach(([plotKey, plotGroup]) => {
-          // Ordenar aplicações dentro do talhão pela data mais recente para mais antiga
           const sortedApps = [...plotGroup.apps].sort(
             (a: any, b: any) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime()
           );
-          // Para cada aplicação do talhão, criar uma linha
           sortedApps.forEach((app: any) => {
             const appName = app.name || `Aplicação ${format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}`;
             const appArea = Number(app.area_applied).toFixed(2);
             
-            // Produtos da aplicação
             const productsText = app.application_products && app.application_products.length > 0
               ? app.application_products
                   .map((p: any) => `${p.products?.name || 'Produto'}: ${Number(p.total_amount).toFixed(2)} ${p.products?.unit || ''}`)
                   .join('\n')
               : '-';
             
-            // Sempre mostrar talhão (repetir em todas as linhas)
             const plotInfo = plotGroup.plotName + (plotGroup.plotAreaHectares ? ` (${Number(plotGroup.plotAreaHectares).toFixed(2)} ha)` : '');
             
             const row: string[] = [];
@@ -936,7 +985,6 @@ export default function Reports() {
       headers.push('Aplicação', 'Área', 'Produtos', 'Talhão (Área)');
       if (pdfIncludeNotes) headers.push('Observações');
 
-      // Definir larguras de coluna conforme combinação de flags
       let columnStyles: any;
       if (showPropertyColumn && pdfIncludeNotes) {
         columnStyles = {
@@ -983,7 +1031,6 @@ export default function Reports() {
         didParseCell: function(data) {
           if (data.section === 'body') {
             const rowInfo = tableRows[data.row.index];
-            // Primeira linha do grupo - fundo verde claro
             if (rowInfo && rowInfo.isFirstOfGroup) {
               data.cell.styles.fillColor = [232, 245, 233];
             } else {
@@ -994,7 +1041,6 @@ export default function Reports() {
       });
     }
 
-    // Footer personalizado em todas as páginas
     const totalPages = doc.getNumberOfPages();
     const footerText = pdfCustomFooter || pdfSettingsFromStorage.footerText || (profile?.company ? `${profile.company} - ${profile.full_name}` : 'AgroDrone PRO');
     
@@ -1011,193 +1057,6 @@ export default function Reports() {
     }
 
     doc.save(`relatorio_aplicacoes_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-  };
-
-  const exportCostPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    
-    // Header
-    doc.setFillColor(139, 69, 19);
-    doc.rect(0, 0, pageWidth, 35, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
-    doc.text('AgroDrone PRO', 14, 18);
-    
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Relatório de Custos', 14, 28);
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    
-    let filterText = "";
-    if (dateFrom || dateTo) {
-      filterText = `Período: ${dateFrom ? format(new Date(dateFrom + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Início'} - ${dateTo ? format(new Date(dateTo + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : 'Hoje'}`;
-    } else {
-      filterText = `Período: ${selectedPeriod} dias`;
-    }
-    
-    const propertyText = selectedProperties.length === 0
-      ? "Todas as Propriedades" 
-      : selectedProperties.length === 1
-        ? properties.find(p => p.id === selectedProperties[0])?.name || "N/A"
-        : `${selectedProperties.length} propriedades`;
-    doc.text(`${filterText} | ${propertyText}`, pageWidth - 14, 18, { align: 'right' });
-    doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}`, pageWidth - 14, 28, { align: 'right' });
-
-    let yPosition = 45;
-
-    // Resumo de Custos
-    doc.setTextColor(139, 69, 19);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Resumo de Custos', 14, yPosition);
-    
-    yPosition += 8;
-    
-    const statsData = [
-      ['Custo Total', `R$ ${stats.totalCost.toFixed(2)}`],
-      ['Custo por Hectare', `R$ ${stats.avgCostPerHa.toFixed(2)}`],
-      ['Área Total', `${stats.totalArea.toFixed(1)} ha`],
-      ['Total Aplicações', `${filteredApplications.length}`],
-    ];
-
-    doc.setTextColor(60, 60, 60);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    
-    const cardWidth = (pageWidth - 28) / 2;
-    statsData.forEach((stat, i) => {
-      const x = 14 + (i % 2) * cardWidth;
-      const y = yPosition + Math.floor(i / 2) * 16;
-      
-      doc.setFillColor(255, 248, 240);
-      doc.roundedRect(x, y, cardWidth - 4, 14, 2, 2, 'F');
-      
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.text(stat[0], x + 4, y + 5);
-      
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.text(stat[1], x + 4, y + 11);
-    });
-
-    yPosition += 40;
-
-    // Custos por Produto
-    if (productStats.length > 0) {
-      doc.setTextColor(139, 69, 19);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Custos por Produto', 14, yPosition);
-      yPosition += 4;
-
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['Produto', 'Quantidade', 'Custo Total', 'Custo Médio/Aplicação']],
-        body: productStats.map(p => [
-          p.name,
-          `${p.totalAmount.toFixed(2)} ${p.unit}`,
-          `R$ ${p.totalCost.toFixed(2)}`,
-          `R$ ${(p.totalCost / p.count).toFixed(2)}`,
-        ]),
-        theme: 'striped',
-        headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold' },
-        styles: { fontSize: 9, cellPadding: 3 },
-        alternateRowStyles: { fillColor: [255, 248, 240] },
-      });
-
-      yPosition = (doc as any).lastAutoTable.finalY + 12;
-    }
-
-    // Custos por Propriedade
-    if (propertyStats.length > 0) {
-      if (yPosition > 230) {
-        doc.addPage();
-        yPosition = 20;
-      }
-
-      doc.setTextColor(139, 69, 19);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Custos por Propriedade', 14, yPosition);
-      yPosition += 4;
-
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['Propriedade', 'Área (ha)', 'Aplicações', 'Custo Total', 'Custo/ha']],
-        body: propertyStats.map((p: any) => [
-          p.name,
-          p.area.toFixed(1),
-          p.apps.toString(),
-          `R$ ${p.cost.toFixed(2)}`,
-          `R$ ${(p.cost / p.area).toFixed(2)}`
-        ]),
-        theme: 'striped',
-        headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold' },
-        styles: { fontSize: 9, cellPadding: 3 },
-        alternateRowStyles: { fillColor: [255, 248, 240] },
-      });
-
-      yPosition = (doc as any).lastAutoTable.finalY + 12;
-    }
-
-    // Detalhes de Custos por Aplicação
-    if (filteredApplications.length > 0) {
-      if (yPosition > 200) {
-        doc.addPage();
-        yPosition = 20;
-      }
-
-      doc.setTextColor(139, 69, 19);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Detalhes de Custos por Aplicação', 14, yPosition);
-      yPosition += 4;
-
-      const appRows = filteredApplications.map((app: any) => {
-        return [
-          format(new Date(app.application_date + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }),
-          `${app.properties?.name || 'N/A'}${app.plot_name ? `\n${app.plot_name}` : ''}`,
-          `${app.area_applied} ha`,
-          `R$ ${Number(app.total_cost).toFixed(2)}`,
-          `R$ ${(Number(app.total_cost) / Number(app.area_applied)).toFixed(2)}`
-        ];
-      });
-
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['Data', 'Propriedade', 'Área', 'Custo Total', 'Custo/ha']],
-        body: appRows,
-        theme: 'striped',
-        headStyles: { fillColor: [139, 69, 19], textColor: 255, fontStyle: 'bold' },
-        styles: { fontSize: 9, cellPadding: 3 },
-        alternateRowStyles: { fillColor: [255, 248, 240] },
-      });
-    }
-
-    // Footer personalizado
-    const totalPages = doc.getNumberOfPages();
-    const footerText = pdfCustomFooter || pdfSettingsFromStorage.footerText || (profile?.company ? `${profile.company} - ${profile.full_name}` : 'AgroDrone PRO');
-    
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text(
-        `Página ${i} de ${totalPages} - ${footerText}`,
-        pageWidth / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
-    }
-
-    doc.save(`relatorio_custos_${format(new Date(), "yyyy-MM-dd")}.pdf`);
   };
 
   if (isLoading) {
@@ -1230,6 +1089,10 @@ export default function Reports() {
           <Button onClick={exportToPDF} className="gap-2 w-full sm:w-auto h-14 text-base rounded-xl" disabled={filteredApplications.length === 0}>
             <FileText className="h-5 w-5" />
             Gerar PDF
+          </Button>
+          <Button onClick={exportConsumptionPDF} variant="secondary" className="gap-2 w-full sm:w-auto h-14 text-base rounded-xl" disabled={filteredApplications.length === 0}>
+            <FileText className="h-5 w-5" />
+            PDF Consumo de Produtos
           </Button>
           <Button
             onClick={() => setAnexoOpen(true)}
@@ -1265,9 +1128,7 @@ export default function Reports() {
         </div>
         
         <div className="space-y-4">
-          {/* Linha 1: Propriedade, Talhão, Receituário */}
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-            {/* Seleção múltipla de propriedades */}
             <div className="relative">
               <Button
                 variant="outline"
@@ -1332,7 +1193,7 @@ export default function Reports() {
               </SelectTrigger>
               <SelectContent className="bg-popover">
                 <SelectItem value="all" className="text-base py-3">Todos Talhões</SelectItem>
-                {filteredPlots.map((plot) => (
+                {filteredPlots.map((plot: any) => (
                   <SelectItem key={plot.id} value={plot.id} className="text-base py-3">{plot.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -1345,14 +1206,13 @@ export default function Reports() {
               </SelectTrigger>
               <SelectContent className="bg-popover">
                 <SelectItem value="all" className="text-base py-3">Todos Receituários</SelectItem>
-                {recipes.map((recipe) => (
+                {recipes.map((recipe: any) => (
                   <SelectItem key={recipe.id} value={recipe.id} className="text-base py-3">{recipe.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Linha 2: Status, Tipo, Produtos múltiplos */}
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger className="h-14 text-base rounded-xl">
@@ -1380,7 +1240,6 @@ export default function Reports() {
               </SelectContent>
             </Select>
 
-            {/* Seleção múltipla de produtos */}
             <div className="relative">
               <Button 
                 variant="outline" 
@@ -1419,7 +1278,6 @@ export default function Reports() {
             </div>
           </div>
 
-          {/* Linha 3: Período */}
           <div className="flex flex-wrap gap-3 items-center">
             <span className="text-base text-muted-foreground font-medium">Período:</span>
             
@@ -1485,7 +1343,6 @@ export default function Reports() {
             </div>
           </div>
 
-          {/* Linha 4: Comparativo e opções de PDF */}
           <div className="flex flex-wrap gap-4 items-center pt-4 border-t">
             <div className="flex items-center space-x-3">
               <Checkbox
@@ -1547,7 +1404,6 @@ export default function Reports() {
               </Label>
             </div>
             
-            {/* Ordenação do PDF */}
             <div className="flex items-center gap-3">
               <Label className="text-base font-medium whitespace-nowrap">Ordenar por:</Label>
               <Select value={pdfSortBy} onValueChange={(v: any) => setPdfSortBy(v)}>
@@ -1567,7 +1423,6 @@ export default function Reports() {
             </div>
           </div>
 
-          {/* Rodapé personalizado */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-4">
             <Label htmlFor="customFooter" className="text-base font-medium whitespace-nowrap">
               Rodapé do PDF:
@@ -1583,7 +1438,6 @@ export default function Reports() {
         </div>
       </Card>
 
-      {/* Stats Overview */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card className="p-5 rounded-xl">
           <div className="mb-3 flex items-center gap-3">
@@ -1615,10 +1469,8 @@ export default function Reports() {
             de {filteredApplications.length} aplicações
           </p>
         </Card>
-
       </div>
 
-      {/* Gráfico de barras por propriedade */}
       {propertyChartData.length > 0 && (
         <Card className="p-5 rounded-xl">
           <h2 className="mb-4 text-lg font-bold text-foreground flex items-center gap-3">
@@ -1661,7 +1513,6 @@ export default function Reports() {
         </Card>
       )}
 
-      {/* Status e Tipo breakdown */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Card className="p-5 rounded-xl">
           <h3 className="font-semibold mb-4 text-lg sm:text-xl">Por Status</h3>
@@ -1702,7 +1553,6 @@ export default function Reports() {
         </Card>
       </div>
 
-      {/* Consumo Total por Produto */}
       {productStats.length > 0 && (
         <Card className="p-4 sm:p-6">
           <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground">
@@ -1749,7 +1599,6 @@ export default function Reports() {
         </Card>
       )}
 
-      {/* Resumo por Propriedade */}
       <Card className="p-4 sm:p-6">
         <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground">
           Resumo por Propriedade
@@ -1796,7 +1645,6 @@ export default function Reports() {
         </div>
       </Card>
 
-      {/* Resumo por Talhão - Listagem individual de aplicações */}
       {filteredApplications.length > 0 && (
         <Card className="p-4 sm:p-6">
           <h2 className="mb-4 text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
@@ -1805,7 +1653,6 @@ export default function Reports() {
           </h2>
           <div className="space-y-6">
             {(() => {
-              // Agrupar aplicações por talhão - verificar se o talhão ainda existe
               const appsByPlot: Record<string, { 
                 plotName: string; 
                 plotId: string | null;
@@ -1815,10 +1662,9 @@ export default function Reports() {
               }> = {};
               
               filteredApplications.forEach((app: any) => {
-                const plotData = app.plot_id ? plots.find(p => p.id === app.plot_id) : null;
+                const plotData = app.plot_id ? plots.find((p: any) => p.id === app.plot_id) : null;
                 const plotExists = !app.plot_id || plotData !== undefined;
                 
-                // Pular talhões que foram removidos
                 if (!plotExists) return;
                 
                 const plotKey = app.plot_id || app.plot_name || 'sem_talhao';
@@ -1840,7 +1686,6 @@ export default function Reports() {
                 .sort(([, a], [, b]) => a.plotName.localeCompare(b.plotName, 'pt-BR'))
                 .map(([plotKey, plotGroup]) => (
                   <div key={plotKey} className="border border-border rounded-xl overflow-hidden">
-                    {/* Header do Talhão */}
                     <div className="bg-primary/10 p-4 border-b border-border">
                       <div className="flex items-center gap-3">
                         <MapPin className="h-6 w-6 text-primary flex-shrink-0" />
@@ -1858,7 +1703,6 @@ export default function Reports() {
                       </div>
                     </div>
                     
-                    {/* Tabela de aplicações do talhão */}
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-muted/30">
