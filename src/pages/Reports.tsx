@@ -480,7 +480,9 @@ export default function Reports() {
 
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
+    // Header
     doc.setFillColor(46, 125, 50);
     doc.rect(0, 0, pageWidth, 32, 'F');
 
@@ -493,6 +495,7 @@ export default function Reports() {
     doc.setFont('helvetica', 'normal');
     doc.text('Relatório de Consumo de Produtos', 14, 24);
 
+    // Period / Property info
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(9);
     let periodText = "Todos os períodos";
@@ -515,6 +518,7 @@ export default function Reports() {
 
     let y = 42;
 
+    // Resumo do Serviço
     doc.setTextColor(40, 40, 40);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -530,6 +534,7 @@ export default function Reports() {
     doc.text(`Produtos utilizados: ${productStats.length}`, 14, y);
     y += 12;
 
+    // Total por Produto
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.text('Total por Produto', 14, y);
@@ -545,53 +550,114 @@ export default function Reports() {
         p.totalArea.toFixed(2)
       ]),
       theme: 'striped',
-      headStyles: { fillColor: [46, 125, 50] },
-      styles: { fontSize: 9 },
+      headStyles: { fillColor: [46, 125, 50], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 9, cellPadding: 3 },
+      alternateRowStyles: { fillColor: [248, 253, 248] },
     });
 
-    y = (doc as any).lastAutoTable.finalY + 12;
+    y = (doc as any).lastAutoTable.finalY + 14;
 
-    if (y > 240) {
+    // Group by date → application
+    const grouped: Record<string, Record<string, { area: number; property: string; products: Array<{ name: string; quantity: number; unit: string }> }>> = {};
+
+    consumptionDetails.forEach(item => {
+      if (!grouped[item.date]) grouped[item.date] = {};
+      if (!grouped[item.date][item.applicationName]) {
+        grouped[item.date][item.applicationName] = {
+          area: item.area,
+          property: item.propertyName,
+          products: [],
+        };
+      }
+      grouped[item.date][item.applicationName].products.push({
+        name: item.productName,
+        quantity: item.quantity,
+        unit: item.unit,
+      });
+    });
+
+    // Sort dates descending
+    const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+    // Detalhamento section title
+    if (y > 250) {
       doc.addPage();
       y = 20;
     }
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(40, 40, 40);
-    doc.text('Detalhamento por Data', 14, y);
-    y += 6;
+    doc.setFontSize(13);
+    doc.setTextColor(46, 125, 50);
+    doc.text('Detalhamento por Data e Aplicação', 14, y);
+    y += 10;
 
-    autoTable(doc, {
-      startY: y,
-      head: [['Data', 'Propriedade', 'Talhão', 'Produto', 'Quantidade', 'Unidade']],
-      body: consumptionDetails.map(item => [
-        format(new Date(item.date + 'T00:00:00'), "dd/MM/yyyy"),
-        item.propertyName,
-        item.plotName,
-        item.productName,
-        item.quantity.toFixed(2),
-        item.unit
-      ]),
-      theme: 'striped',
-      headStyles: { fillColor: [46, 125, 50] },
-      styles: { fontSize: 8 },
-      columnStyles: {
-        0: { cellWidth: 22 },
-        4: { cellWidth: 22 },
-        5: { cellWidth: 18 },
+    sortedDates.forEach(dateKey => {
+      const formattedDate = format(new Date(dateKey + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR });
+
+      if (y > 260) {
+        doc.addPage();
+        y = 20;
       }
+
+      // Date header
+      doc.setFillColor(232, 245, 233);
+      doc.rect(10, y - 4, pageWidth - 20, 8, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(46, 125, 50);
+      doc.text(formattedDate, 14, y);
+      y += 8;
+
+      const apps = grouped[dateKey];
+      const appNames = Object.keys(apps).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+      appNames.forEach(appName => {
+        const appData = apps[appName];
+
+        if (y > 255) {
+          doc.addPage();
+          y = 20;
+        }
+
+        // Application name + area
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(40, 40, 40);
+        doc.text(`${appName}  •  ${appData.area.toFixed(2)} ha`, 16, y);
+        y += 5;
+
+        // Small products table
+        autoTable(doc, {
+          startY: y,
+          head: [['Produto', 'Quantidade', 'Unidade']],
+          body: appData.products.map(p => [
+            p.name,
+            p.quantity.toFixed(2),
+            p.unit,
+          ]),
+          theme: 'grid',
+          headStyles: { fillColor: [80, 80, 80], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+          styles: { fontSize: 8, cellPadding: 2 },
+          margin: { left: 16, right: 14 },
+          tableWidth: pageWidth - 30,
+        });
+
+        y = (doc as any).lastAutoTable.finalY + 6;
+      });
+
+      y += 4; // extra space between dates
     });
 
+    // Footer on all pages
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(120);
       doc.text(
-        `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")} - Página ${i} de ${pageCount}`,
+        `Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")}  •  Página ${i} de ${pageCount}`,
         pageWidth / 2,
-        doc.internal.pageSize.getHeight() - 10,
+        pageHeight - 8,
         { align: 'center' }
       );
     }
