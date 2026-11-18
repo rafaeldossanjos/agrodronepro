@@ -304,6 +304,7 @@ export default function Applications() {
               onClick={() => navigate('/map')}
               className="flex-1 sm:flex-none h-14 text-lg"
               title="Ver no Mapa"
+              aria-label="Ver no Mapa"
             >
               <Map className="h-5 w-5 sm:mr-2" />
               <span className="hidden sm:inline">Mapa</span>
@@ -315,6 +316,7 @@ export default function Applications() {
             onClick={() => handleDuplicate(app)}
             className="flex-1 sm:flex-none h-12 text-base"
             title="Duplicar"
+            aria-label="Duplicar"
           >
             <Copy className="h-5 w-5 sm:mr-2" />
             <span className="hidden sm:inline">Duplicar</span>
@@ -324,6 +326,7 @@ export default function Applications() {
             size="default"
             onClick={() => handleEdit(app)}
             className="flex-1 sm:flex-none h-12 text-base"
+            aria-label="Editar"
           >
             <Edit className="h-5 w-5 sm:mr-2" />
             <span className="hidden sm:inline">Editar</span>
@@ -333,6 +336,7 @@ export default function Applications() {
             size="default"
             onClick={() => handleDelete(app.id)}
             className="flex-1 sm:flex-none h-12 text-base text-destructive hover:text-destructive"
+            aria-label="Excluir"
           >
             <Trash2 className="h-5 w-5 sm:mr-2" />
             <span className="hidden sm:inline">Excluir</span>

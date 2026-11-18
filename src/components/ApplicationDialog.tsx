@@ -912,7 +912,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
           </form>
         </div>
 
-        <div className="flex gap-3 px-4 sm:px-6 py-4 border-t bg-background shrink-0 sticky bottom-0">
+        <div className="flex gap-3 px-4 sm:px-6 py-4 border-t bg-background shrink-0">
           <Button type="button" variant="outline" disabled={isSaving} onClick={() => onOpenChange(false)} className="flex-1 h-16 text-xl rounded-xl">
             Cancelar
           </Button>
