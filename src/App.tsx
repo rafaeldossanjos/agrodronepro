@@ -8,6 +8,7 @@ import { Layout } from "./components/Layout";
 import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
+import { useOfflinePreload } from "./hooks/useOfflinePreload";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -68,6 +69,7 @@ const App = () => {
 
 const AppContent = () => {
   useOnlineStatus();
+  useOfflinePreload();
   
   return (
     <>
