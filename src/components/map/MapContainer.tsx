@@ -56,13 +56,12 @@ const STATUS_COLORS: Record<string, string> = {
   'none': '#6B7280',
 };
 
-// Calculate font size based on zoom level - smaller to avoid overlap
+// Calculate font size based on zoom level - optimized for mobile (S20 FE)
 const getFontSizeForZoom = (zoom: number): number => {
-  if (zoom >= 18) return 16;
-  if (zoom >= 16) return 14;
-  if (zoom >= 14) return 12;
-  if (zoom >= 12) return 11;
-  return 10;
+  if (zoom >= 17) return 12;
+  if (zoom >= 15) return 10;
+  if (zoom >= 13) return 9;
+  return 8;
 };
 
 export function MapContainer({
@@ -108,7 +107,7 @@ export function MapContainer({
       const plot = plots.find(p => p.id === plotId);
       if (!plot) return;
       
-      const showArea = zoomLevel >= 15;
+      const showArea = zoomLevel >= 17;
       const labelContent = createLabelContent(plot.name, plot.area_hectares, fontSize, showArea);
 
       marker.setIcon(L.divIcon({
@@ -650,7 +649,7 @@ export function MapContainer({
       const bounds = polygon.getBounds();
       const center = bounds.getCenter();
 
-      const showArea = map.getZoom() >= 15;
+      const showArea = map.getZoom() >= 17;
       const labelContent = createLabelContent(plot.name, plot.area_hectares, fontSize, showArea);
 
       const labelIcon = L.divIcon({
