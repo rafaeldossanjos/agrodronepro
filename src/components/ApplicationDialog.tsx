@@ -566,7 +566,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] max-h-[80dvh] flex flex-col p-0 gap-0 rounded-t-2xl sm:rounded-xl">
+      <DialogContent className="max-w-4xl max-h-[95vh] max-h-[95dvh] flex flex-col p-0 gap-0 rounded-t-2xl sm:rounded-xl">
         <DialogHeader className="px-4 sm:px-6 pt-3 sm:pt-4 pb-3 border-b shrink-0">
           <DialogTitle className="text-3xl font-bold">
             {application ? "Editar Aplicação" : "Nova Aplicação"}
@@ -883,7 +883,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
           </form>
         </div>
 
-        <div className="flex gap-3 px-4 sm:px-6 py-3 border-t bg-background shrink-0">
+        <div className="flex gap-3 px-4 sm:px-6 py-4 border-t bg-background shrink-0 sticky bottom-0">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-16 text-xl rounded-xl">
             Cancelar
           </Button>
