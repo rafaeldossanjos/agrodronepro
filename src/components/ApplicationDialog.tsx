@@ -560,6 +560,11 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
           }
         });
         setErrors(newErrors);
+        // Rola para o topo para mostrar o resumo de erros
+        const formEl = document.getElementById('application-form');
+        if (formEl) {
+          formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     }
   };
@@ -578,6 +583,18 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
         <div className="flex-1 overflow-y-scroll px-4 sm:px-6 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
           <form id="application-form" onSubmit={handleSubmit} className="space-y-4 py-3 pb-4">
+            {/* Resumo de erros */}
+            {Object.keys(errors).length > 0 && (
+              <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-4 text-destructive">
+                <p className="font-semibold text-lg mb-1">Corrija os seguintes itens:</p>
+                <ul className="list-disc pl-5 space-y-1 text-base">
+                  {Object.values(errors).map((msg, i) => (
+                    <li key={i}>{msg}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Receituário (apenas para nova aplicação) */}
             {!application && recipes.length > 0 && (
               <div className="space-y-1.5">
