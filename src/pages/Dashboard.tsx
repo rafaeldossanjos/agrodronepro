@@ -234,7 +234,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-5xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
           <p className="text-xl text-muted-foreground">Visão geral das operações</p>
         </div>
         <Button onClick={() => setDialogOpen(true)} size="lg" className="gap-2 text-base h-12 px-5">
@@ -314,14 +314,14 @@ export default function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className={cn("rounded-xl bg-muted p-3", stat.color)}>
-                <stat.icon className="h-8 w-8" />
+          <Card key={stat.label} className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className={cn("rounded-lg bg-muted p-2", stat.color)}>
+                <stat.icon className="h-6 w-6" />
               </div>
-              <p className="text-lg text-muted-foreground leading-tight">{stat.label}</p>
+              <p className="text-sm text-muted-foreground leading-tight">{stat.label}</p>
             </div>
-            <p className="text-5xl font-bold">{stat.value}</p>
+            <p className="text-3xl font-bold whitespace-nowrap">{stat.value}</p>
           </Card>
         ))}
       </div>
