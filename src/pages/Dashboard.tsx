@@ -312,20 +312,22 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         {stats.items.map((stat) => {
-          const [number, unit] = stat.value.split(' ');
+          const parts = stat.value.split(' ');
+          const number = parts[0];
+          const unit = parts.slice(1).join(' ');
           return (
             <Card key={stat.label} className="p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <div className={cn("rounded-lg bg-muted p-1.5", stat.color)}>
-                  <stat.icon className="h-5 w-5" />
+              <div className="flex items-center gap-1.5 mb-1">
+                <div className={cn("rounded-md bg-muted p-1", stat.color)}>
+                  <stat.icon className="h-4 w-4" />
                 </div>
-                <p className="text-xs text-muted-foreground leading-tight">{stat.label}</p>
+                <p className="text-[11px] text-muted-foreground leading-tight truncate">{stat.label}</p>
               </div>
-              <div className="flex items-baseline gap-1">
-                <p className="text-2xl font-bold leading-none">{number}</p>
-                {unit && <span className="text-sm text-muted-foreground">{unit}</span>}
+              <div className="flex items-baseline gap-1 whitespace-nowrap">
+                <span className="text-xl font-bold leading-none">{number}</span>
+                {unit && <span className="text-xs text-muted-foreground">{unit}</span>}
               </div>
             </Card>
           );
