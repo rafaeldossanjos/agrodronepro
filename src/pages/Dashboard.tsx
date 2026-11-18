@@ -6,7 +6,6 @@ import {
   MapPin, 
   Clock,
   Calculator,
-  Users,
   Map,
   FileText,
   Package,
@@ -26,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { SmartNotifications } from "@/components/SmartNotifications";
+import { ApplicationDialog } from "@/components/ApplicationDialog";
 
 type PeriodFilter = 1 | 7 | 15 | 30 | 'month' | 'all';
 
@@ -35,8 +35,9 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
   const isMobile = useIsMobile();
-  const { applications, isLoading: loadingApps, refetch: refetchApps } = useApplications();
+  const { applications, isLoading: loadingApps, refetch: refetchApps, createApplication } = useApplications();
   const { properties, refetch: refetchProps } = useProperties();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleRefresh = useCallback(async () => {
     await Promise.all([refetchApps(), refetchProps()]);
@@ -233,11 +234,11 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Visão geral das operações</p>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-base text-muted-foreground">Visão geral das operações</p>
         </div>
-        <Button onClick={() => navigate('/applications')} size="sm" className="gap-1.5">
-          <Plus className="h-4 w-4" />
+        <Button onClick={() => setDialogOpen(true)} size="lg" className="gap-2 text-base h-12 px-5">
+          <Plus className="h-5 w-5" />
           Nova
         </Button>
       </div>
@@ -246,13 +247,13 @@ export default function Dashboard() {
       {pendingCount > 0 && (
         <button
           onClick={() => navigate('/applications')}
-          className="flex w-full items-center justify-between rounded-xl bg-warning/10 px-4 py-3 text-warning"
+          className="flex w-full items-center justify-between rounded-xl bg-warning/10 px-5 py-4 text-warning text-base"
         >
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
+          <div className="flex items-center gap-3">
+            <Clock className="h-6 w-6" />
             <span className="font-medium">{pendingCount} aplicação{pendingCount > 1 ? 'ões' : ''} pendente{pendingCount > 1 ? 's' : ''}</span>
           </div>
-          <span className="text-sm">Ver →</span>
+          <span className="text-base">Ver →</span>
         </button>
       )}
 
@@ -260,33 +261,35 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant={periodFilter === 'all' ? "default" : "outline"}
-          size="sm"
+          size="lg"
           onClick={() => handlePeriodChange('all')}
+          className="text-base h-11"
         >
           Todos
         </Button>
         {[
-          { value: 7, label: '7d' },
-          { value: 15, label: '15d' },
-          { value: 30, label: '30d' },
+          { value: 7, label: '7 dias' },
+          { value: 15, label: '15 dias' },
+          { value: 30, label: '30 dias' },
         ].map(({ value, label }) => (
           <Button
             key={value}
             variant={periodFilter === value ? "default" : "outline"}
-            size="sm"
+            size="lg"
             onClick={() => handlePeriodChange(value as PeriodFilter)}
+            className="text-base h-11"
           >
             {label}
           </Button>
         ))}
         
         <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-9 w-auto min-w-[110px] text-sm">
+          <SelectTrigger className="h-11 w-auto min-w-[130px] text-base">
             <SelectValue placeholder="Mês" />
           </SelectTrigger>
           <SelectContent>
             {availableMonths.map((month) => (
-              <SelectItem key={month} value={month} className="capitalize">
+              <SelectItem key={month} value={month} className="text-base capitalize">
                 {getMonthLabel(month)}
               </SelectItem>
             ))}
@@ -294,13 +297,13 @@ export default function Dashboard() {
         </Select>
 
         <Select value={selectedProperty} onValueChange={handlePropertyChange}>
-          <SelectTrigger className="h-9 w-auto min-w-[140px] text-sm">
+          <SelectTrigger className="h-11 w-auto min-w-[160px] text-base">
             <SelectValue placeholder="Fazenda" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="all" className="text-base">Todas</SelectItem>
             {properties.map((property) => (
-              <SelectItem key={property.id} value={property.id}>
+              <SelectItem key={property.id} value={property.id} className="text-base">
                 {property.name}
               </SelectItem>
             ))}
@@ -311,78 +314,60 @@ export default function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className={cn("rounded-lg bg-muted p-2", stat.color)}>
-                <stat.icon className="h-5 w-5" />
+          <Card key={stat.label} className="p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className={cn("rounded-lg bg-muted p-2.5", stat.color)}>
+                <stat.icon className="h-6 w-6" />
               </div>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="text-sm text-muted-foreground leading-tight">{stat.label}</p>
             </div>
-            <p className="text-2xl font-bold">{stat.value}</p>
+            <p className="text-3xl font-bold">{stat.value}</p>
           </Card>
         ))}
       </div>
 
-      {/* Gráficos */}
+      {/* Gráfico de Área */}
       {chartData.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Card className="p-4">
-            <h2 className="mb-3 text-sm font-semibold">Área Aplicada (ha)</h2>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} width={30} />
-                  <Tooltip />
-                  <Bar dataKey="area" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <h2 className="mb-3 text-sm font-semibold">Por Tipo</h2>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value">
-                    {pieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => [`${value} ha`, 'Área']} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </div>
+        <Card className="p-4">
+          <h2 className="mb-4 text-xl font-semibold">Área Aplicada (ha)</h2>
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} width={30} />
+                <Tooltip />
+                <Bar dataKey="area" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
       )}
 
       {/* Aplicações Recentes */}
-      <Card className="p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold">Aplicações Recentes</h2>
-          <button onClick={() => navigate('/applications')} className="text-sm text-primary">
+      <Card className="p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Aplicações Recentes</h2>
+          <button onClick={() => navigate('/applications')} className="text-base text-primary font-medium">
             Ver todas
           </button>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {recentApplications.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma aplicação registrada.</p>
+            <p className="text-base text-muted-foreground">Nenhuma aplicação registrada.</p>
           ) : (
             recentApplications.map((app) => (
-              <div key={app.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+              <div key={app.id} className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{app.name}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="truncate text-lg font-medium">{app.name}</p>
+                  <p className="text-sm text-muted-foreground">
                     {app.dateLabel} • {app.plotName}
                   </p>
                 </div>
                 <div className="text-right ml-3">
-                  <p className="font-semibold text-sm">{app.area}</p>
+                  <p className="font-semibold text-lg">{app.area}</p>
                   <span className={cn(
-                    "inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium",
+                    "inline-flex rounded-full px-2.5 py-1 text-xs font-medium mt-1",
                     app.status === 'concluída' ? "bg-success/10 text-success" :
                     app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600" :
                     app.status === 'planejada' ? "bg-warning/10 text-warning" :
@@ -400,9 +385,9 @@ export default function Dashboard() {
       </Card>
 
       {/* Ações Rápidas */}
-      <Card className="p-4">
-        <h2 className="mb-3 font-semibold">Ações Rápidas</h2>
-        <div className="grid grid-cols-3 gap-2">
+      <Card className="p-5">
+        <h2 className="mb-4 text-xl font-semibold">Ações Rápidas</h2>
+        <div className="grid grid-cols-3 gap-3">
           {[
             { icon: Droplet, label: "Aplicação", href: "/applications" },
             { icon: Map, label: "Mapa", href: "/map" },
@@ -414,15 +399,25 @@ export default function Dashboard() {
             <button
               key={href}
               onClick={() => navigate(href)}
-              className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed p-3 text-center transition-colors hover:border-primary hover:bg-muted"
+              className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-4 text-center transition-colors hover:border-primary hover:bg-muted"
             >
-              <Icon className="h-5 w-5 text-primary" />
-              <span className="text-xs font-medium">{label}</span>
+              <Icon className="h-7 w-7 text-primary" />
+              <span className="text-sm font-medium">{label}</span>
             </button>
           ))}
         </div>
       </Card>
     </div>
+
+    <ApplicationDialog
+      open={dialogOpen}
+      onOpenChange={setDialogOpen}
+      onSave={async (data) => {
+        await createApplication(data);
+        setDialogOpen(false);
+        refetchApps();
+      }}
+    />
     </PullToRefresh>
   );
 }
