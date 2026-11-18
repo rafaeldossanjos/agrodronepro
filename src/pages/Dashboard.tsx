@@ -323,11 +323,11 @@ export default function Dashboard() {
                 <div className={cn("rounded-md bg-muted p-1", stat.color)}>
                   <stat.icon className="h-4 w-4" />
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-tight truncate">{stat.label}</p>
+                <p className="text-[11px] text-muted-foreground leading-tight truncate max-w-[80px]">{stat.label}</p>
               </div>
-              <div className="flex items-baseline gap-1 whitespace-nowrap">
-                <span className="text-xl font-bold leading-none">{number}</span>
-                {unit && <span className="text-xs text-muted-foreground">{unit}</span>}
+              <div className="flex items-baseline gap-1 whitespace-nowrap overflow-hidden">
+                <span className="text-lg font-bold leading-none">{number}</span>
+                {unit && <span className="text-[10px] text-muted-foreground">{unit}</span>}
               </div>
             </Card>
           );
@@ -421,7 +421,7 @@ export default function Dashboard() {
       open={dialogOpen}
       onOpenChange={setDialogOpen}
       onSave={async (data) => {
-        await createApplication.mutateAsync(data);
+        await createApplication(data);
         setDialogOpen(false);
         refetchApps();
       }}
