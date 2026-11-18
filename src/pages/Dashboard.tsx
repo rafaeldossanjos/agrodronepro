@@ -234,8 +234,8 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-lg text-muted-foreground">Visão geral das operações</p>
+          <h1 className="text-5xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-xl text-muted-foreground">Visão geral das operações</p>
         </div>
         <Button onClick={() => setDialogOpen(true)} size="lg" className="gap-2 text-base h-12 px-5">
           <Plus className="h-5 w-5" />
@@ -314,14 +314,14 @@ export default function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={cn("rounded-lg bg-muted p-2.5", stat.color)}>
-                <stat.icon className="h-7 w-7" />
+          <Card key={stat.label} className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={cn("rounded-xl bg-muted p-3", stat.color)}>
+                <stat.icon className="h-8 w-8" />
               </div>
-              <p className="text-base text-muted-foreground leading-tight">{stat.label}</p>
+              <p className="text-lg text-muted-foreground leading-tight">{stat.label}</p>
             </div>
-            <p className="text-4xl font-bold">{stat.value}</p>
+            <p className="text-5xl font-bold">{stat.value}</p>
           </Card>
         ))}
       </div>
@@ -329,7 +329,7 @@ export default function Dashboard() {
       {/* Gráfico de Área */}
       {chartData.length > 0 && (
         <Card className="p-4">
-          <h2 className="mb-4 text-xl font-semibold">Área Aplicada (ha)</h2>
+          <h2 className="mb-4 text-2xl font-semibold">Área Aplicada (ha)</h2>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
@@ -347,7 +347,7 @@ export default function Dashboard() {
       {/* Aplicações Recentes */}
       <Card className="p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Aplicações Recentes</h2>
+          <h2 className="text-3xl font-semibold">Aplicações Recentes</h2>
           <button onClick={() => navigate('/applications')} className="text-base text-primary font-medium">
             Ver todas
           </button>
@@ -359,13 +359,13 @@ export default function Dashboard() {
             recentApplications.map((app) => (
               <div key={app.id} className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xl font-medium">{app.name}</p>
-                  <p className="text-base text-muted-foreground">
+                  <p className="truncate text-2xl font-medium">{app.name}</p>
+                  <p className="text-lg text-muted-foreground">
                     {app.dateLabel} • {app.plotName}
                   </p>
                 </div>
                 <div className="text-right ml-3">
-                  <p className="font-semibold text-xl">{app.area}</p>
+                  <p className="font-semibold text-2xl">{app.area}</p>
                   <span className={cn(
                     "inline-flex rounded-full px-3 py-1 text-sm font-medium mt-1",
                     app.status === 'concluída' ? "bg-success/10 text-success" :
@@ -386,7 +386,7 @@ export default function Dashboard() {
 
       {/* Ações Rápidas */}
       <Card className="p-5">
-        <h2 className="mb-4 text-2xl font-semibold">Ações Rápidas</h2>
+        <h2 className="mb-5 text-3xl font-semibold">Ações Rápidas</h2>
         <div className="grid grid-cols-3 gap-3">
           {[
             { icon: Droplet, label: "Aplicação", href: "/applications" },
@@ -401,8 +401,8 @@ export default function Dashboard() {
               onClick={() => navigate(href)}
               className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-4 text-center transition-colors hover:border-primary hover:bg-muted"
             >
-              <Icon className="h-8 w-8 text-primary" />
-              <span className="text-base font-medium">{label}</span>
+              <Icon className="h-10 w-10 text-primary" />
+              <span className="text-lg font-medium">{label}</span>
             </button>
           ))}
         </div>
