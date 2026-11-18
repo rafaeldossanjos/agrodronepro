@@ -523,7 +523,7 @@ export default function Calculator() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="area" className="text-lg font-medium">Área (ha) *</Label>
+                <Label htmlFor="area" className="text-xl font-medium">Área (ha) *</Label>
                 <Input
                   id="area"
                   type="text"
@@ -543,7 +543,7 @@ export default function Calculator() {
                 <p className="text-base text-muted-foreground">Área total a ser aplicada</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="flowRate" className="text-lg font-medium">Vazão (L/ha) *</Label>
+                <Label htmlFor="flowRate" className="text-xl font-medium">Vazão (L/ha) *</Label>
                 <Input
                   id="flowRate"
                   type="text"
@@ -563,7 +563,7 @@ export default function Calculator() {
                 <p className="text-base text-muted-foreground">Litros por hectare</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tankVolume" className="text-lg font-medium">Tanque (L) *</Label>
+                <Label htmlFor="tankVolume" className="text-xl font-medium">Tanque (L) *</Label>
                 <Input
                   id="tankVolume"
                   type="text"
@@ -700,7 +700,7 @@ export default function Calculator() {
             </div>
 
             <div className="mt-4">
-              <Button onClick={calculate} className="w-full h-14 text-lg rounded-xl" size="lg">
+              <Button onClick={calculate} className="w-full h-16 text-xl rounded-xl" size="lg">
                 <CalcIcon className="mr-2 h-6 w-6" />
                 Calcular
               </Button>

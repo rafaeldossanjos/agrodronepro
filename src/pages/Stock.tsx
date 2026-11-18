@@ -523,7 +523,7 @@ export default function Stock() {
             <TabsTrigger value="movements" className="text-xl sm:text-2xl py-3 rounded-xl">Movimentações</TabsTrigger>
             <TabsTrigger value="report" className="text-xl sm:text-2xl py-3 rounded-xl">Relatório</TabsTrigger>
           </TabsList>
-          <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 gap-2 text-base shrink-0">
+          <Button variant="outline" size="sm" onClick={exportCSV} className="h-12 gap-2 text-base shrink-0">
             <Download className="h-4 w-4" />
             CSV
           </Button>
