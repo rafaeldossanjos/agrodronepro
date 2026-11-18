@@ -904,7 +904,11 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-16 text-xl rounded-xl">
             Cancelar
           </Button>
-          <Button type="submit" form="application-form" className="flex-1 h-16 text-xl rounded-xl">
+          <Button 
+            type="button" 
+            onClick={(e) => handleSubmit(e as any)} 
+            className="flex-1 h-16 text-xl rounded-xl"
+          >
             Salvar
           </Button>
         </div>
