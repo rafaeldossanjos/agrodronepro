@@ -102,7 +102,7 @@ function SearchableSelect({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           readOnly={!autoFocusOnOpen && !isOpen}
-          className={cn("pl-10 h-14 text-lg rounded-xl", className)}
+          className={cn("pl-10 h-16 text-xl rounded-xl", className)}
         />
       </div>
       {isOpen && (
@@ -278,7 +278,7 @@ function ProductAutocomplete({
         }}
         onKeyDown={handleKeyDown}
         placeholder="Digite para buscar produto..."
-        className="h-14 text-lg"
+        className="h-16 text-xl"
       />
       {isOpen && filteredProducts.length > 0 && (
         <div 
@@ -568,7 +568,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] max-h-[80dvh] flex flex-col p-0 gap-0 rounded-t-2xl sm:rounded-xl">
         <DialogHeader className="px-4 sm:px-6 pt-3 sm:pt-4 pb-3 border-b shrink-0">
-          <DialogTitle className="text-2xl sm:text-3xl font-bold">
+          <DialogTitle className="text-3xl font-bold">
             {application ? "Editar Aplicação" : "Nova Aplicação"}
           </DialogTitle>
           <p className="text-base sm:text-lg text-muted-foreground mt-1">
@@ -597,10 +597,10 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
 
             {/* Informações Básicas */}
             <div className="space-y-3">
-              <h3 className="text-xl font-semibold text-foreground">Informações Básicas</h3>
+              <h3 className="text-2xl font-semibold text-foreground">Informações Básicas</h3>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="property_id" className="text-lg font-medium">Propriedade *</Label>
+                  <Label htmlFor="property_id" className="text-xl font-medium">Propriedade *</Label>
                   <SearchableSelect
                     items={properties.map(p => ({ id: p.id, label: p.name }))}
                     value={formData.property_id}
@@ -615,7 +615,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="plot_id" className="flex items-center gap-2 text-lg font-medium">
+                  <Label htmlFor="plot_id" className="flex items-center gap-2 text-xl font-medium">
                     <MapPin className="h-5 w-5" />
                     Talhão
                   </Label>
@@ -635,7 +635,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                       }}
                       disabled={!formData.property_id}
                     >
-                      <SelectTrigger className="flex-1 h-14 text-lg rounded-xl">
+                      <SelectTrigger className="flex-1 h-16 text-xl rounded-xl">
                         <SelectValue placeholder={
                           !formData.property_id 
                             ? "Selecione a propriedade" 
@@ -671,13 +671,13 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-lg font-medium">Nome da Aplicação *</Label>
+                  <Label htmlFor="name" className="text-xl font-medium">Nome da Aplicação *</Label>
                   <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={`h-14 text-lg rounded-xl ${errors.name ? "border-destructive" : ""}`}
+                    className={`h-16 text-xl rounded-xl ${errors.name ? "border-destructive" : ""}`}
                     placeholder="Ex: Dessecação Talhão Norte"
                     required
                   />
@@ -693,7 +693,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                     type="date"
                     value={formData.application_date}
                     onChange={(e) => setFormData({ ...formData, application_date: e.target.value })}
-                    className={`h-14 text-lg rounded-xl ${errors.application_date ? "border-destructive" : ""}`}
+                    className={`h-16 text-xl rounded-xl ${errors.application_date ? "border-destructive" : ""}`}
                   />
                   {errors.application_date && (
                     <p className="text-base text-destructive">{errors.application_date}</p>
@@ -706,7 +706,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                     value={formData.application_type}
                     onValueChange={(value: any) => setFormData({ ...formData, application_type: value })}
                   >
-                    <SelectTrigger className="h-14 text-lg rounded-xl">
+                    <SelectTrigger className="h-16 text-xl rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -724,7 +724,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                     value={formData.status}
                     onValueChange={(value: any) => setFormData({ ...formData, status: value })}
                   >
-                    <SelectTrigger className="h-14 text-lg rounded-xl">
+                    <SelectTrigger className="h-16 text-xl rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -750,7 +750,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                         handleAreaChange(parseDecimalInput(val));
                       }
                     }}
-                    className={`h-14 text-lg rounded-xl ${errors.area_applied ? "border-destructive" : ""}`}
+                    className={`h-16 text-xl rounded-xl ${errors.area_applied ? "border-destructive" : ""}`}
                     placeholder="Ex: 10,5"
                   />
                   {errors.area_applied && (
@@ -813,14 +813,14 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                                   updateProductCalculations(index, { dose_input: value.replace(',', '.') });
                                 }
                               }}
-                              className="flex-1 h-14 text-lg rounded-xl"
+                              className="flex-1 h-16 text-xl rounded-xl"
                               placeholder="0.5"
                             />
                             <Select
                               value={productItem.dose_unit}
                               onValueChange={(value) => updateProductCalculations(index, { dose_unit: value })}
                             >
-                              <SelectTrigger className="w-24 h-14 text-lg rounded-xl">
+                              <SelectTrigger className="w-24 h-16 text-xl rounded-xl">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-popover">
@@ -846,7 +846,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                           <Input
                             type="text"
                             value={productItem.total_amount.toFixed(2)}
-                            className="bg-muted font-medium h-14 text-lg rounded-xl"
+                            className="bg-muted font-medium h-16 text-xl rounded-xl"
                             readOnly
                           />
                         </div>
@@ -861,7 +861,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
                 type="button"
                 variant="outline"
                 onClick={addProduct}
-                className="gap-2 w-full h-14 text-lg rounded-xl"
+                className="gap-2 w-full h-16 text-xl rounded-xl"
               >
                 <Plus className="h-5 w-5" />
                 Adicionar Produto
@@ -884,10 +884,10 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         </div>
 
         <div className="flex gap-3 px-4 sm:px-6 py-3 border-t bg-background shrink-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-14 text-lg rounded-xl">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-16 text-xl rounded-xl">
             Cancelar
           </Button>
-          <Button type="submit" form="application-form" className="flex-1 h-14 text-lg rounded-xl">
+          <Button type="submit" form="application-form" className="flex-1 h-16 text-xl rounded-xl">
             Salvar
           </Button>
         </div>
