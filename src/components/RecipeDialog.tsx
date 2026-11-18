@@ -258,7 +258,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-3 h-14 px-6 text-lg rounded-xl">
+          <Button className="gap-3 h-16 px-6 text-xl rounded-xl">
             <Plus className="h-6 w-6" />
             Novo Receituário
           </Button>
@@ -266,7 +266,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-2xl sm:text-3xl font-bold">
+          <DialogTitle className="flex items-center gap-3 text-3xl font-bold">
             <FileText className="h-7 w-7 text-primary" />
             {recipe ? "Editar Receituário" : "Novo Receituário"}
           </DialogTitle>
@@ -277,7 +277,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-lg font-medium">
+            <Label htmlFor="name" className="text-xl font-medium">
               Nome do Receituário *
             </Label>
             <Input
@@ -285,12 +285,12 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Dessecação pré-plantio"
-              className="h-14 text-lg px-4 rounded-xl"
+              className="h-16 text-xl px-4 rounded-xl"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-lg font-medium">
+            <Label htmlFor="description" className="text-xl font-medium">
               Descrição
             </Label>
             <Textarea
@@ -304,7 +304,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
           </div>
 
           <div className="space-y-4">
-            <Label className="text-lg font-medium">Produtos e Doses *</Label>
+            <Label className="text-xl font-medium">Produtos e Doses *</Label>
             <p className="text-sm text-muted-foreground -mt-2">
               Adicione os produtos que compõem este receituário
             </p>
@@ -366,7 +366,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
                         }
                       }}
                       placeholder="0.5"
-                      className="h-14 text-lg px-4 rounded-xl"
+                      className="h-16 text-xl px-4 rounded-xl"
                     />
                   </div>
                   <div className="space-y-2">
@@ -375,7 +375,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
                       value={item.dose_unit}
                       onValueChange={(v) => updateProduct(index, "dose_unit", v)}
                     >
-                      <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
+                      <SelectTrigger className="h-16 text-xl px-4 rounded-xl">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-popover">
@@ -394,7 +394,7 @@ export function RecipeDialog({ recipe, trigger }: RecipeDialogProps) {
               type="button"
               variant="outline"
               onClick={addProduct}
-              className="w-full gap-2 h-14 text-lg rounded-xl"
+              className="w-full gap-2 h-16 text-xl rounded-xl"
             >
               <Plus className="h-5 w-5" />
               Adicionar Produto

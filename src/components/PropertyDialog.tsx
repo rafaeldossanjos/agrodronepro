@@ -75,7 +75,7 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-3 h-14 px-6 text-lg rounded-xl">
+          <Button className="gap-3 h-16 px-6 text-xl rounded-xl">
             <Plus className="h-6 w-6" />
             Nova Propriedade
           </Button>
@@ -83,7 +83,7 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
       </DialogTrigger>
       <DialogContent className="max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl sm:text-3xl font-bold">
+          <DialogTitle className="text-3xl font-bold">
             {property ? 'Editar Propriedade' : 'Nova Propriedade'}
           </DialogTitle>
           <p className="text-base sm:text-lg text-muted-foreground mt-1">
@@ -92,7 +92,7 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-lg font-medium">
+            <Label htmlFor="name" className="text-xl font-medium">
               Nome da Propriedade *
             </Label>
             <Input
@@ -100,12 +100,12 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: Fazenda São João"
-              className="h-14 text-lg px-4 rounded-xl"
+              className="h-16 text-xl px-4 rounded-xl"
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="location" className="text-lg font-medium">
+            <Label htmlFor="location" className="text-xl font-medium">
               Localização *
             </Label>
             <Input
@@ -113,7 +113,7 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               placeholder="Ex: Ribeirão Preto, SP"
-              className="h-14 text-lg px-4 rounded-xl"
+              className="h-16 text-xl px-4 rounded-xl"
               required
             />
             <p className="text-sm text-muted-foreground">
@@ -122,7 +122,7 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="total_area" className="text-lg font-medium">
+              <Label htmlFor="total_area" className="text-xl font-medium">
                 Área Total (ha)
               </Label>
               <Input
@@ -137,14 +137,14 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
                   }
                 }}
                 placeholder="0.00"
-                className="h-14 text-lg px-4 rounded-xl"
+                className="h-16 text-xl px-4 rounded-xl"
               />
               <p className="text-sm text-muted-foreground">
                 Opcional - área em hectares
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="plot_count" className="text-lg font-medium">
+              <Label htmlFor="plot_count" className="text-xl font-medium">
                 Número de Talhões
               </Label>
               <Input
@@ -154,7 +154,7 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
                 value={formData.plot_count || ''}
                 onChange={(e) => setFormData({ ...formData, plot_count: parseInt(e.target.value) || 0 })}
                 placeholder="1"
-                className="h-14 text-lg px-4 rounded-xl"
+                className="h-16 text-xl px-4 rounded-xl"
               />
               <p className="text-sm text-muted-foreground">
                 Quantidade estimada
@@ -162,7 +162,7 @@ export const PropertyDialog = ({ property, trigger }: PropertyDialogProps) => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-lg font-medium">
+            <Label htmlFor="notes" className="text-xl font-medium">
               Observações
             </Label>
             <Textarea
