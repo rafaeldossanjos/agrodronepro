@@ -426,42 +426,33 @@ export default function Map() {
     return (
       <div className="fixed inset-0 z-[9999] bg-background flex flex-col" style={{ touchAction: 'manipulation' }}>
         {/* Header bar with controls */}
-        <div className="flex-shrink-0 h-14 bg-background/95 backdrop-blur border-b flex items-center justify-between px-3 gap-2 z-10">
-          {/* Left side - Stats */}
+        <div className="flex-shrink-0 h-16 bg-background/95 backdrop-blur border-b flex items-center justify-between px-4 gap-2 z-10">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold">{totalArea.toFixed(1)} ha</span>
-            {isEditingShape && (
-              <Badge variant="secondary" className="bg-amber-500/20 text-amber-700">
-                Editando Forma
-              </Badge>
-            )}
+            <span className="text-base font-bold">{totalArea.toFixed(1)} ha</span>
           </div>
 
-          {/* Center - Filters */}
           <div className="flex items-center gap-2">
             <Select value={propertyFilter} onValueChange={setPropertyFilter}>
-              <SelectTrigger className="w-[130px] h-9 text-sm">
-                <Layers className="h-4 w-4 mr-1" />
+              <SelectTrigger className="w-[140px] h-11 text-base">
+                <Layers className="h-5 w-5 mr-1" />
                 <SelectValue placeholder="Propriedade" />
               </SelectTrigger>
               <SelectContent className="z-[10000]">
-                <SelectItem value="all">Todas Prop.</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="none">Sem Propriedade</SelectItem>
                 {properties.map(prop => (
-                  <SelectItem key={prop.id} value={prop.id}>
-                    {prop.name}
-                  </SelectItem>
+                  <SelectItem key={prop.id} value={prop.id}>{prop.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[130px] h-9 text-sm">
-                <Filter className="h-4 w-4 mr-1" />
+              <SelectTrigger className="w-[140px] h-11 text-base">
+                <Filter className="h-5 w-5 mr-1" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="z-[10000]">
-                <SelectItem value="all">Todos Status</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="concluída">Concluída</SelectItem>
                 <SelectItem value="em_andamento">Em Andamento</SelectItem>
                 <SelectItem value="planejada">Planejada</SelectItem>
@@ -471,10 +462,9 @@ export default function Map() {
             </Select>
           </div>
 
-          {/* Right side - Close button */}
           <Button
             variant="destructive"
-            size="sm"
+            size="lg"
             onClick={() => {
               setIsFullscreen(false);
               setIsEditingShape(false);
@@ -482,9 +472,9 @@ export default function Map() {
               setIsDrawing(false);
               setDrawingPointCount(0);
             }}
-            className="gap-1 h-9"
+            className="gap-1 h-11"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
             Fechar
           </Button>
         </div>
@@ -504,65 +494,34 @@ export default function Map() {
           />
 
           {/* Floating action buttons - Bottom center */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[500] max-w-[95vw]">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[500] max-w-[95vw]">
             <div className="flex items-center gap-2 bg-background/95 backdrop-blur rounded-xl p-2 shadow-xl border">
               {!isDrawing && !isEditingShape ? (
                 <>
-                  <Button
-                    size="default"
-                    onClick={() => setIsDrawing(true)}
-                    className="gap-1 h-10 px-3"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span className="hidden sm:inline">Desenhar</span>
+                  <Button size="lg" onClick={() => setIsDrawing(true)} className="gap-2 h-12 px-4 text-base">
+                    <Plus className="h-5 w-5" />
+                    Desenhar
                   </Button>
-                  <Button
-                    size="default"
-                    variant="outline"
-                    onClick={() => setImportDialogOpen(true)}
-                    className="gap-1 h-10 px-3"
-                  >
-                    <Upload className="h-4 w-4" />
-                    <span className="hidden sm:inline">Importar</span>
+                  <Button size="lg" variant="outline" onClick={() => setImportDialogOpen(true)} className="gap-2 h-12 px-4 text-base">
+                    <Upload className="h-5 w-5" />
+                    Importar
                   </Button>
-                  <Button
-                    size="default"
-                    variant="outline"
-                    onClick={exportToKML}
-                    disabled={filteredPlots.length === 0}
-                    className="gap-1 h-10 px-3"
-                  >
-                    <Download className="h-4 w-4" />
-                    <span className="hidden sm:inline">Exportar</span>
+                  <Button size="lg" variant="outline" onClick={exportToKML} disabled={filteredPlots.length === 0} className="gap-2 h-12 px-4 text-base">
+                    <Download className="h-5 w-5" />
+                    Exportar
                   </Button>
                 </>
               ) : (
                 <>
                   <div className="flex items-center gap-1 px-2">
                     <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs font-medium">{drawingPointCount}pts</span>
+                    <span className="text-sm font-medium">{drawingPointCount} pts</span>
                   </div>
-                  <Button
-                    size="default"
-                    variant="outline"
-                    onClick={handleUndoPoint}
-                    disabled={drawingPointCount === 0}
-                    className="gap-1 h-10 px-3"
-                  >
-                    <Undo2 className="h-4 w-4" />
+                  <Button size="lg" variant="outline" onClick={handleUndoPoint} disabled={drawingPointCount === 0} className="gap-1 h-12 px-3">
+                    <Undo2 className="h-5 w-5" />
                   </Button>
-                  <Button
-                    size="default"
-                    variant="destructive"
-                    onClick={() => {
-                      setIsDrawing(false);
-                      setIsEditingShape(false);
-                      setEditingPlotId(null);
-                      setDrawingPointCount(0);
-                    }}
-                    className="gap-1 h-10 px-3"
-                  >
-                    <X className="h-4 w-4" />
+                  <Button size="lg" variant="destructive" onClick={() => { setIsDrawing(false); setIsEditingShape(false); setEditingPlotId(null); setDrawingPointCount(0); }} className="gap-1 h-12 px-4">
+                    <X className="h-5 w-5" />
                     Cancelar
                   </Button>
                 </>
