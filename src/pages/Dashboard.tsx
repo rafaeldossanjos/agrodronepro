@@ -421,7 +421,7 @@ export default function Dashboard() {
       open={dialogOpen}
       onOpenChange={setDialogOpen}
       onSave={async (data) => {
-        await createApplication(data);
+        await createApplication.mutateAsync(data);
         setDialogOpen(false);
         refetchApps();
       }}
