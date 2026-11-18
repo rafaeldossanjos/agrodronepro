@@ -530,8 +530,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveClick = () => {
     setErrors({});
 
     try {
@@ -560,7 +559,6 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
           }
         });
         setErrors(newErrors);
-        // Rola para o topo para mostrar o resumo de erros
         const formEl = document.getElementById('application-form');
         if (formEl) {
           formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -582,7 +580,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
         </DialogHeader>
 
         <div className="flex-1 overflow-y-scroll px-4 sm:px-6 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <form id="application-form" onSubmit={handleSubmit} className="space-y-4 py-3 pb-4">
+          <form id="application-form" onSubmit={(e) => { e.preventDefault(); handleSaveClick(); }} className="space-y-4 py-3 pb-4">
             {/* Resumo de erros */}
             {Object.keys(errors).length > 0 && (
               <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-4 text-destructive">
@@ -906,7 +904,7 @@ export function ApplicationDialog({ open, onOpenChange, onSave, application }: A
           </Button>
           <Button 
             type="button" 
-            onClick={(e) => handleSubmit(e as any)} 
+            onClick={handleSaveClick}
             className="flex-1 h-16 text-xl rounded-xl"
           >
             Salvar
