@@ -669,6 +669,41 @@ export default function Map() {
         </Card>
       </div>
 
+      {/* Selected Plot Info */}
+      {selectedPlot && (
+        <Card className="p-4 border-primary/30">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xl font-semibold">{selectedPlot.name}</p>
+              <p className="text-base text-muted-foreground">
+                {selectedPlot.area_hectares ? `${selectedPlot.area_hectares} ha` : 'Área não informada'}
+                {selectedPlot.properties?.name ? ` • ${selectedPlot.properties.name}` : ''}
+              </p>
+            </div>
+            <Badge className={statusColors[plotsWithStatus.find(p => p.id === selectedPlot.id)?.displayStatus || 'sem_vinculo'] || 'bg-muted'}>
+              {statusLabels[plotsWithStatus.find(p => p.id === selectedPlot.id)?.displayStatus || 'sem_vinculo']}
+            </Badge>
+          </div>
+          {(() => {
+            const info = plotApplicationInfo.get(selectedPlot.id);
+            if (!info || info.products.length === 0) return <p className="text-sm text-muted-foreground mt-2">Nenhuma aplicação vinculada.</p>;
+            return (
+              <div className="mt-3 space-y-1">
+                <p className="text-sm font-medium">Área aplicada: {info.totalAreaApplied.toFixed(1)} ha</p>
+                <p className="text-sm text-muted-foreground">
+                  Produtos: {info.products.slice(0, 3).map(p => p.product_name).join(', ')}
+                  {info.products.length > 3 ? '...' : ''}
+                </p>
+              </div>
+            );
+          })()}
+          <div className="flex gap-2 mt-3">
+            <Button size="sm" variant="outline" onClick={handleEditPlot}>Editar</Button>
+            <Button size="sm" variant="outline" onClick={() => setIsFullscreen(true)}>Ver no Mapa</Button>
+          </div>
+        </Card>
+      )}
+
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => { setIsFullscreen(true); setIsDrawing(true); }} className="gap-2 h-12 text-lg">
