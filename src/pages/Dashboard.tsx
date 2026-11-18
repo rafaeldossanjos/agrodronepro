@@ -5,12 +5,12 @@ import {
   Droplet, 
   MapPin, 
   Clock,
-  Cylinder,
   Calculator,
   Users,
   Map,
   FileText,
-  Package
+  Package,
+  Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApplications } from "@/hooks/useApplications";
@@ -19,7 +19,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useMemo, useState, useCallback } from "react";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { DashboardSkeleton } from "@/components/PageSkeleton";
-import { format, subDays, eachWeekOfInterval, endOfWeek } from "date-fns";
+import { format, subDays, eachWeekOfInterval, endOfWeek, isToday, isYesterday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -74,7 +74,6 @@ export default function Dashboard() {
     setSelectedProperty(propertyId);
   };
 
-  // Filtrar aplicações por propriedade e período
   const filteredApps = useMemo(() => {
     const now = new Date();
     let apps = selectedProperty === 'all' 
@@ -111,15 +110,14 @@ export default function Dashboard() {
 
     return {
       items: [
-        { label: "Área total aplicada", value: `${totalAreaPeriod.toFixed(2)} ha`, icon: MapPin, color: "text-primary" },
-        { label: "Aplicações realizadas", value: concluidas.length.toString(), icon: Droplet, color: "text-success" },
-        { label: "Aplicação em andamento", value: `${areaEmAndamento.toFixed(2)} ha`, icon: Clock, color: "text-blue-500" },
-        { label: "Áreas programadas", value: `${areaPlanejada.toFixed(2)} ha`, icon: TrendingUp, color: "text-warning" },
+        { label: "Área aplicada", value: `${totalAreaPeriod.toFixed(1)} ha`, icon: MapPin, color: "text-primary" },
+        { label: "Aplicações feitas", value: concluidas.length.toString(), icon: Droplet, color: "text-success" },
+        { label: "Em andamento", value: `${areaEmAndamento.toFixed(1)} ha`, icon: Clock, color: "text-blue-500" },
+        { label: "Programadas", value: `${areaPlanejada.toFixed(1)} ha`, icon: TrendingUp, color: "text-warning" },
       ]
     };
   }, [filteredApps]);
 
-  // Dados para gráfico de barras - área aplicada por semana/mês
   const chartData = useMemo(() => {
     const concluidas = filteredApps.filter(app => app.status === 'concluída');
     if (concluidas.length === 0) return [];
@@ -128,11 +126,9 @@ export default function Dashboard() {
     const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
 
-    // Se range > 60 dias, agrupar por mês; senão por semana
     const diffDays = (maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24);
     
     if (diffDays > 60) {
-      // Agrupar por mês
       const monthMap: Record<string, { area: number; cost: number; count: number }> = {};
       concluidas.forEach(app => {
         const d = new Date(app.application_date + 'T00:00:00');
@@ -144,12 +140,11 @@ export default function Dashboard() {
       });
       return Object.entries(monthMap).map(([name, data]) => ({
         name,
-        area: Number(data.area.toFixed(2)),
+        area: Number(data.area.toFixed(1)),
         custo: Number(data.cost.toFixed(2)),
         aplicacoes: data.count,
       }));
     } else {
-      // Agrupar por semana
       const weeks = eachWeekOfInterval({ start: minDate, end: maxDate }, { weekStartsOn: 1 });
       return weeks.map(weekStart => {
         const wEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
@@ -161,7 +156,7 @@ export default function Dashboard() {
         const cost = weekApps.reduce((s, a) => s + Number(a.total_cost), 0);
         return {
           name: format(weekStart, "dd/MM", { locale: ptBR }),
-          area: Number(area.toFixed(2)),
+          area: Number(area.toFixed(1)),
           custo: Number(cost.toFixed(2)),
           aplicacoes: weekApps.length,
         };
@@ -169,7 +164,6 @@ export default function Dashboard() {
     }
   }, [filteredApps]);
 
-  // Dados para gráfico de pizza - distribuição por tipo
   const pieData = useMemo(() => {
     const concluidas = filteredApps.filter(app => app.status === 'concluída');
     const typeMap: Record<string, number> = {};
@@ -185,7 +179,7 @@ export default function Dashboard() {
     };
     return Object.entries(typeMap).map(([type, area]) => ({
       name: labels[type] || type,
-      value: Number(area.toFixed(2)),
+      value: Number(area.toFixed(1)),
     }));
   }, [filteredApps]);
 
@@ -198,13 +192,23 @@ export default function Dashboard() {
     
     return apps
       .sort((a, b) => new Date(b.application_date).getTime() - new Date(a.application_date).getTime())
-      .slice(0, 3)
-      .map(app => ({
-        name: app.name || 'Aplicação',
-        plotName: app.plot_name || '-',
-        area: `${Number(app.area_applied)} ha`,
-        status: app.status,
-      }));
+      .slice(0, 5)
+      .map(app => {
+        const date = new Date(app.application_date + 'T00:00:00');
+        let dateLabel = format(date, "dd/MM", { locale: ptBR });
+        if (isToday(date)) dateLabel = "Hoje";
+        else if (isYesterday(date)) dateLabel = "Ontem";
+
+        return {
+          id: app.id,
+          name: app.name || 'Aplicação',
+          plotName: app.plot_name || 'Sem talhão',
+          area: `${Number(app.area_applied).toFixed(1)} ha`,
+          status: app.status,
+          dateLabel,
+          property: app.properties?.name || '',
+        };
+      });
   }, [applications, selectedProperty]);
 
   const pendingCount = useMemo(() => {
@@ -213,68 +217,76 @@ export default function Dashboard() {
     ).length;
   }, [applications]);
 
+  const todayApps = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return applications.filter(app => app.application_date === today);
+  }, [applications]);
+
   if (loadingApps) return <DashboardSkeleton />;
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-4">
       <OnboardingWizard />
-
-      {/* Notificações Inteligentes */}
       <SmartNotifications />
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground sm:text-5xl">Dashboard</h1>
-          <p className="text-sm text-muted-foreground sm:text-2xl">
-            Visão geral das operações
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Visão geral das operações</p>
         </div>
-        {pendingCount > 0 && (
-          <button
-            onClick={() => navigate('/applications')}
-            className="flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-2 text-xs font-medium text-warning transition-colors hover:bg-warning/20 sm:gap-2 sm:px-4 sm:py-3 sm:text-lg"
-          >
-            <Clock className="h-4 w-4 sm:h-6 sm:w-6" />
-            {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
-          </button>
-        )}
+        <Button onClick={() => navigate('/applications')} size="sm" className="gap-1.5">
+          <Plus className="h-4 w-4" />
+          Nova
+        </Button>
       </div>
 
-      {/* Filtros de Período */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+      {/* Pendentes em destaque */}
+      {pendingCount > 0 && (
+        <button
+          onClick={() => navigate('/applications')}
+          className="flex w-full items-center justify-between rounded-xl bg-warning/10 px-4 py-3 text-warning"
+        >
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            <span className="font-medium">{pendingCount} aplicação{pendingCount > 1 ? 'ões' : ''} pendente{pendingCount > 1 ? 's' : ''}</span>
+          </div>
+          <span className="text-sm">Ver →</span>
+        </button>
+      )}
+
+      {/* Filtros */}
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           variant={periodFilter === 'all' ? "default" : "outline"}
-          size="lg"
-          onClick={() => handlePeriodChange('all' as PeriodFilter)}
-          className="h-10 rounded-lg px-4 text-sm sm:h-14 sm:rounded-xl sm:px-5 sm:text-xl"
+          size="sm"
+          onClick={() => handlePeriodChange('all')}
         >
           Todos
         </Button>
         {[
-          { value: 7, label: '7 dias' },
-          { value: 15, label: '15 dias' },
-          { value: 30, label: '30 dias' },
+          { value: 7, label: '7d' },
+          { value: 15, label: '15d' },
+          { value: 30, label: '30d' },
         ].map(({ value, label }) => (
           <Button
             key={value}
             variant={periodFilter === value ? "default" : "outline"}
-            size="lg"
+            size="sm"
             onClick={() => handlePeriodChange(value as PeriodFilter)}
-            className="h-10 rounded-lg px-4 text-sm sm:h-14 sm:rounded-xl sm:px-5 sm:text-xl"
           >
             {label}
           </Button>
         ))}
         
         <Select value={selectedMonth || undefined} onValueChange={handleMonthChange}>
-          <SelectTrigger className="h-10 w-auto min-w-[120px] rounded-lg px-3 text-sm sm:h-14 sm:min-w-[140px] sm:rounded-xl sm:px-4 sm:text-xl">
-            <SelectValue placeholder="Selecionar mês" />
+          <SelectTrigger className="h-9 w-auto min-w-[110px] text-sm">
+            <SelectValue placeholder="Mês" />
           </SelectTrigger>
-          <SelectContent className="bg-popover max-h-[280px]">
+          <SelectContent>
             {availableMonths.map((month) => (
-              <SelectItem key={month} value={month} className="py-2 text-sm capitalize sm:py-3 sm:text-xl">
+              <SelectItem key={month} value={month} className="capitalize">
                 {getMonthLabel(month)}
               </SelectItem>
             ))}
@@ -282,13 +294,13 @@ export default function Dashboard() {
         </Select>
 
         <Select value={selectedProperty} onValueChange={handlePropertyChange}>
-          <SelectTrigger className="h-10 w-auto min-w-[150px] rounded-lg px-3 text-sm sm:h-14 sm:min-w-[180px] sm:rounded-xl sm:px-4 sm:text-xl">
-            <SelectValue placeholder="Selecionar fazenda" />
+          <SelectTrigger className="h-9 w-auto min-w-[140px] text-sm">
+            <SelectValue placeholder="Fazenda" />
           </SelectTrigger>
-          <SelectContent className="bg-popover max-h-[280px]">
-            <SelectItem value="all" className="py-2 text-sm sm:py-3 sm:text-xl">Todas as fazendas</SelectItem>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
             {properties.map((property) => (
-              <SelectItem key={property.id} value={property.id} className="py-2 text-sm sm:py-3 sm:text-xl">
+              <SelectItem key={property.id} value={property.id}>
                 {property.name}
               </SelectItem>
             ))}
@@ -296,101 +308,50 @@ export default function Dashboard() {
         </Select>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-6">
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3">
         {stats.items.map((stat) => (
-          <Card key={stat.label} className="flex flex-col items-center p-3 sm:p-8">
-            <div className={cn("rounded-xl bg-muted p-2.5 sm:p-5", stat.color)}>
-              <stat.icon className="h-5 w-5 sm:h-12 sm:w-12" />
+          <Card key={stat.label} className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className={cn("rounded-lg bg-muted p-2", stat.color)}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
             </div>
-            <div className="mt-3 text-center sm:mt-4">
-              <p className="text-lg font-bold leading-none text-foreground sm:text-4xl">{stat.value}</p>
-              <p className="mt-1.5 text-[11px] leading-tight text-muted-foreground sm:mt-2 sm:text-lg">{stat.label}</p>
-            </div>
+            <p className="text-2xl font-bold">{stat.value}</p>
           </Card>
         ))}
       </div>
 
       {/* Gráficos */}
       {chartData.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          {/* Gráfico de barras - Área aplicada */}
-          <Card className="min-w-0 overflow-hidden p-3 sm:p-6">
-            <h2 className="mb-3 text-sm font-semibold leading-tight text-foreground sm:mb-4 sm:text-3xl">
-              Área Aplicada (ha)
-            </h2>
-            <div className="h-[180px] sm:h-[300px]">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Card className="p-4">
+            <h2 className="mb-3 text-sm font-semibold">Área Aplicada (ha)</h2>
+            <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 5, right: isMobile ? 0 : 10, left: isMobile ? -26 : -10, bottom: 0 }}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: isMobile ? 8 : 12, fill: 'hsl(var(--muted-foreground))' }}
-                    tickLine={false}
-                    axisLine={false}
-                    minTickGap={isMobile ? 2 : 8}
-                  />
-                  <YAxis
-                    width={isMobile ? 24 : 36}
-                    tick={{ fontSize: isMobile ? 8 : 12, fill: 'hsl(var(--muted-foreground))' }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      color: 'hsl(var(--popover-foreground))',
-                    }}
-                    formatter={(value: number, name: string) => {
-                      if (name === 'area') return [`${value} ha`, 'Área'];
-                      if (name === 'custo') return [`R$ ${value.toFixed(2)}`, 'Custo'];
-                      return [value, name];
-                    }}
-                  />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} width={30} />
+                  <Tooltip />
                   <Bar dataKey="area" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </Card>
 
-          {/* Gráfico de pizza - Distribuição por tipo */}
-          <Card className="min-w-0 overflow-hidden p-3 sm:p-6">
-            <h2 className="mb-3 text-sm font-semibold leading-tight text-foreground sm:mb-4 sm:text-3xl">
-              Distribuição por Tipo
-            </h2>
-            <div className="h-[180px] sm:h-[300px]">
+          <Card className="p-4">
+            <h2 className="mb-3 text-sm font-semibold">Por Tipo</h2>
+            <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={isMobile ? 24 : 50}
-                    outerRadius={isMobile ? 48 : 90}
-                    paddingAngle={3}
-                    dataKey="value"
-                    label={
-                      !isMobile
-                        ? ({ name, value }: { name: string; value: number }) => `${name}: ${value}ha`
-                        : false
-                    }
-                    labelLine={!isMobile}
-                  >
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value">
                     {pieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      color: 'hsl(var(--popover-foreground))',
-                    }}
-                    formatter={(value: number) => [`${value} ha`, 'Área']}
-                  />
+                  <Tooltip formatter={(value: number) => [`${value} ha`, 'Área']} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -398,76 +359,65 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Recent Applications */}
-      <Card className="p-4 sm:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground sm:text-3xl">
-            Aplicações Recentes
-          </h2>
-          <button 
-            onClick={() => navigate('/applications')}
-            className="text-sm font-medium text-primary hover:underline sm:text-xl"
-          >
+      {/* Aplicações Recentes */}
+      <Card className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold">Aplicações Recentes</h2>
+          <button onClick={() => navigate('/applications')} className="text-sm text-primary">
             Ver todas
           </button>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {recentApplications.length === 0 ? (
-            <p className="text-sm text-muted-foreground sm:text-xl">Nenhuma aplicação registrada.</p>
+            <p className="text-sm text-muted-foreground">Nenhuma aplicação registrada.</p>
           ) : (
-            recentApplications.map((app, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-base font-medium text-foreground sm:text-2xl">{app.name}</p>
-                <p className="text-sm text-muted-foreground sm:text-xl">{app.plotName}</p>
+            recentApplications.map((app) => (
+              <div key={app.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{app.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {app.dateLabel} • {app.plotName}
+                  </p>
+                </div>
+                <div className="text-right ml-3">
+                  <p className="font-semibold text-sm">{app.area}</p>
+                  <span className={cn(
+                    "inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium",
+                    app.status === 'concluída' ? "bg-success/10 text-success" :
+                    app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600" :
+                    app.status === 'planejada' ? "bg-warning/10 text-warning" :
+                    "bg-muted text-muted-foreground"
+                  )}>
+                    {app.status === 'concluída' ? 'Concluída' : 
+                     app.status === 'em_andamento' ? 'Andamento' : 
+                     app.status === 'planejada' ? 'Planejada' : 'Cancelada'}
+                  </span>
+                </div>
               </div>
-              <div className="text-right flex-shrink-0 ml-4">
-                <p className="text-base font-semibold text-foreground sm:text-2xl">{app.area}</p>
-                <span className={cn(
-                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium sm:px-3 sm:py-1 sm:text-lg",
-                  app.status === 'concluída' ? "bg-success/10 text-success" :
-                  app.status === 'em_andamento' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400" :
-                  app.status === 'planejada' ? "bg-warning/10 text-warning" :
-                  "bg-muted text-muted-foreground"
-                )}>
-                  {app.status === 'concluída' ? 'OK' : 
-                   app.status === 'em_andamento' ? 'Andamento' : 
-                   app.status === 'planejada' ? 'Planejada' : 'Cancelada'}
-                </span>
-              </div>
-            </div>
             ))
           )}
         </div>
       </Card>
 
-      {/* Quick Actions */}
-      <Card className="p-4 sm:p-8">
-        <h2 className="mb-4 text-lg font-semibold text-foreground sm:mb-6 sm:text-3xl">
-          Ações Rápidas
-        </h2>
-        <div className="grid grid-cols-3 gap-3 sm:gap-6">
+      {/* Ações Rápidas */}
+      <Card className="p-4">
+        <h2 className="mb-3 font-semibold">Ações Rápidas</h2>
+        <div className="grid grid-cols-3 gap-2">
           {[
             { icon: Droplet, label: "Aplicação", href: "/applications" },
-            { icon: Calculator, label: "Calculadora", href: "/calculator" },
             { icon: Map, label: "Mapa", href: "/map" },
-            { icon: Users, label: "Equipe", href: "/team" },
-            { icon: TrendingUp, label: "Relatórios", href: "/reports" },
-            { icon: MapPin, label: "Propriedades", href: "/properties" },
-            { icon: Cylinder, label: "Produtos", href: "/products" },
-            { icon: FileText, label: "Receituários", href: "/recipes" },
+            { icon: FileText, label: "Relatórios", href: "/reports" },
+            { icon: Calculator, label: "Calculadora", href: "/calculator" },
             { icon: Package, label: "Estoque", href: "/stock" },
+            { icon: MapPin, label: "Fazendas", href: "/properties" },
           ].map(({ icon: Icon, label, href }) => (
             <button
               key={href}
               onClick={() => navigate(href)}
-              className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border p-3 transition-colors hover:border-primary hover:bg-muted sm:gap-4 sm:p-8"
+              className="flex flex-col items-center gap-1.5 rounded-lg border border-dashed p-3 text-center transition-colors hover:border-primary hover:bg-muted"
             >
-              <Icon className="h-6 w-6 text-primary sm:h-16 sm:w-16" />
-              <span className="text-center text-[11px] font-medium leading-tight text-foreground sm:text-xl">{label}</span>
+              <Icon className="h-5 w-5 text-primary" />
+              <span className="text-xs font-medium">{label}</span>
             </button>
           ))}
         </div>
