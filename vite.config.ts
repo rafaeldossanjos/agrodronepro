@@ -82,8 +82,8 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'supabase-api-cache',
               expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               },
               cacheableResponse: {
                 statuses: [0, 200]
