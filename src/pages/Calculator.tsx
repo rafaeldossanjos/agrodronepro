@@ -537,7 +537,7 @@ export default function Calculator() {
                     }
                   }}
                   placeholder="Ex: 10"
-                  className="h-14 text-lg rounded-xl"
+                  className="h-16 text-xl rounded-xl"
                   required
                 />
                 <p className="text-base text-muted-foreground">Área total a ser aplicada</p>
@@ -557,7 +557,7 @@ export default function Calculator() {
                     }
                   }}
                   placeholder="Ex: 10"
-                  className="h-14 text-lg rounded-xl"
+                  className="h-16 text-xl rounded-xl"
                   required
                 />
                 <p className="text-base text-muted-foreground">Litros por hectare</p>
@@ -577,7 +577,7 @@ export default function Calculator() {
                     }
                   }}
                   placeholder="Ex: 20"
-                  className="h-14 text-lg rounded-xl"
+                  className="h-16 text-xl rounded-xl"
                   required
                 />
                 <p className="text-base text-muted-foreground">Capacidade do tanque</p>

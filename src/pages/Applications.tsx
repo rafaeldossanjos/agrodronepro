@@ -252,7 +252,7 @@ export default function Applications() {
   };
 
   const ApplicationCard = ({ app }: { app: any }) => (
-    <Card key={app.id} className="p-4 sm:p-6">
+    <Card key={app.id} className="p-5 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex-1 space-y-3">
           <div className="space-y-1">
@@ -306,7 +306,7 @@ export default function Applications() {
               variant="outline"
               size="default"
               onClick={() => navigate('/map')}
-              className="flex-1 sm:flex-none h-12 text-base"
+              className="flex-1 sm:flex-none h-14 text-lg"
               title="Ver no Mapa"
             >
               <Map className="h-5 w-5 sm:mr-2" />

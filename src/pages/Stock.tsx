@@ -545,7 +545,7 @@ export default function Stock() {
                   </SelectContent>
                 </Select>
                 <div className="flex flex-col w-full sm:w-auto sm:min-w-[160px]">
-                  <label className="text-sm text-muted-foreground mb-2 font-medium">
+                  <label className="text-base text-muted-foreground mb-2 font-medium">
                     Data inicial
                   </label>
                   <Input
@@ -556,7 +556,7 @@ export default function Stock() {
                   />
                 </div>
                 <div className="flex flex-col w-full sm:w-auto sm:min-w-[160px]">
-                  <label className="text-sm text-muted-foreground mb-2 font-medium">
+                  <label className="text-base text-muted-foreground mb-2 font-medium">
                     Data final
                   </label>
                   <Input
