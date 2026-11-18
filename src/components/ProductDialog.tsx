@@ -99,7 +99,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-3 h-14 px-6 text-lg rounded-xl">
+          <Button className="gap-3 h-16 px-6 text-xl rounded-xl">
             <Plus className="h-6 w-6" />
             Novo Produto
           </Button>
@@ -107,7 +107,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
       </DialogTrigger>
       <DialogContent className="max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl sm:text-3xl font-bold">
+          <DialogTitle className="text-3xl font-bold">
             {product ? 'Editar Produto' : 'Novo Produto'}
           </DialogTitle>
           <p className="text-base sm:text-lg text-muted-foreground mt-1">
@@ -116,7 +116,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-lg font-medium">
+            <Label htmlFor="name" className="text-xl font-medium">
               Nome do Produto *
             </Label>
             <Input
@@ -124,12 +124,12 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: Herbicida Glifosato 480"
-              className="h-14 text-lg px-4 rounded-xl"
+              className="h-16 text-xl px-4 rounded-xl"
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="manufacturer" className="text-lg font-medium">
+            <Label htmlFor="manufacturer" className="text-xl font-medium">
               Fabricante
             </Label>
             <Input
@@ -137,21 +137,21 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
               value={formData.manufacturer}
               onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
               placeholder="Ex: Agro Solutions"
-              className="h-14 text-lg px-4 rounded-xl"
+              className="h-16 text-xl px-4 rounded-xl"
             />
             <p className="text-sm text-muted-foreground">
               Empresa que fabrica o produto
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category" className="text-lg font-medium">
+            <Label htmlFor="category" className="text-xl font-medium">
               Categoria *
             </Label>
             <Select
               value={formData.category}
               onValueChange={(value) => setFormData({ ...formData, category: value })}
             >
-              <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
+              <SelectTrigger className="h-16 text-xl px-4 rounded-xl">
                 <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
               <SelectContent className="bg-popover">
@@ -166,14 +166,14 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="unit" className="text-lg font-medium">
+              <Label htmlFor="unit" className="text-xl font-medium">
                 Unidade de Medida *
               </Label>
               <Select
                 value={formData.unit}
                 onValueChange={(value) => setFormData({ ...formData, unit: value })}
               >
-                <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
+                <SelectTrigger className="h-16 text-xl px-4 rounded-xl">
                   <SelectValue placeholder="Unidade" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
@@ -185,7 +185,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="package_size" className="text-lg font-medium">
+              <Label htmlFor="package_size" className="text-xl font-medium">
                 Tamanho Embalagem
               </Label>
               <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                     }
                   }}
                   placeholder="20"
-                  className="h-14 text-lg px-4 rounded-xl"
+                  className="h-16 text-xl px-4 rounded-xl"
                 />
                 <span className="text-lg text-muted-foreground whitespace-nowrap min-w-[40px]">
                   {formData.unit}
@@ -213,7 +213,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="unit_price" className="text-lg font-medium">
+            <Label htmlFor="unit_price" className="text-xl font-medium">
               Preço por Embalagem (R$)
             </Label>
             <Input
@@ -228,7 +228,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                 }
               }}
               placeholder="0.00"
-              className="h-14 text-lg px-4 rounded-xl"
+              className="h-16 text-xl px-4 rounded-xl"
             />
             <p className="text-sm text-muted-foreground">
               Valor pago por cada unidade/embalagem do produto
@@ -238,7 +238,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
           {/* Dose Recomendada */}
           <div className="rounded-xl border border-border p-4 space-y-4 bg-muted/30">
             <div>
-              <Label className="text-lg font-medium">Dose Recomendada (opcional)</Label>
+              <Label className="text-xl font-medium">Dose Recomendada (opcional)</Label>
               <p className="text-sm text-muted-foreground mt-1">
                 Será preenchida automaticamente ao selecionar este produto na calculadora
               </p>
@@ -260,7 +260,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                     }
                   }}
                   placeholder="0.5"
-                  className="h-14 text-lg px-4 rounded-xl"
+                  className="h-16 text-xl px-4 rounded-xl"
                 />
               </div>
               <div className="space-y-2">
@@ -271,7 +271,7 @@ export const ProductDialog = ({ product, trigger }: ProductDialogProps) => {
                   value={formData.recommended_dose_unit}
                   onValueChange={(value) => setFormData({ ...formData, recommended_dose_unit: value })}
                 >
-                  <SelectTrigger className="h-14 text-lg px-4 rounded-xl">
+                  <SelectTrigger className="h-16 text-xl px-4 rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
