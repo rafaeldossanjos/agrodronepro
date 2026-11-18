@@ -1,10 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from './useAuth';
+import { useOnlineStatus } from './useOnlineStatus';
 import { supabase } from '@/integrations/supabase/client';
+import { getByIndex, put, remove, initOfflineDb, getAll, bulkPut } from '@/lib/offlineDb';
 import { toast } from 'sonner';
 
 export interface Property {
   id: string;
   user_id: string;
+  team_id?: string | null;
   name: string;
   location: string;
   total_area: number;
@@ -12,85 +16,182 @@ export interface Property {
   notes?: string;
   created_at: string;
   updated_at: string;
+  synced?: boolean;
 }
 
 export const useProperties = () => {
-  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isOnline = useOnlineStatus();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userTeamId, setUserTeamId] = useState<string | null>(null);
 
-  const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['properties'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .order('created_at', { ascending: false });
+  // Buscar team_id do usuário
+  useEffect(() => {
+    const fetchUserTeam = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      setUserTeamId(data?.team_id || null);
+    };
+    
+    fetchUserTeam();
+  }, [user?.id]);
 
-      if (error) throw error;
-      return data as Property[];
-    },
-  });
+  const loadProperties = useCallback(async () => {
+    if (!user?.id) return;
+    setIsLoading(true);
 
-  const createProperty = useMutation({
-    mutationFn: async (property: Omit<Property, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+    try {
+      await initOfflineDb();
 
-      const { data, error } = await supabase
-        .from('properties')
-        .insert([{ ...property, user_id: user.id }])
-        .select()
-        .single();
+      if (isOnline) {
+        // Buscar propriedades do usuário OU do time (RLS cuida do filtro)
+        const { data: serverData, error } = await supabase
+          .from('properties')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast.success('Propriedade criada com sucesso!');
-    },
-    onError: (error: any) => {
+        if (error) throw error;
+        setProperties(serverData || []);
+
+        // Save to local DB in background
+        if (serverData) {
+          bulkPut('properties', serverData).catch(() => {});
+        }
+      } else {
+        // Offline: carregar dados locais (do usuário e do time)
+        const localData = await getAll('properties');
+        const filteredData = localData.filter((p: Property) => 
+          p.user_id === user.id || (userTeamId && p.team_id === userTeamId)
+        );
+        setProperties(filteredData);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar propriedades:', error);
+      try {
+        const localData = await getAll('properties');
+        const filteredData = localData.filter((p: Property) => 
+          p.user_id === user.id || (userTeamId && p.team_id === userTeamId)
+        );
+        setProperties(filteredData);
+      } catch (localError) {
+        console.error('Erro ao carregar dados locais:', localError);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id, isOnline, userTeamId]);
+
+  useEffect(() => {
+    loadProperties();
+  }, [loadProperties]);
+
+  const createPropertyFn = async (property: Omit<Property, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'team_id' | 'synced'>) => {
+    if (!user?.id) throw new Error('Usuário não autenticado');
+
+    const now = new Date().toISOString();
+    const newProperty = {
+      ...property,
+      user_id: user.id,
+      team_id: userTeamId, // Adiciona o team_id automaticamente
+      created_at: now,
+      updated_at: now,
+    };
+
+    try {
+      if (isOnline) {
+        const { data, error } = await supabase
+          .from('properties')
+          .insert([newProperty])
+          .select()
+          .single();
+
+        if (error) throw error;
+        await put('properties', { ...data, synced: true });
+        setProperties(prev => [data, ...prev]);
+        toast.success('Propriedade criada com sucesso!');
+        return data;
+      } else {
+        const localProperty = await put('properties', { ...newProperty, synced: false });
+        setProperties(prev => [localProperty, ...prev]);
+        toast.success('Propriedade salva localmente! Será sincronizada quando conectar.');
+        return localProperty;
+      }
+    } catch (error: any) {
       toast.error(error.message || 'Erro ao criar propriedade');
-    },
-  });
+      throw error;
+    }
+  };
 
-  const updateProperty = useMutation({
-    mutationFn: async ({ id, ...property }: Partial<Property> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('properties')
-        .update(property)
-        .eq('id', id)
-        .select()
-        .single();
+  const createProperty = {
+    mutate: createPropertyFn,
+    mutateAsync: createPropertyFn,
+  };
 
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast.success('Propriedade atualizada com sucesso!');
-    },
-    onError: (error: any) => {
+  const updatePropertyFn = async ({ id, synced: _synced, ...property }: Partial<Property> & { id: string }) => {
+    try {
+      const now = new Date().toISOString();
+
+      if (isOnline) {
+        const { data, error } = await supabase
+          .from('properties')
+          .update(property)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        await put('properties', { ...data, synced: true });
+        setProperties(prev => prev.map(p => p.id === id ? data : p));
+        toast.success('Propriedade atualizada com sucesso!');
+        return data;
+      } else {
+        const existing = properties.find(p => p.id === id);
+        const localProperty = await put('properties', { ...existing, ...property, id, updated_at: now, synced: false });
+        setProperties(prev => prev.map(p => p.id === id ? localProperty : p));
+        toast.success('Propriedade atualizada localmente! Será sincronizada quando conectar.');
+        return localProperty;
+      }
+    } catch (error: any) {
       toast.error(error.message || 'Erro ao atualizar propriedade');
-    },
-  });
+      throw error;
+    }
+  };
 
-  const deleteProperty = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', id);
+  const updateProperty = {
+    mutate: updatePropertyFn,
+    mutateAsync: updatePropertyFn,
+  };
 
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
+  const deletePropertyFn = async (id: string) => {
+    try {
+      if (isOnline) {
+        const { error } = await supabase
+          .from('properties')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+      }
+      await remove('properties', id);
+      setProperties(prev => prev.filter(p => p.id !== id));
       toast.success('Propriedade removida com sucesso!');
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       toast.error(error.message || 'Erro ao remover propriedade');
-    },
-  });
+      throw error;
+    }
+  };
+
+  const deleteProperty = {
+    mutate: deletePropertyFn,
+    mutateAsync: deletePropertyFn,
+  };
 
   return {
     properties,
@@ -98,5 +199,6 @@ export const useProperties = () => {
     createProperty,
     updateProperty,
     deleteProperty,
+    refetch: loadProperties,
   };
 };
