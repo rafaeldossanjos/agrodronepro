@@ -111,9 +111,9 @@ export default function Dashboard() {
 
     return {
       items: [
-        { label: "Área aplicada", value: `${totalAreaPeriod.toFixed(1)} ha`, icon: MapPin, color: "text-primary" },
-        { label: "Aplicações feitas", value: concluidas.length.toString(), icon: Droplet, color: "text-success" },
-        { label: "Em andamento", value: `${areaEmAndamento.toFixed(1)} ha`, icon: Clock, color: "text-blue-500" },
+        { label: "Área", value: `${totalAreaPeriod.toFixed(1)} ha`, icon: MapPin, color: "text-primary" },
+        { label: "Aplicações", value: concluidas.length.toString(), icon: Droplet, color: "text-success" },
+        { label: "Andamento", value: `${areaEmAndamento.toFixed(1)} ha`, icon: Clock, color: "text-blue-500" },
         { label: "Programadas", value: `${areaPlanejada.toFixed(1)} ha`, icon: TrendingUp, color: "text-warning" },
       ]
     };
@@ -313,17 +313,23 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
-        {stats.items.map((stat) => (
-          <Card key={stat.label} className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className={cn("rounded-lg bg-muted p-2", stat.color)}>
-                <stat.icon className="h-6 w-6" />
+        {stats.items.map((stat) => {
+          const [number, unit] = stat.value.split(' ');
+          return (
+            <Card key={stat.label} className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <div className={cn("rounded-lg bg-muted p-1.5", stat.color)}>
+                  <stat.icon className="h-5 w-5" />
+                </div>
+                <p className="text-xs text-muted-foreground leading-tight">{stat.label}</p>
               </div>
-              <p className="text-sm text-muted-foreground leading-tight">{stat.label}</p>
-            </div>
-            <p className="text-3xl font-bold whitespace-nowrap">{stat.value}</p>
-          </Card>
-        ))}
+              <div className="flex items-baseline gap-1">
+                <p className="text-2xl font-bold leading-none">{number}</p>
+                {unit && <span className="text-sm text-muted-foreground">{unit}</span>}
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Gráfico de Área */}
