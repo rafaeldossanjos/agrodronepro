@@ -31,7 +31,7 @@ type PeriodFilter = 1 | 7 | 15 | 30 | 'month' | 'all';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>(7);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
   const isMobile = useIsMobile();
